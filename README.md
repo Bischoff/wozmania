@@ -24,16 +24,40 @@ That is sufficient to run Applesoft BASIC and the ROM monitor.
 
 ## How to use
 
-1. Assemble the emulation by running the command "assemble.sh".
+1. Assemble the emulation by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
-   Apple ][ ROM; it must be named "APPLE2.ROM" and contain the
+   Apple ][ ROM; it must be named `APPLE2.ROM` and contain the
    last 20480 bytes of the memory.
-§. Run the emulator with the command "./emulator"
+3. Run the emulator with the command `./emulator`.
 
 
 ## How to debug
 
-There are three subroutines to help debug. They are commented out by default:
+To generate debugging symbols, export this variable before assembling:
+```
+export DEBUG=1
+```
+
+From `gdb`, you may inspect the 6502 registers like this:
+```
+     (gdb) i r w19              program counter
+               w20              stack pointer
+               w21              A
+               w22              X
+               w23              Y
+               w24              program status
+```
+
+To single-step one 6502 instruction, use:
+```
+     (gdb) b next
+     (gdb) run
+     ...
+     (gdb) c
+```
+
+There are three subroutines to help debugging. They are commented out
+by default:
 ```
    emulate:
         //bl    trace
@@ -43,10 +67,10 @@ There are three subroutines to help debug. They are commented out by default:
 
 You may uncomment these lines according to your debugging needs.
 
-"trace" prints the registers for each executed 6502 instruction.
+`trace` prints the registers for each executed 6502 instruction.
 
-"break" allows to set a 6502 breakpoint. For example, from gdb, to specify
-$DAF2 as a break point address:
+`break` allows to set a 6502 breakpoint. For example, from `gdb`, to specify
+`$DAF2` as a break point address:
 ```
      (gdb) b here
      (gdb) run
@@ -55,7 +79,7 @@ $DAF2 as a break point address:
 ```
 the breakpoint can then be changed at any time later.
 
-"check" verifies the value of the registers at each executed 6502 instruction.
+`check` verifies the value of the registers at each executed 6502 instruction.
 
 There is another line that is interesting to uncomment:
 ```
@@ -74,7 +98,7 @@ Compote is (c) 2021 Eric Bischoff.
 
 
 ## License
-
+```
 GNU GENERAL PUBLIC LICENSE
 Version 2, June 1991
 
@@ -158,3 +182,4 @@ NO WARRANTY
 12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 END OF TERMS AND CONDITIONS
+```
