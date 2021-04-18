@@ -13,11 +13,11 @@ pure emulation, there is no just-in-time code conversion.
 
 ## What is done
 
-As of 2021-04-17:
+As of 2021-04-18:
 
-* 6502 processor instructions: 100 out of 256;
-* input: keyboard;
-* output: first text buffer.
+* 6502 processor instructions: 103 out of 256;
+* input: keyboard, keyboard strobe;
+* output: text buffer.
 
 That is sufficient to run Applesoft BASIC and the ROM monitor.
 

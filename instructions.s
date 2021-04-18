@@ -148,6 +148,13 @@ ins_bmi:			// 30
 	mov	PC_REG,w0
 	b	emulate
 
+ins_and_ind_y:			// 31
+	v_ind_y	w0
+	and	A_REG,A_REG,w0
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
+	b	emulate
+
 ins_sec:			// 38
 	orr	S_REG,S_REG,C_FLAG
 	b	emulate
@@ -156,6 +163,13 @@ ins_rti:			// 40
 	pop_b	S_REG
 	and	S_REG,S_REG,#~(B_FLAG | X_FLAG)
 	pop_h	PC_REG
+	b	emulate
+
+ins_eor_ind_x:			// 41
+	v_ind_x	w0
+	eor	A_REG,A_REG,w0
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
 	b	emulate
 
 ins_eor_zp:			// 45
@@ -515,13 +529,19 @@ ins_tsx:			// BA
 	n_flag	X_REG,#0x80
 	b	emulate
 
+ins_ldy_abs_x:			// BC
+	v_abs_x	Y_REG
+	z_flag	Y_REG,#0xFF
+	n_flag	Y_REG,#0x80
+	b	emulate
+
 ins_lda_abs_x:			// BD
 	v_abs_x	A_REG
 	z_flag	A_REG,#0xFF
 	n_flag	A_REG,#0x80
 	b	emulate
 
-ins_ldx_abs_y:			// BD
+ins_ldx_abs_y:			// BE
 	v_abs_y	X_REG
 	z_flag	X_REG,#0xFF
 	n_flag	X_REG,#0x80
@@ -764,7 +784,7 @@ instr_table:
 	.quad	undefined	// 2E
 	.quad	undefined	// 2F
 	.quad	ins_bmi		// 30
-	.quad	undefined	// 31
+	.quad	ins_and_ind_y	// 31
 	.quad	undefined	// 32
 	.quad	undefined	// 33
 	.quad	undefined	// 34
@@ -780,7 +800,7 @@ instr_table:
 	.quad	undefined	// 3E
 	.quad	undefined	// 3F
 	.quad	ins_rti		// 40
-	.quad	undefined	// 41
+	.quad	ins_eor_ind_x	// 41
 	.quad	undefined	// 42
 	.quad	undefined	// 43
 	.quad	undefined	// 44
@@ -903,7 +923,7 @@ instr_table:
 	.quad	ins_lda_abs_y	// B9
 	.quad	ins_tsx		// BA
 	.quad	undefined	// BB
-	.quad	undefined	// BC
+	.quad	ins_ldy_abs_x	// BC
 	.quad	ins_lda_abs_x	// BD
 	.quad	ins_ldx_abs_y	// BE
 	.quad	undefined	// BF
