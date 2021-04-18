@@ -29,6 +29,17 @@ BREAKPOINT	.req	x27
 	.equ	V_FLAG,0x40
 	.equ	N_FLAG,0x80
 
+// Routine and I/O addresses
+	.equ	NMI,0x3FB
+	.equ	LINE1,0x400
+	.equ	KBD,0xC000
+	.equ	KBDSTRB,0xC010
+	.equ	DISK2ROM,0xC600
+	.equ	OLDRST,0xFF59
+
+// 6502 opcodes
+	.equ	JMP,0x4C
+
 // linux API
 	.equ	IOCTL,29
 	.equ	OPENAT,56
@@ -40,6 +51,7 @@ BREAKPOINT	.req	x27
 	.equ	TCSETS,0x5402
 	.equ	C_LFLAG,12
 	.equ	C_CC,17
+	.equ	ISIG,0x1
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
 	.equ	VTIME,5

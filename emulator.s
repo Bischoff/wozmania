@@ -28,6 +28,7 @@ prepare_terminal:
 	ldr	w0,[x2,#C_LFLAG]
 	and	w0,w0,#~ICANON
 	and	w0,w0,#~ECHO
+	//and	w0,w0,#~ISIG
 	str	w0,[x2,#C_LFLAG]
 	mov	w0,#1
 	strb	w0,[x2,#(C_CC + VTIME)]
@@ -50,17 +51,17 @@ load_rom:
 	mov	w2,#0x5000
 	mov	w8,#READ
 	svc	0
-	mov	w0,#0xC600	// for now, hide the disk by removing its signature
-	mov	w1,#0x4C
-        strb	w1,[MEM,x0]
-	mov	w0,#0xC601
-	mov	w1,#0xFF59
+	mov	w0,#DISK2ROM	// for now, hide the disk by removing its signature
+	mov	w1,#JMP
+	strb	w1,[MEM,x0]
+	mov	w0,#(DISK2ROM + 1)
+	mov	w1,#OLDRST
         strh	w1,[MEM,x0]
-	mov	w0,#0x3FB	// jump to monitor in case of BRK
-	mov	w1,#0x4C
+	mov	w0,#NMI		// jump to monitor in case of BRK
+	mov	w1,#JMP
         strh	w1,[MEM,x0]
-	mov	w0,#0x3FC
-	mov	w1,#0xFF59
+	mov	w0,#(NMI + 1)
+	mov	w1,#OLDRST
         strh	w1,[MEM,x0]
 	br	lr
 
@@ -77,12 +78,13 @@ reset:
 
 // Input-output via memory
 
-// input: w18 = address in range $C000-$C010
-// output: w18 = character read
+// Fetch byte from I/O area
+//   input: w18 = address in range $C000-$C100
+//   output: w18 = character read
 fetch_io:
-	cmp	w18,#0xC000
+	cmp	w18,#KBD
 	b.eq	read_key
-	mov	w0,#0xC010
+	mov	w0,#KBDSTRB
 	cmp	w18,w0
 	b.eq	clear_strobe
 	b	nothing_to_read
@@ -115,11 +117,12 @@ nothing_to_read:
 	mov	w18,#0
 	br	lr
 
-// input: w18 = address in range $0400-$0800
+// Store byte into I/O area
+//   input: w18 = address in range $0400-$0800
 store_io:
 	ldr	x3,=msg_text
 	mov	w2,w18		// line and column
-	sub	w2,w2,#0x400
+	sub	w2,w2,#LINE1
 	and	w0,w2,#0x7F
 	lsr	w2,w2,#7
 	mov	w4,#40
