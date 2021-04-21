@@ -47,10 +47,21 @@ load_rom:
 	mov	w2,#0
 	mov	w8,#OPENAT
 	svc	0
+	cmp	x0,#-1
+	b.eq	load_failure
 	ldr	x1,=rom		// read ROM file
 	mov	w2,#0x5000
 	mov	w8,#READ
 	svc	0
+	cmp	x0,#0x5000
+	b.ne	load_failure
+	br	lr
+load_failure:
+	adr	x3,msg_err_rom
+	write	36
+	b	exit
+
+fix_memory:
 	mov	w0,#DISK2ROM	// for now, hide the disk by removing its signature
 	mov	w1,#JMP
 	strb	w1,[MEM,x0]
@@ -224,8 +235,9 @@ _start:
 	adr	INSTR,instr_table
 	ldr	BREAKPOINT,=breakpoint
 	ldr	MEM,=memory
-	bl	prepare_terminal
 	bl	load_rom
+	bl	fix_memory
+	bl	prepare_terminal
 	bl	reset
 emulate:
 	//bl	trace		// uncomment these lines according to your debugging needs
@@ -275,6 +287,8 @@ filename:
 	.asciz	"APPLE2.ROM"
 hex:
 	.ascii	"0123456789ABCDEF"
+msg_err_rom:
+	.ascii	"Could not load ROM file APPLE2.ROM\n"
 msg_cls:
 	.ascii	"\x1B[2J\x1B[?25l"
 
