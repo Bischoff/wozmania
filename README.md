@@ -28,7 +28,7 @@ That is sufficient to run Applesoft BASIC and the ROM monitor.
 2. Download to the same directory a file that contains the
    Apple ][ ROM; it must be named `APPLE2.ROM` and contain the
    last 20480 bytes of the memory.
-3. Run the emulator with the command `./emulator`.
+3. Run the emulator with the command `./compote`.
 
 
 ## How to debug
