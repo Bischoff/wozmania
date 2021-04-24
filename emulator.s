@@ -94,31 +94,80 @@ reset:
 //   output: w18 = character read
 fetch_io:
 	cmp	w18,#KBD
-	b.eq	read_key
+	b.eq	read_cached_key
 	mov	w0,#KBDSTRB
 	cmp	w18,w0
 	b.eq	clear_strobe
 	b	nothing_to_read
-read_key:
+read_cached_key:
 	ldr	x0,=keyboard_strobe
 	ldrb	w1,[x0]
 	tst	w1,#0xFF
-	b.ne	1f
-	mov	w1,#1
-	strb	w1,[x0]
+	b.eq	read_key
+	ldr	x1,=last_key
+	b	analyze_key
+read_key:
 	mov	w0,#STDIN
 	ldr	x1,=keyboard_buffer
 	mov	w2,#1
 	mov	w8,#READ
 	svc	0
 	cmp	w0,#1
-	b.lt	clear_strobe
-1:	ldr	x1,=keyboard_buffer
+	b.lt	nothing_to_read
+	ldr	x1,=keyboard_buffer
+analyze_key:
 	ldrb	w18,[x1]
-	cmp	w18,#0xA
+	ldr	x2,=esc_sequence
+	ldrb	w0,[x2]
+	tst	w0,#0xFF
+	b.ne	escape2
+	cmp	w18,#0x0A
+	b.eq	linefeed
+	cmp	w18,#0x1B
+	b.eq	escape
+	orr	w18,w18,#0x80
+	b	found_key
+linefeed:
+	mov	w18,#0x8D
+	b	found_key
+escape:
+	mov	w0,#1
+	strb	w0,[x2]
+	b	nothing_to_read
+escape2:
+	cmp	w0,#1
+	b.ne	escape3
+	cmp	w18,#'['
+	b.ne	1f
+	mov	w0,#2
+	b	2f
+1:	mov	w0,#0
+2:	strb	w0,[x2]
+	b	nothing_to_read
+escape3:
+	mov	w0,#0
+	strb	w0,[x2]
+	cmp	w18,#'A'
+	b.ne	1f
+	mov	w18,#0x8B
+	b	found_key
+1:	cmp	w18,#'B'
 	b.ne	2f
-	mov	w18,#0xD
-2:	orr	w18,w18,#0x80
+	mov	w18,#0x8A
+	b	found_key
+2:	cmp	w18,#'C'
+	b.ne	3f
+	mov	w18,#0x95
+	b	found_key
+3:	cmp	w18,#'D'
+	b.ne	nothing_to_read
+	mov	w18,#0x88
+found_key:
+	ldr	x1,=last_key
+	strb	w18,[x1]
+	ldr	x0,=keyboard_strobe
+	mov	w1,#1
+	strb	w1,[x0]
 	br	lr
 clear_strobe:
 	ldr	x0,=keyboard_strobe
@@ -308,6 +357,10 @@ msg_text:
 termios:
 	.fill	60,1,0
 keyboard_buffer:
+	.byte	0
+last_key:
+	.byte	0
+esc_sequence:
 	.byte	0
 keyboard_strobe:
 	.byte	0
