@@ -56,3 +56,9 @@ BREAKPOINT	.req	x27
 	.equ	ECHO,0x8
 	.equ	VTIME,5
 	.equ	VMIN,6
+
+// Internal structures
+	.equ	KBD_BUFFER,0
+	.equ	KBD_STROBE,1
+	.equ	KBD_LASTKEY,2
+	.equ	KBD_ESCSEQ,3

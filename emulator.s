@@ -87,38 +87,40 @@ reset:
 	br	lr
 
 
-// Input-output via memory
-
 // Fetch byte from I/O area
 //   input: w18 = address in range $C000-$C100
 //   output: w18 = character read
 fetch_io:
 	cmp	w18,#KBD
-	b.eq	read_cached_key
+	b.eq	keyboard
 	mov	w0,#KBDSTRB
 	cmp	w18,w0
 	b.eq	clear_strobe
-	b	nothing_to_read
-read_cached_key:
-	ldr	x0,=keyboard_strobe
-	ldrb	w1,[x0]
-	tst	w1,#0xFF
+nothing_to_read:
+	mov	w18,#0
+	br	lr
+
+// Keyboard
+// Part of this code is extra complicated due to the fact we use an ANSI terminal
+// That will go away when we switch to a real graphical window of our own
+keyboard:
+	ldr	x1,=kbd
+	ldrb	w0,[x1,#KBD_STROBE]
+	tst	w0,#0xFF
 	b.eq	read_key
-	ldr	x1,=last_key
+	mov	w0,#KBD_LASTKEY
 	b	analyze_key
 read_key:
 	mov	w0,#STDIN
-	ldr	x1,=keyboard_buffer
 	mov	w2,#1
 	mov	w8,#READ
 	svc	0
 	cmp	w0,#1
 	b.lt	nothing_to_read
-	ldr	x1,=keyboard_buffer
+	mov	w0,#KBD_BUFFER
 analyze_key:
-	ldrb	w18,[x1]
-	ldr	x2,=esc_sequence
-	ldrb	w0,[x2]
+	ldrb	w18,[x1,x0]
+	ldrb	w0,[x1,#KBD_ESCSEQ]
 	tst	w0,#0xFF
 	b.ne	escape2
 	cmp	w18,#0x0A
@@ -132,7 +134,7 @@ linefeed:
 	b	found_key
 escape:
 	mov	w0,#1
-	strb	w0,[x2]
+	strb	w0,[x1,#KBD_ESCSEQ]
 	b	nothing_to_read
 escape2:
 	cmp	w0,#1
@@ -142,11 +144,11 @@ escape2:
 	mov	w0,#2
 	b	2f
 1:	mov	w0,#0
-2:	strb	w0,[x2]
+2:	strb	w0,[x1,#KBD_ESCSEQ]
 	b	nothing_to_read
 escape3:
 	mov	w0,#0
-	strb	w0,[x2]
+	strb	w0,[x1,#KBD_ESCSEQ]
 	cmp	w18,#'A'
 	b.ne	1f
 	mov	w18,#0x8B
@@ -163,19 +165,20 @@ escape3:
 	b.ne	nothing_to_read
 	mov	w18,#0x88
 found_key:
-	ldr	x1,=last_key
-	strb	w18,[x1]
-	ldr	x0,=keyboard_strobe
-	mov	w1,#1
-	strb	w1,[x0]
+	strb	w18,[x1,#KBD_LASTKEY]
+	mov	w0,#1
+	strb	w0,[x1,#KBD_STROBE]
 	br	lr
+no_key:
+	mov	w0,#0
+	strb	w0,[x1,#KBD_STROBE]
+	b	nothing_to_read
+
+// Keyboard strobe
 clear_strobe:
-	ldr	x0,=keyboard_strobe
-	mov	w1,#0
-	strb	w1,[x0]
-nothing_to_read:
-	mov	w18,#0
-	br	lr
+	ldr	x1,=kbd
+	b	no_key
+
 
 // Store byte into I/O area
 //   input: w18 = address in range $0400-$0800
@@ -223,6 +226,7 @@ effect:
 	write	13
 screen_hole:
 	br	lr
+
 
 // Debugging utilities
 
@@ -356,14 +360,11 @@ msg_text:
 	.ascii	"\x1B[01;01H\x1B[0m."
 termios:
 	.fill	60,1,0
-keyboard_buffer:
-	.byte	0
-last_key:
-	.byte	0
-esc_sequence:
-	.byte	0
-keyboard_strobe:
-	.byte	0
+kbd:
+	.byte	0		// buffer
+	.byte	0		// strobe
+	.byte	0		// last key
+	.byte	0		// escape sequence
 breakpoint:
 	.hword	0
 	//.align	16	// 64k, for easier debugging
