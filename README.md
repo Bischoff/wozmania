@@ -13,13 +13,16 @@ pure emulation, there is no just-in-time code conversion.
 
 ## What is done
 
-As of 2021-04-18:
+As of 2021-04-27:
 
-* 6502 processor instructions: 103 out of 256;
-* input: keyboard, keyboard strobe;
-* output: text buffer.
+* 6502 processor instructions: 116 out of 256;
+* input: keyboard, floppy disk 1;
+* output: 40 column text mode.
 
-That is sufficient to run Applesoft BASIC and the ROM monitor.
+That is sufficient to run:
+* Applesoft BASIC;
+* the ROM monitor;
+* the boot code of DOS Master disk.
 
 
 ## How to use
@@ -28,7 +31,10 @@ That is sufficient to run Applesoft BASIC and the ROM monitor.
 2. Download to the same directory a file that contains the
    Apple ][ ROM; it must be named `APPLE2.ROM` and contain the
    last 20480 bytes of the memory.
-3. Run the emulator with the command `./compote`.
+3. You may also download to the same directory a file that contains
+   the floppy drive 1; it must be named `drive1.nib` and contain
+   35 tracks of 13 sectors of 512 nibbles.
+4. Run the emulator with the command `./compote`.
 
 
 ## How to debug
@@ -56,18 +62,27 @@ To single-step one 6502 instruction, use:
      (gdb) c
 ```
 
-There are three subroutines to help debugging. They are commented out
-by default:
+There are four subroutines and one directive to help debugging.
+They are commented out by default:
 ```
    emulate:
         //bl    trace
         //bl    break
         //bl    check
+
+	//b	print_nibble
+
+        //.align     16
+memory:
 ```
 
 You may uncomment these lines according to your debugging needs.
 
+### trace
+
 `trace` prints the registers for each executed 6502 instruction.
+
+### break
 
 `break` allows to set a 6502 breakpoint. For example, from `gdb`, to specify
 `$DAF2` as a break point address:
@@ -79,17 +94,24 @@ You may uncomment these lines according to your debugging needs.
 ```
 the breakpoint can then be changed at any time later.
 
+### check
+
 `check` verifies the value of the registers at each executed 6502 instruction.
 
-There is another line that is interesting to uncomment:
+### print_nibble
+
+`print_nibble` displays the track number, position of disk head, and the last nibble read.
+
+### memory alignment
+
+This directive aligns the 6502 memory to a 64k boundary:
 ```
         //.align        16
 memory:
 ```
 
-It aligns the 6502 memory to a 64k boundary. The address in ARM register `w25`
-can then be combined with a 6502 address with a simple OR to provide the real
-address of that memory.
+If you uncomment it, the address in ARM register `x25` can be combined with a
+6502 address with a simple OR to provide the corresponding real address.
 
 
 ## Copyright and License

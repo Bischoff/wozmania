@@ -43,31 +43,50 @@ prepare_terminal:
 
 load_rom:
 	mov	w0,#-100	// open ROM file
-	adr	x1,filename
+	adr	x1,rom_filename
 	mov	w2,#0
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#-1
-	b.eq	load_failure
+	b.eq	load_failure_rom
 	ldr	x1,=rom		// read ROM file
 	mov	w2,#0x5000
 	mov	w8,#READ
 	svc	0
-	cmp	x0,#0x5000
-	b.ne	load_failure
+	cmp	x0,x2
+	b.ne	load_failure_rom
 	br	lr
-load_failure:
+load_failure_rom:
 	adr	x3,msg_err_rom
 	write	36
 	b	exit
 
-fix_memory:
-	mov	w0,#DISK2ROM	// for now, hide the disk by removing its signature
+load_drive1:
+	mov	w0,#-100	// open disk file
+	adr	x1,drive1_filename
+	mov	w2,#0
+	mov	w8,#OPENAT
+	svc	0
+	cmp	x0,#-1
+	b.eq	load_failure_drive1
+	ldr	x1,=drive1_content // read disk file
+	mov	w2,#0x8e00
+	movk	w2,#3,lsl #16
+	mov	w8,#READ
+	svc	0
+	cmp	x0,x2
+	b.ne	load_failure_drive1
+	br	lr
+load_failure_drive1:
+	mov	w0,#DISK2ROM	// temporary: hide the disk by removing its signature
 	mov	w1,#JMP
 	strb	w1,[MEM,x0]
 	mov	w0,#(DISK2ROM + 1)
 	mov	w1,#OLDRST
 	strh	w1,[MEM,x0]
+	br	lr
+
+set_nmi_routine:
 	mov	w0,#NMI		// jump to monitor in case of BRK
 	mov	w1,#JMP
 	strh	w1,[MEM,x0]
@@ -91,11 +110,17 @@ reset:
 //   input: IO = address in range $C000-$C100
 //   output: IO = character read
 fetch_io:
-	cmp	IO,#KBD
+	cmp	IO,#KBD		// $C000-$C010 keyboard
 	b.eq	keyboard
 	mov	w0,#KBDSTRB
 	cmp	IO,w0
 	b.eq	clear_strobe
+	mov	w0,#IWM_PHASE0OFF // $COE0-$C0EF floppy disk
+	cmp	IO,w0
+	b.lt	nothing_to_read
+	mov	w0,#IWM_WRITEMODE
+	cmp	IO,w0
+	b.le	floppy_disk
 nothing_to_read:
 	mov	IO,#0
 	br	lr
@@ -178,6 +203,69 @@ no_key:
 clear_strobe:
 	ldr	x1,=kbd
 	b	no_key
+
+// Floppy disk
+floppy_disk:
+	ldr	x1,=drive1
+	mov	w0,#IWM_PHASE0OFF
+	sub	IO,IO,w0
+	adr	x0,disk_table
+	ldr	x2,[x0,IO_64,LSL 3]
+	br	x2
+change_track:
+	lsr	w0,IO,#1	// w0 = new phase, w3 = old phase
+	ldrb	w3,[x1,#DRV_PHASE]
+	strb	w0,[x1,#DRV_PHASE]
+	ldr	x2,=htrack_delta // w4 = half-track delta
+	lsl	w3,w3,#2
+	add	w3,w3,w0
+	ldrsb	w4,[x2,x3]
+	ldrb	w5,[x1,#DRV_HTRACK] // compute new half-track
+	adds	w5,w5,w4
+	b.pl	1f
+	mov	w5,#0
+	b	2f
+1:	cmp	w5,#80
+	b.lt	2f
+	mov	w5,#79
+2:	strb	w5,[x1,#DRV_HTRACK]
+	b	nothing_to_read
+read_nibble:
+	ldrb	w2,[x1,#DRV_MODE]
+	mov	w4,#6656
+	ldrh	w5,[x1,#DRV_HEAD]
+	ldrb	w6,[x1,#DRV_HTRACK]
+	mov	IO,#0		// read only in read mode
+	cmp	w2,#1
+	b.eq	1f
+	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
+	mul	w7,w7,w4
+	add	w7,w7,w5
+	ldr	x2,=drive1_content
+	ldrb	IO,[x2,x7]
+1:	add	w8,w5,#1	// move head forward
+	cmp	w8,w4
+	b.lt	2f
+	mov	w8,#0
+2:	strh	w8,[x1,#DRV_HEAD]
+	//b	print_nibble	// uncomment this line to debug
+	br	lr
+print_nibble:
+	adr	x2,hex
+	ldr	x3,=msg_disk
+	hex_8	w6,8
+	hex_16	w5,18
+	hex_8	IO,31
+	write	34
+	br	lr
+read_mode:
+	mov	w0,#0
+	strb	w0,[x1,#DRV_MODE]
+	b	nothing_to_read
+write_mode:
+	mov	w0,#1
+	strb	w0,[x1,#DRV_MODE]
+	b	nothing_to_read
 
 
 // Store byte into I/O area
@@ -289,7 +377,8 @@ _start:
 	ldr	BREAKPOINT,=breakpoint
 	ldr	MEM,=memory
 	bl	load_rom
-	bl	fix_memory
+	bl	load_drive1
+	bl	set_nmi_routine
 	bl	prepare_terminal
 	bl	reset
 emulate:
@@ -336,8 +425,32 @@ video_table:
 	.quad	normal
 	.quad	normal
 	.quad	normal
-filename:
+disk_table:
+	.quad	nothing_to_read	// $C0E0
+	.quad	change_track
+	.quad	nothing_to_read
+	.quad	change_track
+	.quad	nothing_to_read
+	.quad	change_track
+	.quad	nothing_to_read
+	.quad	change_track
+	.quad	nothing_to_read	// $C0E8
+	.quad	nothing_to_read
+	.quad	nothing_to_read
+	.quad	nothing_to_read
+	.quad	read_nibble
+	.quad	nothing_to_read
+	.quad	read_mode
+	.quad	write_mode
+htrack_delta:
+	.byte	 0, +1, +2, -1
+	.byte	-1,  0, +1, +2
+	.byte	-2, -1,  0, +1
+	.byte	+1, -2, -1,  0
+rom_filename:
 	.asciz	"APPLE2.ROM"
+drive1_filename:
+	.asciz	"drive1.nib"	// no .dsk format for now
 hex:
 	.ascii	"0123456789ABCDEF"
 msg_err_rom:
@@ -352,6 +465,8 @@ msg_cls:
 
 msg_trace:
 	.ascii	"PC: ....  SP: 01..  A: ..  X: ..  Y: ..  S: ........\n"
+msg_disk:
+	.ascii	"HTRACK: ..  HEAD: ....  VALUE: ..\n"
 msg_undefined:
 	.ascii	"Undefined instruction .. at ....\n"
 msg_invalid:
@@ -365,9 +480,18 @@ kbd:
 	.byte	0		// strobe
 	.byte	0		// last key
 	.byte	0		// escape sequence
+drive1:
+	.byte	0		// mode 0=read 1=write
+	.byte	0		// phase 0-3
+	.byte	0		// half-track 0-69
+	.hword	0		// head 0-6655
 breakpoint:
 	.hword	0
 	//.align	16	// 64k, for easier debugging
 memory:
 	.fill	0x10000,1,0
 	.equ	rom,memory+0xB000
+drive1_content:
+	.fill	35*13*512,1,0	// .nib = 35 tracks, 13 sectors of 512 nibbles
+				// .dsk = 35 tracks, 16 sectors of 256 bytes
+				// a nibble encodes 5 data bits (5-and-3 scheme)

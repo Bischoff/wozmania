@@ -36,13 +36,15 @@ BREAKPOINT	.req	x27
 	.equ	LINE1,0x400
 	.equ	KBD,0xC000
 	.equ	KBDSTRB,0xC010
+	.equ	IWM_PHASE0OFF,0xC0E0
+	.equ	IWM_WRITEMODE,0xC0EF
 	.equ	DISK2ROM,0xC600
 	.equ	OLDRST,0xFF59
 
 // 6502 opcodes
 	.equ	JMP,0x4C
 
-// linux API
+// Linux API
 	.equ	IOCTL,29
 	.equ	OPENAT,56
 	.equ	READ,63
@@ -64,3 +66,7 @@ BREAKPOINT	.req	x27
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2
 	.equ	KBD_ESCSEQ,3
+	.equ	DRV_MODE,0
+	.equ	DRV_PHASE,1
+	.equ	DRV_HTRACK,2
+	.equ	DRV_HEAD,3

@@ -36,6 +36,14 @@
 	add	\reg,w0,Y_REG
 	.endm
 
+	.macro	a_ind_x reg
+	ldrb	w0,[MEM,PC_REG_64]
+	add	PC_REG,PC_REG,#1
+	add	w0,w0,X_REG
+	and	w0,w0,#0xFF
+	ldrh	\reg,[MEM,x0]
+	.endm
+
 	.macro	a_ind_y reg
 	ldrb	w0,[MEM,PC_REG_64]
 	add	PC_REG,PC_REG,#1
@@ -179,14 +187,6 @@
 	v_flag	w6,#0x80
 	.endm
 
-	.macro	compare reg,with
-	sub	w1,\reg,\with
-	c_flag	w1,#0x100
-	c_inv
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
-	.endm
-
 // Transfer carry from 6502 status register to ARM 64 status register
 	.macro	t_carry
 	mrs	x3,nzcv
@@ -196,6 +196,38 @@
 	b	2f
 1:	and	w3,w3,#0xDFFFFFFF
 2:	msr	nzcv,x3
+	.endm
+
+// Full instructions
+	.macro	compare reg,with
+	sub	w1,\reg,\with
+	c_flag	w1,#0x100
+	c_inv
+	z_flag	w1,#0xFF
+	n_flag	w1,#0x80
+	.endm
+
+	.macro	sub_a,what
+	mov	w2,A_REG
+	t_carry
+	sbc	A_REG,A_REG,\what
+	c_flag	A_REG,#0x100
+	c_inv
+	and	A_REG,A_REG,#0xFF
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
+	overflow A_REG,w0,w2
+	.endm
+
+	.macro	add_a,what
+	mov	w2,A_REG
+	t_carry
+	adc	A_REG,A_REG,\what
+	c_flag	A_REG,#0x100
+	and	A_REG,A_REG,#0xFF
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
+	overflow A_REG,w0,w2
 	.endm
 
 // Access to memory
