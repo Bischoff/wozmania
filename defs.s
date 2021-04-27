@@ -15,6 +15,8 @@ Y_REG		.req	w23
 S_REG		.req	w24
 
 // Other registers
+IO		.req	w18
+IO_64		.req	x18
 MEM		.req	x25
 INSTR		.req	x26
 BREAKPOINT	.req	x27

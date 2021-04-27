@@ -67,13 +67,13 @@ fix_memory:
 	strb	w1,[MEM,x0]
 	mov	w0,#(DISK2ROM + 1)
 	mov	w1,#OLDRST
-        strh	w1,[MEM,x0]
+	strh	w1,[MEM,x0]
 	mov	w0,#NMI		// jump to monitor in case of BRK
 	mov	w1,#JMP
-        strh	w1,[MEM,x0]
+	strh	w1,[MEM,x0]
 	mov	w0,#(NMI + 1)
 	mov	w1,#OLDRST
-        strh	w1,[MEM,x0]
+	strh	w1,[MEM,x0]
 	br	lr
 
 reset:
@@ -83,21 +83,21 @@ reset:
 	mov	S_REG,#0
 	mov	SP_REG,#0x1FF
 	mov	x0,#0xFFFC
-        ldrh	PC_REG,[MEM,x0]
+	ldrh	PC_REG,[MEM,x0]
 	br	lr
 
 
 // Fetch byte from I/O area
-//   input: w18 = address in range $C000-$C100
-//   output: w18 = character read
+//   input: IO = address in range $C000-$C100
+//   output: IO = character read
 fetch_io:
-	cmp	w18,#KBD
+	cmp	IO,#KBD
 	b.eq	keyboard
 	mov	w0,#KBDSTRB
-	cmp	w18,w0
+	cmp	IO,w0
 	b.eq	clear_strobe
 nothing_to_read:
-	mov	w18,#0
+	mov	IO,#0
 	br	lr
 
 // Keyboard
@@ -119,18 +119,18 @@ read_key:
 	b.lt	nothing_to_read
 	mov	w0,#KBD_BUFFER
 analyze_key:
-	ldrb	w18,[x1,x0]
+	ldrb	IO,[x1,x0]
 	ldrb	w0,[x1,#KBD_ESCSEQ]
 	tst	w0,#0xFF
 	b.ne	escape2
-	cmp	w18,#0x0A
+	cmp	IO,#0x0A
 	b.eq	linefeed
-	cmp	w18,#0x1B
+	cmp	IO,#0x1B
 	b.eq	escape
-	orr	w18,w18,#0x80
+	orr	IO,IO,#0x80
 	b	found_key
 linefeed:
-	mov	w18,#0x8D
+	mov	IO,#0x8D
 	b	found_key
 escape:
 	mov	w0,#1
@@ -139,7 +139,7 @@ escape:
 escape2:
 	cmp	w0,#1
 	b.ne	escape3
-	cmp	w18,#'['
+	cmp	IO,#'['
 	b.ne	1f
 	mov	w0,#2
 	b	2f
@@ -149,23 +149,23 @@ escape2:
 escape3:
 	mov	w0,#0
 	strb	w0,[x1,#KBD_ESCSEQ]
-	cmp	w18,#'A'
+	cmp	IO,#'A'
 	b.ne	1f
-	mov	w18,#0x8B
+	mov	IO,#0x8B
 	b	found_key
-1:	cmp	w18,#'B'
+1:	cmp	IO,#'B'
 	b.ne	2f
-	mov	w18,#0x8A
+	mov	IO,#0x8A
 	b	found_key
-2:	cmp	w18,#'C'
+2:	cmp	IO,#'C'
 	b.ne	3f
-	mov	w18,#0x95
+	mov	IO,#0x95
 	b	found_key
-3:	cmp	w18,#'D'
+3:	cmp	IO,#'D'
 	b.ne	nothing_to_read
-	mov	w18,#0x88
+	mov	IO,#0x88
 found_key:
-	strb	w18,[x1,#KBD_LASTKEY]
+	strb	IO,[x1,#KBD_LASTKEY]
 	mov	w0,#1
 	strb	w0,[x1,#KBD_STROBE]
 	br	lr
@@ -181,10 +181,10 @@ clear_strobe:
 
 
 // Store byte into I/O area
-//   input: w18 = address in range $0400-$0800
+//   input: IO = address in range $0400-$0800
 store_io:
 	ldr	x3,=msg_text
-	mov	w2,w18		// line and column
+	mov	w2,IO		// line and column
 	sub	w2,w2,#LINE1
 	and	w0,w2,#0x7F
 	lsr	w2,w2,#7
@@ -199,7 +199,7 @@ store_io:
 	dec_8	w2,2
 	add	w5,w5,#1
 	dec_8	w5,5
-	ldrb	w1,[MEM,x18]	// text effect and text
+	ldrb	w1,[MEM,IO_64]	// text effect and text
 	lsr	w0,w1,#2
 	and	w0,w0,#0xF8
 	adr	x4,video_table

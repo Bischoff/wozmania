@@ -203,12 +203,12 @@
 	.macro	fetch reg,where
 	cmp	\where,#0xC000		// Read I/O
 	b.lt	1f
-	mov	x18,#0xC100
-	cmp	\where,x18
+	mov	IO_64,#0xC100
+	cmp	\where,IO_64
 	b.ge	1f
-	mov	x18,\where
+	mov	IO_64,\where
 	bl	fetch_io
-	mov	\reg,w18
+	mov	\reg,IO
 	b	2f
 1:	ldrb	\reg,[MEM,\where]	// Load the byte
 2:
@@ -222,7 +222,7 @@
 	b.lt	1f
 	cmp	\where,#0x0800
 	b.ge	1f
-	mov	x18,\where
+	mov	IO_64,\where
 	bl	store_io
 1:
 	.endm
