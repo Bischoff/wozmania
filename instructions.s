@@ -20,19 +20,28 @@ ins_brk:			// 00
 
 ins_ora_zp:			// 05
 	v_zp	w0
-	orr	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	or_a	w0
 	b	emulate
 
 ins_asl_zp:			// 06
 	a_zp	w0
 	ldrb	w1,[MEM,x0]
-	lsl	w1,w1,#1
-	c_flag	w1,#0x100
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_asl	w1
+	store	w1,x0
+	b	emulate
+
+ins_slo_zp:			// 07 - undocumented
+	a_zp	w0
+	ldrb	w1,[MEM,x0]
+	op_asl	w1
+	or_a	w1
+	store	w1,x0
+	b	emulate
+
+ins_asl_abs:			// 0E
+	a_abs	w0
+	ldrb	w1,[MEM,x0]
+	op_asl	w1
 	store	w1,x0
 	b	emulate
 
@@ -43,17 +52,16 @@ ins_php:			// 08
 
 ins_ora_imm:			// 09
 	v_imm	w0
-	orr	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	or_a	w0
 	b	emulate
 
 ins_asl_a:			// 0A
-	lsl	A_REG,A_REG,#1
-	c_flag	A_REG,#0x100
-	and	A_REG,A_REG,#0xFF
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	op_asl	A_REG
+	b	emulate
+
+ins_ora_abs:			// 0D
+	v_abs	w0
+	or_a	w0
 	b	emulate
 
 ins_bpl:			// 10
@@ -66,16 +74,17 @@ ins_bpl:			// 10
 ins_asl_zp_x:			// 16
 	a_zp_x	w0
 	ldrb	w1,[MEM,x0]
-	lsl	w1,w1,#1
-	c_flag	w1,#0x100
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_asl	w1
 	store	w1,x0
 	b	emulate
 
 ins_clc:			// 18
 	and	S_REG,S_REG,~C_FLAG
+	b	emulate
+
+ins_ora_abs_x:			// 1D
+	v_abs_x	w0
+	or_a	w0
 	b	emulate
 
 ins_jsr:			// 20
@@ -87,28 +96,18 @@ ins_jsr:			// 20
 
 ins_bit_zp:			// 24
 	v_zp	w0
-	z_flag	w0,A_REG
-	n_flag	w0,#0x80
-	v_flag	w0,#0x40
+	bit_a	w0
 	b	emulate
 
 ins_and_zp:			// 25
 	v_zp	w0
-	and	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	and_a	w0
 	b	emulate
 
 ins_rol_zp:			// 26
 	a_zp	w0
 	ldrb	w1,[MEM,x0]
-	lsl	w1,w1,#1
-	and	w2,S_REG,#C_FLAG
-	orr	w1,w1,w2
-	c_flag	w1,#0x100
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_rol	w1
 	store	w1,x0
 	b	emulate
 
@@ -119,33 +118,21 @@ ins_plp:			// 28
 
 ins_and_imm:			// 29
 	v_imm	w0
-	and	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	and_a	w0
 	b	emulate
 
 ins_rol_a:			// 2A
-	lsl	A_REG,A_REG,#1
-	and	w2,S_REG,#C_FLAG
-	orr	A_REG,A_REG,w2
-	c_flag	A_REG,#0x100
-	and	A_REG,A_REG,#0xFF
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	op_rol	A_REG
 	b	emulate
 
 ins_bit_abs:			// 2C
 	v_abs	w0
-	z_flag	w0,A_REG
-	n_flag	w0,#0x80
-	v_flag	w0,#0x40
+	bit_a	w0
 	b	emulate
 
 ins_and_abs:			// 2D
 	v_abs	w0
-	and	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	and_a	w0
 	b	emulate
 
 ins_bmi:			// 30
@@ -157,13 +144,16 @@ ins_bmi:			// 30
 
 ins_and_ind_y:			// 31
 	v_ind_y	w0
-	and	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	and_a	w0
 	b	emulate
 
 ins_sec:			// 38
 	orr	S_REG,S_REG,C_FLAG
+	b	emulate
+
+ins_and_abs_y:			// 39
+	v_abs_y	w0
+	and_a	w0
 	b	emulate
 
 ins_rti:			// 40
@@ -174,25 +164,30 @@ ins_rti:			// 40
 
 ins_eor_ind_x:			// 41
 	v_ind_x	w0
-	eor	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	eor_a	w0
+	b	emulate
+
+ins_ign_zp:			// 44 - undocumented
+	v_zp	w0
 	b	emulate
 
 ins_eor_zp:			// 45
 	v_zp	w0
-	eor	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	eor_a	w0
 	b	emulate
 
 ins_lsr_zp:			// 46
 	a_zp	w0
 	ldrb	w1,[MEM,x0]
-	c_flag	w1,#0x01
-	lsr	w1,w1,#1
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_lsr	w1
+	store	w1,x0
+	b	emulate
+
+ins_sre_zp:			// 47 - undocumented
+	a_zp	w0
+	ldrb	w1,[MEM,x0]
+	op_lsr	w1
+	eor_a	w1
 	store	w1,x0
 	b	emulate
 
@@ -202,29 +197,34 @@ ins_pha:			// 48
 
 ins_eor_imm:			// 49
 	v_imm	w0
-	eor	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	eor_a	w0
 	b	emulate
 
 ins_lsr_a:			// 4A
-	c_flag	A_REG,#0x01
-	lsr	A_REG,A_REG,#1
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	op_lsr	A_REG
 	b	emulate
 
 ins_jmp_abs:			// 4C
 	ldrh	PC_REG,[MEM,PC_REG_64]
 	b	emulate
 
+ins_eor_abs:			// 4D
+	v_abs	w0
+	eor_a	w0
+	b	emulate
+
 ins_lsr_abs:			// 4E
 	a_abs	w0
 	ldrb	w1,[MEM,x0]
-	c_flag	w1,#0x01
-	lsr	w1,w1,#1
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_lsr	w1
+	store	w1,x0
+	b	emulate
+
+ins_sre_abs:			// 4F - undocumented
+	a_abs	w0
+	ldrb	w1,[MEM,x0]
+	op_lsr	w1
+	eor_a	w1
 	store	w1,x0
 	b	emulate
 
@@ -237,35 +237,30 @@ ins_bvc:			// 50
 
 ins_eor_ind_y:			// 51
 	v_ind_y	w0
-	eor	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	eor_a	w0
 	b	emulate
 
 ins_lsr_zp_x:			// 56
 	a_zp_x	w0
 	ldrb	w1,[MEM,x0]
-	c_flag	w1,#0x01
-	lsr	w1,w1,#1
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_lsr	w1
 	store	w1,x0
 	b	emulate
 
 ins_eor_abs_y:			// 59
 	v_abs_y	w0
-	eor	A_REG,A_REG,w0
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	eor_a	w0
+	b	emulate
+
+ins_eor_abs_x:			// 5D
+	v_abs_x	w0
+	eor_a	w0
 	b	emulate
 
 ins_lsr_abs_x:			// 5E
 	a_abs_x	w0
 	ldrb	w1,[MEM,x0]
-	c_flag	w1,#0x01
-	lsr	w1,w1,#1
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_lsr	w1
 	store	w1,x0
 	b	emulate
 
@@ -282,14 +277,7 @@ ins_adc_zp:			// 65
 ins_ror_zp:			// 66
 	a_zp	w0
 	ldrb	w1,[MEM,x0]
-	mov	w3,w1
-	lsr	w1,w1,#1
-	and	w2,S_REG,#C_FLAG
-	lsl	w2,w2,#7
-	orr	w1,w1,w2
-	c_flag	w3,#0x01
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_ror	w1
 	store	w1,x0
 	b	emulate
 
@@ -305,14 +293,7 @@ ins_adc_imm:			// 69
 	b	emulate
 
 ins_ror_a:			// 6A
-	mov	w3,A_REG
-	lsr	A_REG,A_REG,#1
-	and	w2,S_REG,#C_FLAG
-	lsl	w2,w2,#7
-	orr	A_REG,A_REG,w2
-	c_flag	w3,#0x01
-	z_flag	A_REG,#0xFF
-	n_flag	A_REG,#0x80
+	op_ror	A_REG
 	b	emulate
 
 ins_jmp_ind:			// 6C
@@ -340,14 +321,7 @@ ins_adc_ind_y:			// 71
 ins_ror_zp_x:			// 76
 	a_zp_x	w0
 	ldrb	w1,[MEM,x0]
-	mov	w3,w1
-	lsr	w1,w1,#1
-	and	w2,S_REG,#C_FLAG
-	lsl	w2,w2,#7
-	orr	w1,w1,w2
-	c_flag	w3,#0x01
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_ror	w1
 	store	w1,x0
 	b	emulate
 
@@ -357,6 +331,19 @@ ins_sei:			// 78
 
 ins_adc_abs_y:			// 79
 	v_abs_y	w0
+	add_a	w0
+	b	emulate
+
+ins_rra_abs_y:			// 7B - undocumented
+	a_abs_y	w0
+	ldrb	w1,[MEM,x0]
+	op_ror	w1
+	add_a	w1
+	store	w1,x0
+	b	emulate
+
+ins_adc_abs_x:			// 7D
+	v_abs_x	w0
 	add_a	w0
 	b	emulate
 
@@ -381,10 +368,7 @@ ins_stx_zp:			// 86
 	b	emulate
 
 ins_dey:			// 88
-	sub	Y_REG,Y_REG,#1
-	and	Y_REG,Y_REG,#0xFF
-	z_flag	Y_REG,#0xFF
-	n_flag	Y_REG,#0x80
+	op_dec	Y_REG
 	b	emulate
 
 ins_txa:			// 8A
@@ -547,6 +531,10 @@ ins_lda_zp_x:			// B5
 	n_flag	A_REG,#0x80
 	b	emulate
 
+ins_clv:			// B8
+	and	S_REG,S_REG,~V_FLAG
+	b	emulate
+
 ins_lda_abs_y:			// B9
 	v_abs_y	A_REG
 	z_flag	A_REG,#0xFF
@@ -583,6 +571,11 @@ ins_cpy_imm:			// C0
 	compare	Y_REG,w0
 	b	emulate
 
+ins_cmp_ind_x:			// C1
+	v_ind_x	w0
+	compare	A_REG,w0
+	b	emulate
+
 ins_cpy_zp:			// C4
 	v_zp	w0
 	compare	Y_REG,w0
@@ -596,18 +589,12 @@ ins_cmp_zp:			// C5
 ins_dec_zp:			// C6
 	a_zp	w0
 	ldrb	w1,[MEM,x0]
-	sub	w1,w1,#1
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_dec	w1
 	store	w1,x0
 	b	emulate
 
 ins_iny:			// C8
-	add	Y_REG,Y_REG,#1
-	and	Y_REG,Y_REG,#0xFF
-	z_flag	Y_REG,#0xFF
-	n_flag	Y_REG,#0x80
+	op_inc	Y_REG
 	b	emulate
 
 ins_cmp_imm:			// C9
@@ -616,10 +603,7 @@ ins_cmp_imm:			// C9
 	b	emulate
 
 ins_dex:			// CA
-	sub	X_REG,X_REG,#1
-	and	X_REG,X_REG,#0xFF
-	z_flag	X_REG,#0xFF
-	n_flag	X_REG,#0x80
+	op_dec	X_REG
 	b	emulate
 
 ins_cpy_abs:			// CC
@@ -635,10 +619,7 @@ ins_cmp_abs:			// CD
 ins_dec_abs:			// CE
 	a_abs	w0
 	ldrb	w1,[MEM,x0]
-	sub	w1,w1,#1
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_dec	w1
 	store	w1,x0
 	b	emulate
 
@@ -654,6 +635,17 @@ ins_cmp_ind_y:			// D1
 	compare	A_REG,w0
 	b	emulate
 
+ins_ign_zp_x:			// D4 - undocumented
+	v_zp_x	w0
+	b	emulate
+
+ins_dec_zp_x:			// D6
+	a_zp_x	w0
+	ldrb	w1,[MEM,x0]
+	op_dec	w1
+	store	w1,x0
+	b	emulate
+
 ins_cld:			// D8
 	and	S_REG,S_REG,~D_FLAG
 	b	emulate
@@ -666,6 +658,21 @@ ins_cmp_abs_y:			// D9
 ins_cmp_abs_x:			// DD
 	v_abs_x	w0
 	compare	A_REG,w0
+	b	emulate
+
+ins_dec_abs_x:			// DE
+	a_abs_x	w0
+	ldrb	w1,[MEM,x0]
+	op_dec	w1
+	store	w1,x0
+	b	emulate
+
+ins_dcp_abs_x:			// DF - undocumented
+	a_abs_x	w0
+	ldrb	w1,[MEM,x0]
+	op_dec	w1
+	compare	A_REG,w1
+	store	w1,x0
 	b	emulate
 
 ins_cpx_imm:			// E0
@@ -686,18 +693,12 @@ ins_sbc_zp:			// E5
 ins_inc_zp:			// E6
 	a_zp	w0
 	ldrb	w1,[MEM,x0]
-	add	w1,w1,#1
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_inc	w1
 	store	w1,x0
 	b	emulate
 
 ins_inx:			// E8
-	add	X_REG,X_REG,#1
-	and	X_REG,X_REG,#0xFF
-	z_flag	X_REG,#0xFF
-	n_flag	X_REG,#0x80
+	op_inc	X_REG
 	b	emulate
 
 ins_sbc_imm:			// E9
@@ -721,10 +722,7 @@ ins_sbc_abs:			// ED
 ins_inc_abs:			// EE
 	a_abs	w0
 	ldrb	w1,[MEM,x0]
-	add	w1,w1,#1
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_inc	w1
 	store	w1,x0
 	b	emulate
 
@@ -748,11 +746,13 @@ ins_sbc_zp_x:			// F5
 ins_inc_zp_x:			// F6
 	a_zp_x	w0
 	ldrb	w1,[MEM,x0]
-	add	w1,w1,#1
-	and	w1,w1,#0xFF
-	z_flag	w1,#0xFF
-	n_flag	w1,#0x80
+	op_inc	w1
 	store	w1,x0
+	b	emulate
+
+ins_sbc_abs_y:			// F9
+	v_abs_y	w0
+	sub_a	w0
 	b	emulate
 
 ins_sbc_abs_x:			// FD
@@ -768,14 +768,14 @@ instr_table:
 	.quad	undefined	// 04
 	.quad	ins_ora_zp	// 05
 	.quad	ins_asl_zp	// 06
-	.quad	undefined	// 07
+	.quad	ins_slo_zp	// 07*
 	.quad	ins_php		// 08
 	.quad	ins_ora_imm	// 09
 	.quad	ins_asl_a	// 0A
 	.quad	undefined	// 0B
 	.quad	undefined	// 0C
-	.quad	undefined	// 0D
-	.quad	undefined	// 0E
+	.quad	ins_ora_abs	// 0D
+	.quad	ins_asl_abs	// 0E
 	.quad	undefined	// 0F
 	.quad	ins_bpl		// 10
 	.quad	undefined	// 11
@@ -790,7 +790,7 @@ instr_table:
 	.quad	undefined	// 1A
 	.quad	undefined	// 1B
 	.quad	undefined	// 1C
-	.quad	undefined	// 1D
+	.quad	ins_ora_abs_x	// 1D
 	.quad	undefined	// 1E
 	.quad	undefined	// 1F
 	.quad	ins_jsr		// 20
@@ -818,7 +818,7 @@ instr_table:
 	.quad	undefined	// 36
 	.quad	undefined	// 37
 	.quad	ins_sec		// 38
-	.quad	undefined	// 39
+	.quad	ins_and_abs_y	// 39
 	.quad	undefined	// 3A
 	.quad	undefined	// 3B
 	.quad	undefined	// 3C
@@ -829,18 +829,18 @@ instr_table:
 	.quad	ins_eor_ind_x	// 41
 	.quad	undefined	// 42
 	.quad	undefined	// 43
-	.quad	undefined	// 44
+	.quad	ins_ign_zp	// 44*
 	.quad	ins_eor_zp	// 45
 	.quad	ins_lsr_zp	// 46
-	.quad	undefined	// 47
+	.quad	ins_sre_zp	// 47*
 	.quad	ins_pha		// 48
 	.quad	ins_eor_imm	// 49
 	.quad	ins_lsr_a	// 4A
 	.quad	undefined	// 4B
 	.quad	ins_jmp_abs	// 4C
-	.quad	undefined	// 4D
+	.quad	ins_eor_abs	// 4D
 	.quad	ins_lsr_abs	// 4E
-	.quad	undefined	// 4F
+	.quad	ins_sre_abs	// 4F*
 	.quad	ins_bvc		// 50
 	.quad	ins_eor_ind_y	// 51
 	.quad	undefined	// 52
@@ -851,10 +851,10 @@ instr_table:
 	.quad	undefined	// 57
 	.quad	undefined	// 58
 	.quad	ins_eor_abs_y	// 59
-	.quad	undefined	// 5A
+	.quad	ins_nop		// 5A*
 	.quad	undefined	// 5B
 	.quad	undefined	// 5C
-	.quad	undefined	// 5D
+	.quad	ins_eor_abs_x	// 5D
 	.quad	ins_lsr_abs_x	// 5E
 	.quad	undefined	// 5F
 	.quad	ins_rts		// 60
@@ -884,9 +884,9 @@ instr_table:
 	.quad	ins_sei		// 78
 	.quad	ins_adc_abs_y	// 79
 	.quad	undefined	// 7A
-	.quad	undefined	// 7B
+	.quad	ins_rra_abs_y	// 7B*
 	.quad	undefined	// 7C
-	.quad	undefined	// 7D
+	.quad	ins_adc_abs_x	// 7D
 	.quad	undefined	// 7E
 	.quad	undefined	// 7F
 	.quad	undefined	// 80
@@ -945,7 +945,7 @@ instr_table:
 	.quad	ins_lda_zp_x	// B5
 	.quad	undefined	// B6
 	.quad	undefined	// B7
-	.quad	undefined	// B8
+	.quad	ins_clv		// B8
 	.quad	ins_lda_abs_y	// B9
 	.quad	ins_tsx		// BA
 	.quad	undefined	// BB
@@ -954,7 +954,7 @@ instr_table:
 	.quad	ins_ldx_abs_y	// BE
 	.quad	undefined	// BF
 	.quad	ins_cpy_imm	// C0
-	.quad	undefined	// C1
+	.quad	ins_cmp_ind_x	// C1
 	.quad	undefined	// C2
 	.quad	undefined	// C3
 	.quad	ins_cpy_zp	// C4
@@ -973,9 +973,9 @@ instr_table:
 	.quad	ins_cmp_ind_y	// D1
 	.quad	undefined	// D2
 	.quad	undefined	// D3
-	.quad	undefined	// D4
+	.quad	ins_ign_zp_x	// D4*
 	.quad	undefined	// D5
-	.quad	undefined	// D6
+	.quad	ins_dec_zp_x	// D6
 	.quad	undefined	// D7
 	.quad	ins_cld		// D8
 	.quad	ins_cmp_abs_y	// D9
@@ -983,8 +983,8 @@ instr_table:
 	.quad	undefined	// DB
 	.quad	undefined	// DC
 	.quad	ins_cmp_abs_x	// DD
-	.quad	undefined	// DE
-	.quad	undefined	// DF
+	.quad	ins_dec_abs_x	// DE
+	.quad	ins_dcp_abs_x	// DF*
 	.quad	ins_cpx_imm	// E0
 	.quad	undefined	// E1
 	.quad	undefined	// E2
@@ -1010,7 +1010,7 @@ instr_table:
 	.quad	ins_inc_zp_x	// F6
 	.quad	undefined	// F7
 	.quad	undefined	// F8
-	.quad	undefined	// F9
+	.quad	ins_sbc_abs_y	// F9
 	.quad	undefined	// FA
 	.quad	undefined	// FB
 	.quad	undefined	// FC

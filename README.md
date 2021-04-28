@@ -13,16 +13,11 @@ pure emulation, there is no just-in-time code conversion.
 
 ## What is done
 
-As of 2021-04-27:
+As of 2021-04-29:
 
-* 6502 processor instructions: 116 out of 256;
+* 6502 processor instructions: 136 out of 256;
 * input: keyboard, floppy disk 1;
 * output: 40 column text mode.
-
-That is sufficient to run:
-* Applesoft BASIC;
-* the ROM monitor;
-* the boot code of DOS Master disk.
 
 
 ## How to use

@@ -230,6 +230,81 @@
 	overflow A_REG,w0,w2
 	.endm
 
+	.macro	and_a,what
+	and	A_REG,A_REG,\what
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
+	.endm
+
+	.macro	or_a,what
+	orr	A_REG,A_REG,\what
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
+	.endm
+
+	.macro	eor_a,what
+	eor	A_REG,A_REG,\what
+	z_flag	A_REG,#0xFF
+	n_flag	A_REG,#0x80
+	.endm
+
+	.macro	bit_a,what
+	z_flag	\what,A_REG
+	n_flag	\what,#0x80
+	v_flag	\what,#0x40
+	.endm
+
+	.macro	op_asl,reg
+	lsl	\reg,\reg,#1
+	c_flag	\reg,#0x100
+	and	\reg,\reg,#0xFF
+	z_flag	\reg,#0xFF
+	n_flag	\reg,#0x80
+	.endm
+
+	.macro	op_lsr,reg
+	c_flag	\reg,#0x01
+	lsr	\reg,\reg,#1
+	z_flag	\reg,#0xFF
+	n_flag	\reg,#0x80
+	.endm
+
+	.macro	op_rol,reg
+	lsl	\reg,\reg,#1
+	and	w2,S_REG,#C_FLAG
+	orr	\reg,\reg,w2
+	c_flag	\reg,#0x100
+	and	\reg,\reg,#0xFF
+	z_flag	\reg,#0xFF
+	n_flag	\reg,#0x80
+	.endm
+
+	.macro	op_ror,reg
+	mov	w3,\reg
+	lsr	\reg,\reg,#1
+	and	w2,S_REG,#C_FLAG
+	lsl	w2,w2,#7
+	orr	\reg,\reg,w2
+	c_flag	w3,#0x01
+	z_flag	\reg,#0xFF
+	n_flag	\reg,#0x80
+	.endm
+
+	.macro	op_dec,reg
+	sub	\reg,\reg,#1
+	and	\reg,\reg,#0xFF
+	z_flag	\reg,#0xFF
+	n_flag	\reg,#0x80
+	.endm
+
+	.macro	op_inc,reg
+	add	\reg,\reg,#1
+	and	\reg,\reg,#0xFF
+	z_flag	\reg,#0xFF
+	n_flag	\reg,#0x80
+	.endm
+
+
 // Access to memory
 // Handles special I/O addresses
 	.macro	fetch reg,where
