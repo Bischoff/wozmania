@@ -1,4 +1,4 @@
-// COMPOTE Apple ][ emulator for ARM processor
+// WozMania Apple ][ emulator for ARM processor
 // (c) Eric Bischoff 2021
 // Released under GPLv2 license
 //

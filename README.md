@@ -1,4 +1,4 @@
-# Compote: an Apple ][ emulator for ARM 64
+# WozMania: an Apple ][ emulator for ARM 64
 
 ## Motivation
 
@@ -34,7 +34,7 @@ That is sufficient to run:
 3. You may also download to the same directory a file that contains
    the floppy drive 1; it must be named `drive1.nib` and contain
    35 tracks of 13 sectors of 512 nibbles.
-4. Run the emulator with the command `./compote`.
+4. Run the emulator with the command `./wozmania`.
 
 
 ## How to debug
@@ -135,7 +135,7 @@ Quality Software, 4th edition, May 1982
 
 ## Copyright and License
 
-Compote is (c) 2021 Eric Bischoff.
+WozMania is (c) 2021 Eric Bischoff.
 
-Compote is released under GNU GENERAL PUBLIC LICENSE, Version 2.
+WozMania is released under GNU GENERAL PUBLIC LICENSE, Version 2.
 See LICENSE file for details.
