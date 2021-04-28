@@ -1,0 +1,12 @@
+* missing 6502 instructions
+* remove "unimplemented instruction" code and messages
+* drive 2
+* unconnected drives
+* remove workaround disabling slot 6
+* allocate memory and disk buffers dynamically
+* disk writing
+* write "nibblelizer" utility to convert most disks to .nib format
+* graphical mode
+* semi-graphical mode
+* sound
+* game paddles
