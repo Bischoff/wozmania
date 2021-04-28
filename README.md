@@ -114,6 +114,25 @@ If you uncomment it, the address in ARM register `x25` can be combined with a
 6502 address with a simple OR to provide the corresponding real address.
 
 
+## Bibliography
+
+NMOS 6502 opcodes,
+John Pickens et. al.,
+http://6502.org/tutorials/6502opcodes.html
+
+Apple II ROM disassembly,
+James P. Davis,
+https://6502disassembly.com/a2-rom/APPLE2.ROM.html
+
+The 6502 overflow flag explained mathematically,
+Ken Shirriff,
+http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+
+Beneath Apple DOS,
+Don Worth and Peter Lechner,
+Quality Software, 4th edition, May 1982
+
+
 ## Copyright and License
 
 Compote is (c) 2021 Eric Bischoff.
