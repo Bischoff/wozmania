@@ -62,29 +62,44 @@ load_failure_rom:
 	b	exit
 
 load_drive1:
-	mov	w0,#-100	// open disk file
-	adr	x1,drive1_filename
+	ldr	x4,=drive1
+	mov	w5,#'1'
+	b	load_drive
+load_drive2:
+	ldr	x4,=drive2
+	mov	w5,#'2'
+load_drive:
+	ldr	x1,=drive_filename // open disk file
+	strb	w5,[x1,#5]
+	mov	w0,#-100
 	mov	w2,#0
 	mov	w8,#OPENAT
 	svc	0
-	cmp	x0,#-1
-	b.eq	load_failure_drive1
-	ldr	x1,=drive1_content // read disk file
+	cmp	x0,#0
+	b.lt	hack
+	add	x1,x4,#DRV_CONTENT // read disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#READ
 	svc	0
 	cmp	x0,x2
-	b.ne	load_failure_drive1
+	b.ne	load_failure_drive
+	mov	w0,#F_LOADED	// disk is loaded
+	strb	w0,[x4,DRV_FLAGS]
 	br	lr
-load_failure_drive1:
-	mov	w0,#DISK2ROM	// temporary: hide the disk by removing its signature
+hack:
+	mov	w0,#DISK2ROM	// temporary: hide the disks by removing controller's signature
 	mov	w1,#JMP
 	strb	w1,[MEM,x0]
 	mov	w0,#(DISK2ROM + 1)
 	mov	w1,#OLDRST
 	strh	w1,[MEM,x0]
 	br	lr
+load_failure_drive:
+	ldr	x3,=msg_err_drive
+	char	w5,31
+	write	37
+	b	exit
 
 set_nmi_routine:
 	mov	w0,#NMI		// jump to monitor in case of BRK
@@ -206,7 +221,8 @@ clear_strobe:
 
 // Floppy disk
 floppy_disk:
-	ldr	x1,=drive1
+	ldr	x1,=current_drive
+	ldr	x1,[x1]
 	mov	w0,#IWM_PHASE0OFF
 	sub	IO,IO,w0
 	adr	x0,disk_table
@@ -230,18 +246,28 @@ change_track:
 	mov	w5,#79
 2:	strb	w5,[x1,#DRV_HTRACK]
 	b	nothing_to_read
+select_drive1:
+	ldr	x1,=current_drive
+	ldr	x2,=drive1
+	str	x2,[x1]
+	b	nothing_to_read
+select_drive2:
+	ldr	x1,=current_drive
+	ldr	x2,=drive2
+	str	x2,[x1]
+	b	nothing_to_read
 read_nibble:
-	ldrb	w2,[x1,#DRV_MODE]
+	ldrb	w2,[x1,#DRV_FLAGS]
 	mov	w4,#6656
 	ldrh	w5,[x1,#DRV_HEAD]
 	ldrb	w6,[x1,#DRV_HTRACK]
-	mov	IO,#0		// read only in read mode
-	cmp	w2,#1
-	b.eq	1f
+	mov	IO,#0		// only read when loaded + read mode
+	cmp	w2,#F_LOADED
+	b.ne	1f
 	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
 	mul	w7,w7,w4
 	add	w7,w7,w5
-	ldr	x2,=drive1_content
+	add	x2,x1,#DRV_CONTENT
 	ldrb	IO,[x2,x7]
 1:	add	w8,w5,#1	// move head forward
 	cmp	w8,w4
@@ -259,12 +285,14 @@ print_nibble:
 	write	34
 	br	lr
 read_mode:
-	mov	w0,#0
-	strb	w0,[x1,#DRV_MODE]
+	ldrb	w0,[x1,#DRV_FLAGS]
+	and	w0,w0,#~F_WRITE
+	strb	w0,[x1,#DRV_FLAGS]
 	b	nothing_to_read
 write_mode:
-	mov	w0,#1
-	strb	w0,[x1,#DRV_MODE]
+	ldrb	w0,[x1,#DRV_FLAGS]
+	orr	w0,w0,#F_WRITE
+	strb	w0,[x1,#DRV_FLAGS]
 	b	nothing_to_read
 
 
@@ -378,6 +406,7 @@ _start:
 	ldr	MEM,=memory
 	bl	load_rom
 	bl	load_drive1
+	bl	load_drive2
 	bl	set_nmi_routine
 	bl	prepare_terminal
 	bl	reset
@@ -436,8 +465,8 @@ disk_table:
 	.quad	change_track
 	.quad	nothing_to_read	// $C0E8
 	.quad	nothing_to_read
-	.quad	nothing_to_read
-	.quad	nothing_to_read
+	.quad	select_drive1
+	.quad	select_drive2
 	.quad	read_nibble
 	.quad	nothing_to_read
 	.quad	read_mode
@@ -449,8 +478,6 @@ htrack_delta:
 	.byte	+1, -2, -1,  0
 rom_filename:
 	.asciz	"APPLE2.ROM"
-drive1_filename:
-	.asciz	"drive1.nib"	// no .dsk format for now
 hex:
 	.ascii	"0123456789ABCDEF"
 msg_err_rom:
@@ -463,6 +490,8 @@ msg_cls:
 
 .data
 
+drive_filename:
+	.asciz	"drive..nib"
 msg_trace:
 	.ascii	"PC: ....  SP: 01..  A: ..  X: ..  Y: ..  S: ........\n"
 msg_disk:
@@ -471,27 +500,34 @@ msg_undefined:
 	.ascii	"Undefined instruction .. at ....\n"
 msg_invalid:
 	.ascii	"Invalid register value at ....\n"
+msg_err_drive:
+	.ascii	"Could not load drive file drive..nib\n"
 msg_text:
 	.ascii	"\x1B[01;01H\x1B[0m."
 termios:
 	.fill	60,1,0
+breakpoint:
+	.hword	0
+current_drive:
+	.quad	drive1
 kbd:
 	.byte	0		// buffer
 	.byte	0		// strobe
 	.byte	0		// last key
 	.byte	0		// escape sequence
-drive1:
-	.byte	0		// mode 0=read 1=write
+drive1:				// 35 tracks, 13 sectors of 512 nibbles
+	.byte	0		// flags: loaded, write
 	.byte	0		// phase 0-3
 	.byte	0		// half-track 0-69
 	.hword	0		// head 0-6655
-breakpoint:
+	.fill	35*13*512,1,0	// a nibble encodes 5 data bits (5-and-3 scheme)
+drive2:
+	.byte	0
+	.byte	0
+	.byte	0
 	.hword	0
+	.fill	35*13*512,1,0
 	//.align	16	// 64k, for easier debugging
 memory:
 	.fill	0x10000,1,0
 	.equ	rom,memory+0xB000
-drive1_content:
-	.fill	35*13*512,1,0	// .nib = 35 tracks, 13 sectors of 512 nibbles
-				// .dsk = 35 tracks, 16 sectors of 256 bytes
-				// a nibble encodes 5 data bits (5-and-3 scheme)

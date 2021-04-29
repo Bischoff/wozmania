@@ -16,7 +16,7 @@ pure emulation, there is no just-in-time code conversion.
 As of 2021-04-29:
 
 * 6502 processor instructions: 136 out of 256;
-* input: keyboard, floppy disk 1;
+* input: keyboard, floppy disk 1 and 2;
 * output: 40 column text mode.
 
 
@@ -29,7 +29,9 @@ As of 2021-04-29:
 3. You may also download to the same directory a file that contains
    the floppy drive 1; it must be named `drive1.nib` and contain
    35 tracks of 13 sectors of 512 nibbles.
-4. Run the emulator with the command `./wozmania`.
+4. Similarly, a file named `drive2.nib` will have the contents
+   of floppy drive 2;
+5. Run the emulator with the command `./wozmania`.
 
 
 ## How to debug

@@ -66,7 +66,10 @@ BREAKPOINT	.req	x27
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2
 	.equ	KBD_ESCSEQ,3
-	.equ	DRV_MODE,0
+	.equ	DRV_FLAGS,0
 	.equ	DRV_PHASE,1
 	.equ	DRV_HTRACK,2
 	.equ	DRV_HEAD,3
+	.equ	DRV_CONTENT,5
+	.equ	F_LOADED,0x01
+	.equ	F_WRITE,0x02
