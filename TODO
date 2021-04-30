@@ -1,6 +1,7 @@
 * missing 6502 instructions
 * remove "unimplemented instruction" code and messages
 * remove workaround disabling slot 6
+* print_nibble should print drive number
 * read-only drives
 * allocate memory and disk buffers dynamically
 * disk writing

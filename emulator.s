@@ -250,7 +250,7 @@ select_drive1:
 	ldr	x1,=current_drive
 	ldr	x2,=drive1
 	str	x2,[x1]
-	b	nothing_to_read
+	b	last_nibble
 select_drive2:
 	ldr	x1,=current_drive
 	ldr	x2,=drive2
@@ -263,17 +263,18 @@ read_nibble:
 	ldrb	w6,[x1,#DRV_HTRACK]
 	mov	IO,#0		// only read when loaded + read mode
 	cmp	w2,#F_LOADED
-	b.ne	1f
+	b.ne	2f
 	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
 	mul	w7,w7,w4
 	add	w7,w7,w5
 	add	x2,x1,#DRV_CONTENT
 	ldrb	IO,[x2,x7]
-1:	add	w8,w5,#1	// move head forward
+	add	w8,w5,#1	// move head forward
 	cmp	w8,w4
-	b.lt	2f
+	b.lt	1f
 	mov	w8,#0
-2:	strh	w8,[x1,#DRV_HEAD]
+1:	strh	w8,[x1,#DRV_HEAD]
+2:	strb	IO,[x1,#DRV_LASTNIB]
 	//b	print_nibble	// uncomment this line to debug
 	br	lr
 print_nibble:
@@ -284,16 +285,23 @@ print_nibble:
 	hex_8	IO,31
 	write	34
 	br	lr
+write_nibble:
+	mov	w0,#0xFF
+	strb	w0,[x1,#DRV_LASTNIB]
+	b	nothing_to_read
 read_mode:
 	ldrb	w0,[x1,#DRV_FLAGS]
 	and	w0,w0,#~F_WRITE
 	strb	w0,[x1,#DRV_FLAGS]
-	b	nothing_to_read
+	b	last_nibble
 write_mode:
 	ldrb	w0,[x1,#DRV_FLAGS]
 	orr	w0,w0,#F_WRITE
 	strb	w0,[x1,#DRV_FLAGS]
 	b	nothing_to_read
+last_nibble:
+	ldrb	IO,[x1,#DRV_LASTNIB]
+	br	lr
 
 
 // Store byte into I/O area
@@ -455,20 +463,20 @@ video_table:
 	.quad	normal
 	.quad	normal
 disk_table:
-	.quad	nothing_to_read	// $C0E0
+	.quad	last_nibble	// $C0E0
 	.quad	change_track
-	.quad	nothing_to_read
+	.quad	last_nibble
 	.quad	change_track
-	.quad	nothing_to_read
+	.quad	last_nibble
 	.quad	change_track
-	.quad	nothing_to_read
+	.quad	last_nibble
 	.quad	change_track
-	.quad	nothing_to_read	// $C0E8
+	.quad	last_nibble	// $C0E8
 	.quad	nothing_to_read
 	.quad	select_drive1
 	.quad	select_drive2
 	.quad	read_nibble
-	.quad	nothing_to_read
+	.quad	write_nibble
 	.quad	read_mode
 	.quad	write_mode
 htrack_delta:
@@ -517,11 +525,13 @@ kbd:
 	.byte	0		// escape sequence
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// flags: loaded, write
+	.byte	0		// last nibble read
 	.byte	0		// phase 0-3
 	.byte	0		// half-track 0-69
 	.hword	0		// head 0-6655
-	.fill	35*13*512,1,0	// a nibble encodes 5 data bits (5-and-3 scheme)
+	.fill	35*13*512,1,0
 drive2:
+	.byte	0
 	.byte	0
 	.byte	0
 	.byte	0
