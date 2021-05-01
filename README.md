@@ -32,6 +32,8 @@ As of 2021-04-29:
 4. Similarly, a file named `drive2.nib` will have the contents
    of floppy drive 2;
 5. Run the emulator with the command `./wozmania`.
+6. If there is no disk to boot from, press Ctrl-C.
+   This will emulate a Ctrl-Reset and bring you to BASIC.
 
 
 ## How to debug

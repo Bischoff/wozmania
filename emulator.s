@@ -16,31 +16,7 @@
 
 // Initialization
 
-prepare_terminal:
-	adr	x3,msg_cls	// clear screen and hide cursor
-	write	10
-	mov	w0,#STDIN	// set non-blocking keyboard
-	mov	w1,#TCGETS
-	ldr	x2,=termios
-	mov	w8,#IOCTL
-	svc	0
-	ldr	x2,=termios
-	ldr	w0,[x2,#C_LFLAG]
-	and	w0,w0,#~ICANON
-	and	w0,w0,#~ECHO
-	//and	w0,w0,#~ISIG
-	str	w0,[x2,#C_LFLAG]
-	mov	w0,#1
-	strb	w0,[x2,#(C_CC + VTIME)]
-	mov	w0,#0
-	strb	w0,[x2,#(C_CC + VMIN)]
-	mov	w0,#STDIN
-	mov	w1,#TCSETS
-	ldr	x2,=termios
-	mov	w8,#IOCTL
-	svc	0
-	br	lr
-
+// load ROM file
 load_rom:
 	mov	w0,#-100	// open ROM file
 	adr	x1,rom_filename
@@ -61,6 +37,7 @@ load_failure_rom:
 	write	36
 	b	exit
 
+// load drive file
 load_drive1:
 	ldr	x4,=drive1
 	mov	w5,#'1'
@@ -76,7 +53,7 @@ load_drive:
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	hack
+	b.lt	no_disk
 	add	x1,x4,#DRV_CONTENT // read disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
@@ -86,14 +63,7 @@ load_drive:
 	b.ne	load_failure_drive
 	mov	w0,#F_LOADED	// disk is loaded
 	strb	w0,[x4,DRV_FLAGS]
-	br	lr
-hack:
-	mov	w0,#DISK2ROM	// temporary: hide the disks by removing controller's signature
-	mov	w1,#JMP
-	strb	w1,[MEM,x0]
-	mov	w0,#(DISK2ROM + 1)
-	mov	w1,#OLDRST
-	strh	w1,[MEM,x0]
+no_disk:
 	br	lr
 load_failure_drive:
 	ldr	x3,=msg_err_drive
@@ -101,8 +71,9 @@ load_failure_drive:
 	write	37
 	b	exit
 
+// optional: jump to monitor in case of BRK
 set_nmi_routine:
-	mov	w0,#NMI		// jump to monitor in case of BRK
+	mov	w0,#NMI
 	mov	w1,#JMP
 	strh	w1,[MEM,x0]
 	mov	w0,#(NMI + 1)
@@ -110,6 +81,56 @@ set_nmi_routine:
 	strh	w1,[MEM,x0]
 	br	lr
 
+// optional: hide the disks by removing controller's signature
+disable_drives:
+	mov	w0,#DISK2ROM
+	mov	w1,#JMP
+	strb	w1,[MEM,x0]
+	mov	w0,#(DISK2ROM + 1)
+	mov	w1,#OLDRST
+	strh	w1,[MEM,x0]
+	br	lr
+
+// prepare text terminal
+prepare_terminal:
+	adr	x3,msg_cls	// clear screen and hide cursor
+	write	10
+	mov	w0,#STDIN	// set non-blocking keyboard
+	mov	w1,#TCGETS
+	ldr	x2,=termios
+	mov	w8,#IOCTL
+	svc	0
+	ldr	x2,=termios
+	ldr	w0,[x2,#C_LFLAG]
+	and	w0,w0,#~ICANON
+	and	w0,w0,#~ECHO
+	str	w0,[x2,#C_LFLAG]
+	mov	w0,#1
+	strb	w0,[x2,#C_CC_VTIME]
+	mov	w0,#0
+	strb	w0,[x2,#C_CC_VMIN]
+	mov	w0,#STDIN
+	mov	w1,#TCSETS
+	ldr	x2,=termios
+	mov	w8,#IOCTL
+	svc	0
+	br	lr
+
+// intercept Ctrl-C
+intercept_ctl_c:
+	ldr	x1,=sigaction	// SA_MASK and SA_FLAGS entries are already zero
+	adr	x0,ctl_reset
+	str	x0,[x1,#SA_HANDLER]
+	mov	w0,#SIGINT
+	mov	x2,#0
+	mov	w3,#8
+	mov	w8,#RT_SIGACTION
+	svc	0
+	mov	w0,#0		// clear previous reset
+	strb	w0,[KEYBOARD,#KBD_RESET]
+	br	lr
+
+// put 6502 processor in initial state
 reset:
 	mov	A_REG,#0
 	mov	X_REG,#0
@@ -121,9 +142,17 @@ reset:
 	br	lr
 
 
+// Ctrl-C handler
+// We emulate Ctrl-Reset key
+
+ctl_reset:
+	mov	w0,#1
+	strb	w0,[KEYBOARD,#KBD_RESET]
+
 // Fetch byte from I/O area
 //   input: IO = address in range $C000-$C100
 //   output: IO = character read
+
 fetch_io:
 	cmp	IO,#KBD		// $C000-$C010 keyboard
 	b.eq	keyboard
@@ -144,14 +173,14 @@ nothing_to_read:
 // Part of this code is extra complicated due to the fact we use an ANSI terminal
 // That will go away when we switch to a real graphical window of our own
 keyboard:
-	ldr	x1,=kbd
-	ldrb	w0,[x1,#KBD_STROBE]
+	ldrb	w0,[KEYBOARD,#KBD_STROBE]
 	tst	w0,#0xFF
 	b.eq	read_key
 	mov	w0,#KBD_LASTKEY
 	b	analyze_key
 read_key:
 	mov	w0,#STDIN
+	mov	x1,KEYBOARD
 	mov	w2,#1
 	mov	w8,#READ
 	svc	0
@@ -159,8 +188,8 @@ read_key:
 	b.lt	nothing_to_read
 	mov	w0,#KBD_BUFFER
 analyze_key:
-	ldrb	IO,[x1,x0]
-	ldrb	w0,[x1,#KBD_ESCSEQ]
+	ldrb	IO,[KEYBOARD,x0]
+	ldrb	w0,[KEYBOARD,#KBD_ESCSEQ]
 	tst	w0,#0xFF
 	b.ne	escape2
 	cmp	IO,#0x0A
@@ -174,7 +203,7 @@ linefeed:
 	b	found_key
 escape:
 	mov	w0,#1
-	strb	w0,[x1,#KBD_ESCSEQ]
+	strb	w0,[KEYBOARD,#KBD_ESCSEQ]
 	b	nothing_to_read
 escape2:
 	cmp	w0,#1
@@ -184,11 +213,11 @@ escape2:
 	mov	w0,#2
 	b	2f
 1:	mov	w0,#0
-2:	strb	w0,[x1,#KBD_ESCSEQ]
+2:	strb	w0,[KEYBOARD,#KBD_ESCSEQ]
 	b	nothing_to_read
 escape3:
 	mov	w0,#0
-	strb	w0,[x1,#KBD_ESCSEQ]
+	strb	w0,[KEYBOARD,#KBD_ESCSEQ]
 	cmp	IO,#'A'
 	b.ne	1f
 	mov	IO,#0x8B
@@ -205,24 +234,21 @@ escape3:
 	b.ne	nothing_to_read
 	mov	IO,#0x88
 found_key:
-	strb	IO,[x1,#KBD_LASTKEY]
+	strb	IO,[KEYBOARD,#KBD_LASTKEY]
 	mov	w0,#1
-	strb	w0,[x1,#KBD_STROBE]
+	strb	w0,[KEYBOARD,#KBD_STROBE]
 	br	lr
 no_key:
 	mov	w0,#0
-	strb	w0,[x1,#KBD_STROBE]
+	strb	w0,[KEYBOARD,#KBD_STROBE]
 	b	nothing_to_read
 
 // Keyboard strobe
 clear_strobe:
-	ldr	x1,=kbd
 	b	no_key
 
 // Floppy disk
 floppy_disk:
-	ldr	x1,=current_drive
-	ldr	x1,[x1]
 	mov	w0,#IWM_PHASE0OFF
 	sub	IO,IO,w0
 	adr	x0,disk_table
@@ -230,13 +256,13 @@ floppy_disk:
 	br	x2
 change_track:
 	lsr	w0,IO,#1	// w0 = new phase, w3 = old phase
-	ldrb	w3,[x1,#DRV_PHASE]
-	strb	w0,[x1,#DRV_PHASE]
+	ldrb	w3,[DRIVE,#DRV_PHASE]
+	strb	w0,[DRIVE,#DRV_PHASE]
 	ldr	x2,=htrack_delta // w4 = half-track delta
 	lsl	w3,w3,#2
 	add	w3,w3,w0
 	ldrsb	w4,[x2,x3]
-	ldrb	w5,[x1,#DRV_HTRACK] // compute new half-track
+	ldrb	w5,[DRIVE,#DRV_HTRACK] // compute new half-track
 	adds	w5,w5,w4
 	b.pl	1f
 	mov	w5,#0
@@ -244,37 +270,33 @@ change_track:
 1:	cmp	w5,#80
 	b.lt	2f
 	mov	w5,#79
-2:	strb	w5,[x1,#DRV_HTRACK]
+2:	strb	w5,[DRIVE,#DRV_HTRACK]
 	b	nothing_to_read
 select_drive1:
-	ldr	x1,=current_drive
-	ldr	x2,=drive1
-	str	x2,[x1]
+	ldr	DRIVE,=drive1
 	b	last_nibble
 select_drive2:
-	ldr	x1,=current_drive
-	ldr	x2,=drive2
-	str	x2,[x1]
+	ldr	DRIVE,=drive2
 	b	nothing_to_read
 read_nibble:
-	ldrb	w2,[x1,#DRV_FLAGS]
+	ldrb	w2,[DRIVE,#DRV_FLAGS]
 	mov	w4,#6656
-	ldrh	w5,[x1,#DRV_HEAD]
-	ldrb	w6,[x1,#DRV_HTRACK]
+	ldrh	w5,[DRIVE,#DRV_HEAD]
+	ldrb	w6,[DRIVE,#DRV_HTRACK]
 	mov	IO,#0		// only read when loaded + read mode
 	cmp	w2,#F_LOADED
 	b.ne	2f
 	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
 	mul	w7,w7,w4
 	add	w7,w7,w5
-	add	x2,x1,#DRV_CONTENT
+	add	x2,DRIVE,#DRV_CONTENT
 	ldrb	IO,[x2,x7]
 	add	w8,w5,#1	// move head forward
 	cmp	w8,w4
 	b.lt	1f
 	mov	w8,#0
-1:	strh	w8,[x1,#DRV_HEAD]
-2:	strb	IO,[x1,#DRV_LASTNIB]
+1:	strh	w8,[DRIVE,#DRV_HEAD]
+2:	strb	IO,[DRIVE,#DRV_LASTNIB]
 	//b	print_nibble	// uncomment this line to debug
 	br	lr
 print_nibble:
@@ -287,25 +309,26 @@ print_nibble:
 	br	lr
 write_nibble:
 	mov	w0,#0xFF
-	strb	w0,[x1,#DRV_LASTNIB]
+	strb	w0,[DRIVE,#DRV_LASTNIB]
 	b	nothing_to_read
 read_mode:
-	ldrb	w0,[x1,#DRV_FLAGS]
+	ldrb	w0,[DRIVE,#DRV_FLAGS]
 	and	w0,w0,#~F_WRITE
-	strb	w0,[x1,#DRV_FLAGS]
+	strb	w0,[DRIVE,#DRV_FLAGS]
 	b	last_nibble
 write_mode:
-	ldrb	w0,[x1,#DRV_FLAGS]
+	ldrb	w0,[DRIVE,#DRV_FLAGS]
 	orr	w0,w0,#F_WRITE
-	strb	w0,[x1,#DRV_FLAGS]
+	strb	w0,[DRIVE,#DRV_FLAGS]
 	b	nothing_to_read
 last_nibble:
-	ldrb	IO,[x1,#DRV_LASTNIB]
+	ldrb	IO,[DRIVE,#DRV_LASTNIB]
 	br	lr
 
 
 // Store byte into I/O area
 //   input: IO = address in range $0400-$0800
+
 store_io:
 	ldr	x3,=msg_text
 	mov	w2,IO		// line and column
@@ -410,18 +433,26 @@ check:
 
 _start:
 	adr	INSTR,instr_table
-	ldr	BREAKPOINT,=breakpoint
 	ldr	MEM,=memory
+	ldr	KEYBOARD,=kbd
+	ldr	DRIVE,=drive1
+	ldr	BREAKPOINT,=breakpoint
 	bl	load_rom
 	bl	load_drive1
 	bl	load_drive2
-	bl	set_nmi_routine
+	//bl	set_nmi_routine
+	//bl	disable_drives
 	bl	prepare_terminal
+coldstart:
+	bl	intercept_ctl_c
 	bl	reset
 emulate:
 	//bl	trace		// uncomment these lines according to your debugging needs
 	//bl	break
 	//bl	check
+	ldrb	w0,[KEYBOARD,#KBD_RESET]
+	tst	w0,#0xFF
+	b.ne	coldstart
 next:				// trace each instruction with "b next"
 	ldrb	w0,[MEM,PC_REG_64]
 	add	PC_REG,PC_REG,#1
@@ -513,16 +544,17 @@ msg_err_drive:
 msg_text:
 	.ascii	"\x1B[01;01H\x1B[0m."
 termios:
-	.fill	60,1,0
+	.fill	SIZEOF_TERMIOS,1,0
+sigaction:
+	.fill	SIZEOF_SIGACTION,1,0
 breakpoint:
 	.hword	0
-current_drive:
-	.quad	drive1
 kbd:
 	.byte	0		// buffer
 	.byte	0		// strobe
 	.byte	0		// last key
 	.byte	0		// escape sequence
+	.byte	0		// reset
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// flags: loaded, write
 	.byte	0		// last nibble read

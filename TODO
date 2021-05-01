@@ -1,12 +1,14 @@
 * missing 6502 instructions
-* remove "unimplemented instruction" code and messages
-* remove workaround disabling slot 6
+  when done, remove "unimplemented instruction" code and messages
 * print_nibble should print drive number
-* read-only drives
 * allocate memory and disk buffers dynamically
+* allow to hot-load a floppy into the drive
 * disk writing
-* write "nibblelizer" utility to convert most disks to .nib format
+* read-only drives
+* support other disk formats
+* emulate ESC and Ctrl-C keys (with function keys?)
 * graphical mode
 * semi-graphical mode
 * sound
 * game paddles
+* command-line options for intercepting NMI, disabling disks, etc

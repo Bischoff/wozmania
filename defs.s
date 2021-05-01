@@ -19,7 +19,9 @@ IO		.req	w18
 IO_64		.req	x18
 MEM		.req	x25
 INSTR		.req	x26
-BREAKPOINT	.req	x27
+KEYBOARD	.req	x27
+DRIVE		.req	x28
+BREAKPOINT	.req	x29
 
 // 6502 status register flags
 	.equ	C_FLAG,0x01
@@ -31,7 +33,7 @@ BREAKPOINT	.req	x27
 	.equ	V_FLAG,0x40
 	.equ	N_FLAG,0x80
 
-// Routine and I/O addresses
+// ROM routines and I/O addresses
 	.equ	NMI,0x3FB
 	.equ	LINE1,0x400
 	.equ	KBD,0xC000
@@ -44,28 +46,36 @@ BREAKPOINT	.req	x27
 // 6502 opcodes
 	.equ	JMP,0x4C
 
-// Linux API
+// Linux system calls
 	.equ	IOCTL,29
 	.equ	OPENAT,56
 	.equ	READ,63
 	.equ	WRITE,64
+	.equ	RT_SIGACTION,134
+
+// Linux structures
+	.equ	C_LFLAG,12
+	.equ	C_CC_VTIME,(17+5)
+	.equ	C_CC_VMIN,(17+6)
+	.equ	SIZEOF_TERMIOS,60
+	.equ	SA_HANDLER,0
+	.equ	SIZEOF_SIGACTION,152
+
+// Linux constants
 	.equ	STDIN,0
 	.equ	STDOUT,1
 	.equ	TCGETS,0x5401
 	.equ	TCSETS,0x5402
-	.equ	C_LFLAG,12
-	.equ	C_CC,17
-	.equ	ISIG,0x1
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
-	.equ	VTIME,5
-	.equ	VMIN,6
+	.equ	SIGINT,2
 
 // Internal structures
 	.equ	KBD_BUFFER,0
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2
 	.equ	KBD_ESCSEQ,3
+	.equ	KBD_RESET,4
 	.equ	DRV_FLAGS,0
 	.equ	DRV_LASTNIB,1
 	.equ	DRV_PHASE,2
