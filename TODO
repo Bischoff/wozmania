@@ -1,13 +1,21 @@
-* missing 6502 instructions
+* missing 6502 instructions:
   when done, remove "unimplemented instruction" code and messages
-* allocate memory and disk buffers dynamically
-* allow to hot-load a floppy into the drive
-* disk writing
-* read-only drives
-* support other disk formats
-* emulate ESC and Ctrl-C keys (with function keys?)
-* graphical mode
-* semi-graphical mode
-* sound
-* game paddles
-* command-line options for intercepting NMI, disabling disks, etc
+* floppy disk support:
+  - disk writing
+  - read-only disks
+  - other disk formats than .nib
+* function keys:
+  - to emulate ESC and Ctrl-C keys
+  - to hot-load a floppy into a drive
+  - to exit the program
+* command-line options:
+  - to intercept NMI
+  - to disable disks
+  - etc
+* screen modes:
+  - low resolution
+  - mixed low resolution/text
+  - high resolution
+* more hardware emulation:
+  - sound
+  - game paddles

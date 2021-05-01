@@ -61,7 +61,7 @@ To single-step one 6502 instruction, use:
      (gdb) c
 ```
 
-There are four subroutines and one directive to help debugging.
+There are four subroutines to help debugging.
 They are commented out by default:
 ```
    emulate:
@@ -70,9 +70,6 @@ They are commented out by default:
         //bl    check
 
 	//b	print_nibble
-
-        //.align     16
-memory:
 ```
 
 You may uncomment these lines according to your debugging needs.
@@ -99,18 +96,7 @@ the breakpoint can then be changed at any time later.
 
 ### print_nibble
 
-`print_nibble` displays the track number, position of disk head, and the last nibble read.
-
-### memory alignment
-
-This directive aligns the 6502 memory to a 64k boundary:
-```
-        //.align        16
-memory:
-```
-
-If you uncomment it, the address in ARM register `x25` can be combined with a
-6502 address with a simple OR to provide the corresponding real address.
+`print_nibble` displays the drive number, track number, position of disk head, and the last nibble read.
 
 
 ## Bibliography

@@ -16,6 +16,34 @@
 
 // Initialization
 
+// allocate memory (0x10000) and disk contents (0x38e00 each)
+allocate_memory:
+	mov	w0,#0
+	mov	w1,#0x1c00
+	movk	w1,#8,lsl #16
+	mov	w2,#(PROT_READ|PROT_WRITE)
+	mov	w3,#(MAP_PRIVATE|MAP_ANONYMOUS)
+	mov	x4,#-1
+	mov	w5,#0
+	mov	w8,#MMAP
+	svc	0
+	cmp	x0,#-1
+	b.eq	allocate_error
+	mov	MEM,x0
+	add	x0,x0,#0x10000
+	ldr	x1,=drive1
+	str	x0,[x1,#DRV_CONTENT]
+	mov	w1,#0x8e00
+	movk	w1,#3,lsl #16
+	add	x0,x0,x1
+	ldr	x1,=drive2
+	str	x0,[x1,#DRV_CONTENT]
+	br	lr
+allocate_error:
+	adr	x3,msg_err_memory
+	write	28
+	b	exit
+
 // load ROM file
 load_rom:
 	mov	w0,#-100	// open ROM file
@@ -25,7 +53,7 @@ load_rom:
 	svc	0
 	cmp	x0,#-1
 	b.eq	load_failure_rom
-	ldr	x1,=rom		// read ROM file
+	add	x1,MEM,#0xB000	// read ROM file
 	mov	w2,#0x5000
 	mov	w8,#READ
 	svc	0
@@ -54,7 +82,7 @@ load_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	no_disk
-	add	x1,x4,#DRV_CONTENT // read disk file
+	ldr	x1,[x4,#DRV_CONTENT] // read disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#READ
@@ -290,7 +318,7 @@ read_nibble:
 	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
 	mul	w7,w7,w4
 	add	w7,w7,w5
-	add	x2,DRIVE,#DRV_CONTENT
+	ldr	x2,[DRIVE,#DRV_CONTENT]
 	ldrb	IO,[x2,x7]
 	add	w8,w5,#1	// move head forward
 	cmp	w8,w4
@@ -436,10 +464,10 @@ check:
 
 _start:
 	adr	INSTR,instr_table
-	ldr	MEM,=memory
 	ldr	KEYBOARD,=kbd
 	ldr	DRIVE,=drive1
 	ldr	BREAKPOINT,=breakpoint
+	bl	allocate_memory
 	bl	load_rom
 	bl	load_drive1
 	bl	load_drive2
@@ -522,6 +550,8 @@ rom_filename:
 	.asciz	"APPLE2.ROM"
 hex:
 	.ascii	"0123456789ABCDEF"
+msg_err_memory:
+	.ascii	"Failed to allocate memory\n"
 msg_err_rom:
 	.ascii	"Could not load ROM file APPLE2.ROM\n"
 msg_cls:
@@ -545,7 +575,7 @@ msg_invalid:
 msg_err_drive:
 	.ascii	"Could not load drive file drive..nib\n"
 msg_text:
-	.ascii	"\x1B[01;01H\x1B[0m."
+	.ascii	"\x1B[..;..H\x1B[0m."
 termios:
 	.fill	SIZEOF_TERMIOS,1,0
 sigaction:
@@ -565,7 +595,7 @@ drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// phase 0-3
 	.byte	0		// half-track 0-69
 	.hword	0		// head 0-6655
-	.fill	35*13*512,1,0
+	.quad	0		// pointer to content
 drive2:
 	.byte	0
 	.byte	0
@@ -573,8 +603,4 @@ drive2:
 	.byte	0
 	.byte	0
 	.hword	0
-	.fill	35*13*512,1,0
-	//.align	16	// 64k, for easier debugging
-memory:
-	.fill	0x10000,1,0
-	.equ	rom,memory+0xB000
+	.quad	0

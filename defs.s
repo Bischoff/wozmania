@@ -52,6 +52,7 @@ BREAKPOINT	.req	x29
 	.equ	READ,63
 	.equ	WRITE,64
 	.equ	RT_SIGACTION,134
+	.equ	MMAP,222
 
 // Linux structures
 	.equ	C_LFLAG,12
@@ -69,6 +70,10 @@ BREAKPOINT	.req	x29
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
 	.equ	SIGINT,2
+	.equ	PROT_READ,0x1
+	.equ	PROT_WRITE,0x2
+	.equ	MAP_PRIVATE,0x2
+	.equ	MAP_ANONYMOUS,0x20
 
 // Internal structures
 	.equ	KBD_BUFFER,0
