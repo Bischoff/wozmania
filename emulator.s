@@ -62,8 +62,9 @@ load_drive:
 	cmp	x0,x2
 	b.ne	load_failure_drive
 	mov	w0,#F_LOADED	// disk is loaded
-	strb	w0,[x4,DRV_FLAGS]
+	strb	w0,[x4,#DRV_FLAGS]
 no_disk:
+	strb	w5,[x4,#DRV_NUMBER]
 	br	lr
 load_failure_drive:
 	ldr	x3,=msg_err_drive
@@ -302,10 +303,12 @@ read_nibble:
 print_nibble:
 	adr	x2,hex
 	ldr	x3,=msg_disk
-	hex_8	w6,8
-	hex_16	w5,18
-	hex_8	IO,31
-	write	34
+	ldrb	w0,[DRIVE,#DRV_NUMBER]
+	char	w0,7
+	hex_8	w6,18
+	hex_16	w5,28
+	hex_8	IO,41
+	write	44
 	br	lr
 write_nibble:
 	mov	w0,#0xFF
@@ -534,7 +537,7 @@ drive_filename:
 msg_trace:
 	.ascii	"PC: ....  SP: 01..  A: ..  X: ..  Y: ..  S: ........\n"
 msg_disk:
-	.ascii	"HTRACK: ..  HEAD: ....  VALUE: ..\n"
+	.ascii	"DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
 msg_undefined:
 	.ascii	"Undefined instruction .. at ....\n"
 msg_invalid:
@@ -556,6 +559,7 @@ kbd:
 	.byte	0		// escape sequence
 	.byte	0		// reset
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
+	.byte	0		// drive '1' or '2'
 	.byte	0		// flags: loaded, write
 	.byte	0		// last nibble read
 	.byte	0		// phase 0-3
@@ -563,6 +567,7 @@ drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.hword	0		// head 0-6655
 	.fill	35*13*512,1,0
 drive2:
+	.byte	0
 	.byte	0
 	.byte	0
 	.byte	0

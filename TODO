@@ -1,6 +1,5 @@
 * missing 6502 instructions
   when done, remove "unimplemented instruction" code and messages
-* print_nibble should print drive number
 * allocate memory and disk buffers dynamically
 * allow to hot-load a floppy into the drive
 * disk writing

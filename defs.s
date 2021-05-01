@@ -76,11 +76,12 @@ BREAKPOINT	.req	x29
 	.equ	KBD_LASTKEY,2
 	.equ	KBD_ESCSEQ,3
 	.equ	KBD_RESET,4
-	.equ	DRV_FLAGS,0
-	.equ	DRV_LASTNIB,1
-	.equ	DRV_PHASE,2
-	.equ	DRV_HTRACK,3
-	.equ	DRV_HEAD,4
-	.equ	DRV_CONTENT,6
+	.equ	DRV_NUMBER,0
+	.equ	DRV_FLAGS,1
+	.equ	DRV_LASTNIB,2
+	.equ	DRV_PHASE,3
+	.equ	DRV_HTRACK,4
+	.equ	DRV_HEAD,5
+	.equ	DRV_CONTENT,7
 	.equ	F_LOADED,0x01
 	.equ	F_WRITE,0x02
