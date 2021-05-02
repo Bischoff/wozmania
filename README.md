@@ -41,6 +41,7 @@ The following keys are defined:
    Linux		Apple ][
    -----		--------
    Ctrl-C		Ctrl-Reset
+   F3			Ctrl-C
    F4			Power off
 
 

@@ -100,16 +100,6 @@ load_failure_drive:
 	write	37
 	b	exit
 
-// optional: jump to monitor in case of BRK
-set_nmi_routine:
-	mov	w0,#NMI
-	mov	w1,#JMP
-	strh	w1,[MEM,x0]
-	mov	w0,#(NMI + 1)
-	mov	w1,#OLDRST
-	strh	w1,[MEM,x0]
-	br	lr
-
 // optional: hide the disks by removing controller's signature
 disable_drives:
 	mov	w0,#DISK2ROM
@@ -272,12 +262,19 @@ escape_bracket:
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 escape_o:
-	cmp	IO,#'S'		// F4
+	cmp	IO,#'R'		// Ctrl-C
 	b.ne	1f
+	mov	IO,#0x83
+	b	3f
+1:	cmp	IO,#'S'		// power off
+	b.ne	2f
 	b	exit
-1:	mov	w0,#SEQ
+2:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
+3:	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	found_key
 found_key:
 	strb	IO,[KEYBOARD,#KBD_LASTKEY]
 	mov	w0,#1
@@ -487,8 +484,7 @@ _start:
 	bl	load_rom
 	bl	load_drive1
 	bl	load_drive2
-	//bl	set_nmi_routine
-	//bl	disable_drives
+	//bl	disable_drives	// uncomment this line to disconnect the drives
 	bl	prepare_terminal
 coldstart:
 	bl	intercept_ctl_c

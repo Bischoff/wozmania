@@ -4,13 +4,12 @@
   - disk writing
   - read-only disks
   - other disk formats than .nib
-* function keys:
-  - to emulate ESC and Ctrl-C keys
-  - to hot-load a floppy into a drive
+  - function key to hot-load a floppy into a drive
+* keyboard:
+  - nano timer to receive ESC key
 * command-line options:
-  - to intercept NMI
   - to disable disks
-  - etc
+  - to enable debugging
 * screen modes:
   - low resolution
   - mixed low resolution/text

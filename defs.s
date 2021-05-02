@@ -34,7 +34,6 @@ BREAKPOINT	.req	x29
 	.equ	N_FLAG,0x80
 
 // ROM routines and I/O addresses
-	.equ	NMI,0x3FB
 	.equ	LINE1,0x400
 	.equ	KBD,0xC000
 	.equ	KBDSTRB,0xC010
@@ -88,10 +87,10 @@ BREAKPOINT	.req	x29
 	.equ	DRV_HTRACK,4
 	.equ	DRV_HEAD,5
 	.equ	DRV_CONTENT,7
-	.equ	F_LOADED,0x01
-	.equ	F_WRITE,0x02
 
 // Internal constants
+	.equ	F_LOADED,0x01
+	.equ	F_WRITE,0x02
 	.equ	SEQ,0
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2
