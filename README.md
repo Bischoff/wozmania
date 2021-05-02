@@ -1,5 +1,7 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
+![DOS and Basic in wozmania](/wozmania-basic.png)
+
 ## Motivation
 
 This is a toy project. I wanted to learn ARM 64 assembler, so I wrote this
@@ -38,11 +40,11 @@ As of 2021-05-02:
 
 The following keys are defined:
 
-   Linux		Apple ][
-   -----		--------
-   Ctrl-C		Ctrl-Reset
-   F3			Ctrl-C
-   F4			Power off
+| Linux  | Apple ][   |
+| ------ | ---------- |
+| Ctrl-C | Ctrl-Reset |
+| F3     | Ctrl-C     |
+| F4     | Power off  |
 
 
 ## How to debug

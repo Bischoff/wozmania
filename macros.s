@@ -4,8 +4,6 @@
 //
 // Macro instructions
 
-.include "defs.s"
-
 // Get address (for write operations)
 	.macro	a_zp reg
 	ldrb	\reg,[MEM,PC_REG_64]
