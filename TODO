@@ -7,7 +7,6 @@
 * function keys:
   - to emulate ESC and Ctrl-C keys
   - to hot-load a floppy into a drive
-  - to exit the program
 * command-line options:
   - to intercept NMI
   - to disable disks

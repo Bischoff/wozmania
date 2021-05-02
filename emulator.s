@@ -122,7 +122,7 @@ disable_drives:
 
 // prepare text terminal
 prepare_terminal:
-	adr	x3,msg_cls	// clear screen and hide cursor
+	adr	x3,msg_begin	// clear screen and hide cursor
 	write	10
 	mov	w0,#STDIN	// set non-blocking keyboard
 	mov	w1,#TCGETS
@@ -214,54 +214,70 @@ read_key:
 	mov	w8,#READ
 	svc	0
 	cmp	w0,#1
-	b.lt	nothing_to_read
+	b.lt	no_key
 	mov	w0,#KBD_BUFFER
 analyze_key:
 	ldrb	IO,[KEYBOARD,x0]
-	ldrb	w0,[KEYBOARD,#KBD_ESCSEQ]
-	tst	w0,#0xFF
-	b.ne	escape2
-	cmp	IO,#0x0A
-	b.eq	linefeed
-	cmp	IO,#0x1B
-	b.eq	escape
-	orr	IO,IO,#0x80
-	b	found_key
-linefeed:
+	ldrb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	cmp	w0,#SEQ
+	b.ne	escape
+	cmp	IO,#0x0A	// carriage return
+	b.ne	1f
 	mov	IO,#0x8D
 	b	found_key
+1:	cmp	IO,#0x1B
+	b.ne	2f
+	mov	w0,#SEQ_ESC
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	no_key
+2:	orr	IO,IO,#0x80
+	b	found_key
 escape:
-	mov	w0,#1
-	strb	w0,[KEYBOARD,#KBD_ESCSEQ]
-	b	nothing_to_read
-escape2:
-	cmp	w0,#1
-	b.ne	escape3
+	cmp	w0,#SEQ_ESC
+	b.ne	escape_bracket
 	cmp	IO,#'['
 	b.ne	1f
-	mov	w0,#2
-	b	2f
-1:	mov	w0,#0
-2:	strb	w0,[KEYBOARD,#KBD_ESCSEQ]
-	b	nothing_to_read
-escape3:
-	mov	w0,#0
-	strb	w0,[KEYBOARD,#KBD_ESCSEQ]
-	cmp	IO,#'A'
+	mov	w0,#SEQ_ESC_BRA
+	b	3f
+1:	cmp	IO,#'O'
+	b.ne	2f
+	mov	w0,#SEQ_ESC_O
+	b	3f
+2:	mov	w0,#SEQ
+3:	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	no_key
+escape_bracket:
+	cmp	w0,#SEQ_ESC_BRA
+	b.ne	escape_o
+	cmp	IO,#'A'		// up
 	b.ne	1f
 	mov	IO,#0x8B
-	b	found_key
-1:	cmp	IO,#'B'
+	b	5f
+1:	cmp	IO,#'B'		// down
 	b.ne	2f
 	mov	IO,#0x8A
-	b	found_key
-2:	cmp	IO,#'C'
+	b	5f
+2:	cmp	IO,#'C'		// right
 	b.ne	3f
 	mov	IO,#0x95
-	b	found_key
-3:	cmp	IO,#'D'
-	b.ne	nothing_to_read
+	b	5f
+3:	cmp	IO,#'D'		// left
+	b.ne	4f
 	mov	IO,#0x88
+	b	5f
+4:	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	no_key
+5:	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	found_key
+escape_o:
+	cmp	IO,#'S'		// F4
+	b.ne	1f
+	b	exit
+1:	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	no_key
 found_key:
 	strb	IO,[KEYBOARD,#KBD_LASTKEY]
 	mov	w0,#1
@@ -508,7 +524,23 @@ invalid:
 	hex_16	PC_REG,26
 	write	31
 exit:
-	mov	x0,#0
+	adr	x3,msg_end	// go to line 25 and restore cursor
+	write	14
+	ldr	x2,=termios	// normal keyboard
+	ldr	w0,[x2,#C_LFLAG]
+	orr	w0,w0,#ICANON
+	orr	w0,w0,#ECHO
+	str	w0,[x2,#C_LFLAG]
+	mov	w0,#0
+	strb	w0,[x2,#C_CC_VTIME]
+	mov	w0,#1
+	strb	w0,[x2,#C_CC_VMIN]
+	mov	w0,#STDIN
+	mov	w1,#TCSETS
+	ldr	x2,=termios
+	mov	w8,#IOCTL
+	svc	0
+	mov	x0,#0		// exit program
 	mov	x8,#93
 	svc	0
 
@@ -554,8 +586,10 @@ msg_err_memory:
 	.ascii	"Failed to allocate memory\n"
 msg_err_rom:
 	.ascii	"Could not load ROM file APPLE2.ROM\n"
-msg_cls:
+msg_begin:
 	.ascii	"\x1B[2J\x1B[?25l"
+msg_end:
+	.ascii	"\x1B[25;01H\x1B[?25h"
 
 
 // Variable data
@@ -575,7 +609,7 @@ msg_invalid:
 msg_err_drive:
 	.ascii	"Could not load drive file drive..nib\n"
 msg_text:
-	.ascii	"\x1B[..;..H\x1B[0m."
+	.ascii	"\x1B[..;..H\x1B[.m."
 termios:
 	.fill	SIZEOF_TERMIOS,1,0
 sigaction:
@@ -586,7 +620,7 @@ kbd:
 	.byte	0		// buffer
 	.byte	0		// strobe
 	.byte	0		// last key
-	.byte	0		// escape sequence
+	.byte	0		// key sequence
 	.byte	0		// reset
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// drive '1' or '2'

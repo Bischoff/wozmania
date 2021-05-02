@@ -34,6 +34,14 @@ As of 2021-05-02:
 5. Run the emulator with the command `./wozmania`.
 6. If there is no disk to boot from, press Ctrl-C.
    This will emulate a Ctrl-Reset and bring you to BASIC.
+7. To exit the emulator, press F4.
+
+The following keys are defined:
+
+   Linux		Apple ][
+   -----		--------
+   Ctrl-C		Ctrl-Reset
+   F4			Power off
 
 
 ## How to debug

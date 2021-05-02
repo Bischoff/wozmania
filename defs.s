@@ -79,7 +79,7 @@ BREAKPOINT	.req	x29
 	.equ	KBD_BUFFER,0
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2
-	.equ	KBD_ESCSEQ,3
+	.equ	KBD_KEYSEQ,3
 	.equ	KBD_RESET,4
 	.equ	DRV_NUMBER,0
 	.equ	DRV_FLAGS,1
@@ -90,3 +90,9 @@ BREAKPOINT	.req	x29
 	.equ	DRV_CONTENT,7
 	.equ	F_LOADED,0x01
 	.equ	F_WRITE,0x02
+
+// Internal constants
+	.equ	SEQ,0
+	.equ	SEQ_ESC,1
+	.equ	SEQ_ESC_BRA,2
+	.equ	SEQ_ESC_O,3
