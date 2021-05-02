@@ -639,6 +639,11 @@ ins_ign_zp_x:			// D4 - undocumented
 	v_zp_x	w0
 	b	emulate
 
+ins_cmp_zp_x:			// D5
+	v_zp_x	w0
+	compare	A_REG,w0
+	b	emulate
+
 ins_dec_zp_x:			// D6
 	a_zp_x	w0
 	ldrb	w1,[MEM,x0]
@@ -758,6 +763,13 @@ ins_sbc_abs_y:			// F9
 ins_sbc_abs_x:			// FD
 	v_abs_x	w0
 	sub_a	w0
+	b	emulate
+
+ins_inc_abs_x:			// FE
+	a_abs_x	w0
+	ldrb	w1,[MEM,x0]
+	op_inc	w1
+	store	w1,x0
 	b	emulate
 
 instr_table:
@@ -974,7 +986,7 @@ instr_table:
 	.quad	undefined	// D2
 	.quad	undefined	// D3
 	.quad	ins_ign_zp_x	// D4*
-	.quad	undefined	// D5
+	.quad	ins_cmp_zp_x	// D5
 	.quad	ins_dec_zp_x	// D6
 	.quad	undefined	// D7
 	.quad	ins_cld		// D8
@@ -1015,5 +1027,5 @@ instr_table:
 	.quad	undefined	// FB
 	.quad	undefined	// FC
 	.quad	ins_sbc_abs_x	// FD
-	.quad	undefined	// FE
+	.quad	ins_inc_abs_x	// FE
 	.quad	undefined	// FF

@@ -13,9 +13,9 @@ pure emulation, there is no just-in-time code conversion.
 
 ## What is done
 
-As of 2021-04-29:
+As of 2021-05-02:
 
-* 6502 processor instructions: 136 out of 256;
+* 6502 processor instructions: 138 out of 256;
 * input: keyboard, floppy disk 1 and 2;
 * output: 40 column text mode.
 
@@ -25,12 +25,12 @@ As of 2021-04-29:
 1. Assemble the emulation by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
    Apple ][ ROM; it must be named `APPLE2.ROM` and contain the
-   last 20480 bytes of the memory.
+   last 20,480 bytes of the memory.
 3. You may also download to the same directory a file that contains
    the floppy drive 1; it must be named `drive1.nib` and contain
-   35 tracks of 13 sectors of 512 nibbles.
+   232,960 bytes (35 tracks of 13 sectors of 512 nibbles).
 4. Similarly, a file named `drive2.nib` will have the contents
-   of floppy drive 2;
+   of floppy drive 2.
 5. Run the emulator with the command `./wozmania`.
 6. If there is no disk to boot from, press Ctrl-C.
    This will emulate a Ctrl-Reset and bring you to BASIC.
