@@ -385,10 +385,10 @@
 2:	strb	w0,[x3,#\where]
 	.endm
 
-	.macro	write len
-	mov	w0,#STDOUT
+	.macro	write where,length
+	mov	w0,#\where
 	mov	x1,x3
-	mov	w2,#\len
+	mov	w2,#\length
 	mov	w8,#WRITE
 	svc	0
 	.endm

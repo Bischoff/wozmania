@@ -82,8 +82,16 @@ They are commented out by default:
 
 	//b	print_nibble
 ```
-
 You may uncomment these lines according to your debugging needs.
+
+You can redirect the output of these routines like this:
+```
+   $ ./wozmania 2> debug.txt
+```
+and then follow the debugging in another terminal:
+```
+   $ tail -f debug.txt
+```
 
 ### trace
 

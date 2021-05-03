@@ -64,11 +64,12 @@ BREAKPOINT	.req	x29
 // Linux constants
 	.equ	STDIN,0
 	.equ	STDOUT,1
+	.equ	STDERR,2
+	.equ	SIGINT,2
 	.equ	TCGETS,0x5401
 	.equ	TCSETS,0x5402
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
-	.equ	SIGINT,2
 	.equ	PROT_READ,0x1
 	.equ	PROT_WRITE,0x2
 	.equ	MAP_PRIVATE,0x2

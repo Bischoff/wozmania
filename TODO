@@ -15,6 +15,7 @@
   - mixed low resolution/text
   - high resolution
 * more hardware emulation:
+  - printer
   - sound
   - game paddles
   - language card

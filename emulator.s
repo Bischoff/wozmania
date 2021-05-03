@@ -41,7 +41,7 @@ allocate_memory:
 	br	lr
 allocate_error:
 	adr	x3,msg_err_memory
-	write	28
+	write	STDERR,28
 	b	exit
 
 // load ROM file
@@ -62,7 +62,7 @@ load_rom:
 	br	lr
 load_failure_rom:
 	adr	x3,msg_err_rom
-	write	36
+	write	STDERR,36
 	b	exit
 
 // load drive file
@@ -97,7 +97,7 @@ no_disk:
 load_failure_drive:
 	ldr	x3,=msg_err_drive
 	char	w5,31
-	write	37
+	write	STDERR,37
 	b	exit
 
 // optional: hide the disks by removing controller's signature
@@ -113,7 +113,7 @@ disable_drives:
 // prepare text terminal
 prepare_terminal:
 	adr	x3,msg_begin	// clear screen and hide cursor
-	write	10
+	write	STDOUT,10
 	mov	w0,#STDIN	// set non-blocking keyboard
 	mov	w1,#TCGETS
 	ldr	x2,=termios
@@ -349,7 +349,7 @@ print_nibble:
 	hex_8	w6,18
 	hex_16	w5,28
 	hex_8	IO,41
-	write	44
+	write	STDERR,44
 	br	lr
 write_nibble:
 	mov	w0,#0xFF
@@ -414,7 +414,7 @@ normal:
 effect:
 	char	w2,10
 	char	w1,12
-	write	13
+	write	STDOUT,13
 screen_hole:
 	br	lr
 
@@ -438,7 +438,7 @@ trace:
 	s_bit	X_FLAG,'1',46
 	s_bit	V_FLAG,'V',45
 	s_bit	N_FLAG,'N',44
-	write	53
+	write	STDERR,53
 	br	lr
 
 // break at a given 6502 address
@@ -511,17 +511,17 @@ undefined:
 	ldr	x3,=msg_undefined
 	hex_8	w0,22
 	hex_16	PC_REG,28
-	write	33
+	write	STDERR,33
 	b	exit
 invalid:
 	sub	PC_REG,PC_REG,#1
 	adr	x2,hex
 	ldr	x3,=msg_invalid
 	hex_16	PC_REG,26
-	write	31
+	write	STDERR,31
 exit:
 	adr	x3,msg_end	// go to line 25 and restore cursor
-	write	14
+	write	STDOUT,14
 	ldr	x2,=termios	// normal keyboard
 	ldr	w0,[x2,#C_LFLAG]
 	orr	w0,w0,#ICANON
