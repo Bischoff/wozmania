@@ -2,7 +2,6 @@
   when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
   - disk writing
-  - read-only disks
   - other disk formats than .nib
   - function key to hot-load a floppy into a drive
 * keyboard:

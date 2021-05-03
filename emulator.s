@@ -89,7 +89,7 @@ load_drive:
 	svc	0
 	cmp	x0,x2
 	b.ne	load_failure_drive
-	mov	w0,#F_LOADED	// disk is loaded
+	mov	w0,#FLG_LOADED	// disk is loaded
 	strb	w0,[x4,#DRV_FLAGS]
 no_disk:
 	strb	w5,[x4,#DRV_NUMBER]
@@ -326,7 +326,7 @@ read_nibble:
 	ldrh	w5,[DRIVE,#DRV_HEAD]
 	ldrb	w6,[DRIVE,#DRV_HTRACK]
 	mov	IO,#0		// only read when loaded + read mode
-	cmp	w2,#F_LOADED
+	cmp	w2,#FLG_LOADED
 	b.ne	2f
 	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
 	mul	w7,w7,w4
@@ -351,18 +351,19 @@ print_nibble:
 	hex_8	IO,41
 	write	STDERR,44
 	br	lr
-write_nibble:
-	mov	w0,#0xFF
-	strb	w0,[DRIVE,#DRV_LASTNIB]
+sense_protection:
+	ldrb	w0,[DRIVE,#DRV_FLAGS]
+	and	IO,w0,#FLG_READONLY
+	strb	IO,[DRIVE,#DRV_LASTNIB]
 	b	nothing_to_read
 read_mode:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
-	and	w0,w0,#~F_WRITE
+	and	w0,w0,#~FLG_WRITE
 	strb	w0,[DRIVE,#DRV_FLAGS]
 	b	last_nibble
 write_mode:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
-	orr	w0,w0,#F_WRITE
+	orr	w0,w0,#FLG_WRITE
 	strb	w0,[DRIVE,#DRV_FLAGS]
 	b	nothing_to_read
 last_nibble:
@@ -566,7 +567,7 @@ disk_table:
 	.quad	select_drive1
 	.quad	select_drive2
 	.quad	read_nibble
-	.quad	write_nibble
+	.quad	sense_protection
 	.quad	read_mode
 	.quad	write_mode
 htrack_delta:
@@ -620,7 +621,7 @@ kbd:
 	.byte	0		// reset
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// drive '1' or '2'
-	.byte	0		// flags: loaded, write
+	.byte	0		// flags: loaded, write, read-only
 	.byte	0		// last nibble read
 	.byte	0		// phase 0-3
 	.byte	0		// half-track 0-69

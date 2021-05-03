@@ -90,8 +90,9 @@ BREAKPOINT	.req	x29
 	.equ	DRV_CONTENT,7
 
 // Internal constants
-	.equ	F_LOADED,0x01
-	.equ	F_WRITE,0x02
+	.equ	FLG_LOADED,0x01
+	.equ	FLG_WRITE,0x02
+	.equ	FLG_READONLY,0x80
 	.equ	SEQ,0
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2
