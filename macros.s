@@ -306,29 +306,17 @@
 // Access to memory
 // Handles special I/O addresses
 	.macro	fetch reg,where
-	cmp	\where,#0xC000		// Read I/O
-	b.lt	1f
-	mov	IO_64,#0xC100
-	cmp	\where,IO_64
-	b.ge	1f
-	mov	IO_64,\where
+	mov	ADDR_64,\where		// Read I/O
 	bl	fetch_io
-	mov	\reg,IO
-	b	2f
-1:	ldrb	\reg,[MEM,\where]	// Load the byte
-2:
+	ldrb	\reg,[MEM,ADDR_64]	// Load the byte
 	.endm
 
 	.macro	store reg,where
 	cmp	\where,#0xD000		// Don't write in ROM!
 	b.ge	1f
 	strb	\reg,[MEM,\where]	// Store the byte
-	cmp	\where,#0x0400		// Write I/O
-	b.lt	1f
-	cmp	\where,#0x0800
-	b.ge	1f
-	mov	IO_64,\where
-	bl	store_io
+	mov	ADDR_64,\where
+	bl	store_io		// Write I/O
 1:
 	.endm
 

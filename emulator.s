@@ -168,24 +168,24 @@ ctl_reset:
 	mov	w0,#1
 	strb	w0,[KEYBOARD,#KBD_RESET]
 
-// Fetch byte from I/O area
-//   input: IO = address in range $C000-$C100
-//   output: IO = character read
+// Fetch byte from memory, taking into account I/O
+//   input:  ADDR          = address where to store the byte to read
+//   output: [MEM,ADDR_64] = byte read
+//   this routine makes registers dirty and must be called very last when emulating an instruction
 
 fetch_io:
-	cmp	IO,#KBD		// $C000-$C010 keyboard
+	cmp	ADDR,#KBD	// $C000-$C010 keyboard
 	b.eq	keyboard
 	mov	w0,#KBDSTRB
-	cmp	IO,w0
+	cmp	ADDR,w0
 	b.eq	clear_strobe
 	mov	w0,#IWM_PHASE0OFF // $COE0-$C0EF floppy disk
-	cmp	IO,w0
+	cmp	ADDR,w0
 	b.lt	nothing_to_read
 	mov	w0,#IWM_WRITEMODE
-	cmp	IO,w0
-	b.le	floppy_disk
+	cmp	ADDR,w0
+	b.le	floppy_disk_read
 nothing_to_read:
-	mov	IO,#0
 	br	lr
 
 // Keyboard
@@ -207,29 +207,29 @@ read_key:
 	b.lt	no_key
 	mov	w0,#KBD_BUFFER
 analyze_key:
-	ldrb	IO,[KEYBOARD,x0]
+	ldrb	w9,[KEYBOARD,x0]
 	ldrb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	cmp	w0,#SEQ
 	b.ne	escape
-	cmp	IO,#0x0A	// carriage return
+	cmp	w9,#0x0A	// carriage return
 	b.ne	1f
-	mov	IO,#0x8D
+	mov	w9,#0x8D
 	b	found_key
-1:	cmp	IO,#0x1B
+1:	cmp	w9,#0x1B
 	b.ne	2f
 	mov	w0,#SEQ_ESC
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
-2:	orr	IO,IO,#0x80
+2:	orr	w9,w9,#0x80
 	b	found_key
 escape:
 	cmp	w0,#SEQ_ESC
 	b.ne	escape_bracket
-	cmp	IO,#'['
+	cmp	w9,#'['
 	b.ne	1f
 	mov	w0,#SEQ_ESC_BRA
 	b	3f
-1:	cmp	IO,#'O'
+1:	cmp	w9,#'O'
 	b.ne	2f
 	mov	w0,#SEQ_ESC_O
 	b	3f
@@ -239,21 +239,21 @@ escape:
 escape_bracket:
 	cmp	w0,#SEQ_ESC_BRA
 	b.ne	escape_o
-	cmp	IO,#'A'		// up
+	cmp	w9,#'A'		// up
 	b.ne	1f
-	mov	IO,#0x8B
+	mov	w9,#0x8B
 	b	5f
-1:	cmp	IO,#'B'		// down
+1:	cmp	w9,#'B'		// down
 	b.ne	2f
-	mov	IO,#0x8A
+	mov	w9,#0x8A
 	b	5f
-2:	cmp	IO,#'C'		// right
+2:	cmp	w9,#'C'		// right
 	b.ne	3f
-	mov	IO,#0x95
+	mov	w9,#0x95
 	b	5f
-3:	cmp	IO,#'D'		// left
+3:	cmp	w9,#'D'		// left
 	b.ne	4f
-	mov	IO,#0x88
+	mov	w9,#0x88
 	b	5f
 4:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
@@ -262,11 +262,11 @@ escape_bracket:
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 escape_o:
-	cmp	IO,#'R'		// Ctrl-C
+	cmp	w9,#'R'		// Ctrl-C
 	b.ne	1f
-	mov	IO,#0x83
+	mov	w9,#0x83
 	b	3f
-1:	cmp	IO,#'S'		// power off
+1:	cmp	w9,#'S'		// power off
 	b.ne	2f
 	b	exit
 2:	mov	w0,#SEQ
@@ -276,28 +276,30 @@ escape_o:
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 found_key:
-	strb	IO,[KEYBOARD,#KBD_LASTKEY]
+	strb	w9,[KEYBOARD,#KBD_LASTKEY]
 	mov	w0,#1
 	strb	w0,[KEYBOARD,#KBD_STROBE]
+	strb	w9,[MEM,ADDR_64]
 	br	lr
 no_key:
 	mov	w0,#0
 	strb	w0,[KEYBOARD,#KBD_STROBE]
-	b	nothing_to_read
+	strb	w0,[MEM,ADDR_64]
+	br	lr
 
 // Keyboard strobe
 clear_strobe:
 	b	no_key
 
-// Floppy disk
-floppy_disk:
+// Floppy disk (read)
+floppy_disk_read:
 	mov	w0,#IWM_PHASE0OFF
-	sub	IO,IO,w0
+	sub	w1,ADDR,w0
 	adr	x0,disk_table
-	ldr	x2,[x0,IO_64,LSL 3]
+	ldr	x2,[x0,x1,LSL 3]
 	br	x2
 change_track:
-	lsr	w0,IO,#1	// w0 = new phase, w3 = old phase
+	lsr	w0,w1,#1	// w0 = new phase, w3 = old phase
 	ldrb	w3,[DRIVE,#DRV_PHASE]
 	strb	w0,[DRIVE,#DRV_PHASE]
 	ldr	x2,=htrack_delta // w4 = half-track delta
@@ -313,32 +315,33 @@ change_track:
 	b.lt	2f
 	mov	w5,#79
 2:	strb	w5,[DRIVE,#DRV_HTRACK]
-	b	nothing_to_read
+	br	lr
 select_drive1:
 	ldr	DRIVE,=drive1
 	b	last_nibble
 select_drive2:
 	ldr	DRIVE,=drive2
-	b	nothing_to_read
+	br	lr
 read_nibble:
 	ldrb	w2,[DRIVE,#DRV_FLAGS]
 	mov	w4,#6656
 	ldrh	w5,[DRIVE,#DRV_HEAD]
 	ldrb	w6,[DRIVE,#DRV_HTRACK]
-	mov	IO,#0		// only read when loaded + read mode
+	mov	w9,#0		// only read when loaded + read mode
 	cmp	w2,#FLG_LOADED
 	b.ne	2f
-	lsr	w7,w6,#1	// IO = nibble at (track * 6656 + head position)
+	lsr	w7,w6,#1	// w9 = nibble at (track * 6656 + head position)
 	mul	w7,w7,w4
 	add	w7,w7,w5
 	ldr	x2,[DRIVE,#DRV_CONTENT]
-	ldrb	IO,[x2,x7]
+	ldrb	w9,[x2,x7]
 	add	w8,w5,#1	// move head forward
 	cmp	w8,w4
 	b.lt	1f
 	mov	w8,#0
 1:	strh	w8,[DRIVE,#DRV_HEAD]
-2:	strb	IO,[DRIVE,#DRV_LASTNIB]
+2:	strb	w9,[DRIVE,#DRV_LASTNIB]
+	strb	w9,[MEM,ADDR_64]
 	//b	print_nibble	// uncomment this line to debug
 	br	lr
 print_nibble:
@@ -348,14 +351,14 @@ print_nibble:
 	char	w0,7
 	hex_8	w6,18
 	hex_16	w5,28
-	hex_8	IO,41
+	hex_8	w9,41
 	write	STDERR,44
 	br	lr
 sense_protection:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
-	and	IO,w0,#FLG_READONLY
-	strb	IO,[DRIVE,#DRV_LASTNIB]
-	b	nothing_to_read
+	and	w9,w0,#FLG_READONLY
+	strb	w9,[DRIVE,#DRV_LASTNIB]
+	br	lr
 read_mode:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
 	and	w0,w0,#~FLG_WRITE
@@ -365,18 +368,36 @@ write_mode:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
 	orr	w0,w0,#FLG_WRITE
 	strb	w0,[DRIVE,#DRV_FLAGS]
-	b	nothing_to_read
+	br	lr
 last_nibble:
-	ldrb	IO,[DRIVE,#DRV_LASTNIB]
+	ldrb	w9,[DRIVE,#DRV_LASTNIB]
+	strb	w9,[MEM,ADDR_64]
 	br	lr
 
 
-// Store byte into I/O area
-//   input: IO = address in range $0400-$0800
+// Store byte from memory, taking into account I/O
+//   input: ADDR          = 6502 address of byte to write
+//          [MEM,ADDR_64] = byte to write
+//   this routine makes registers dirty and must be called very first when emulating an instruction
 
 store_io:
+	cmp	ADDR,#LINE1	// $0400-$07FF 40 columns text
+	b.lt	nothing_to_write
+	cmp	ADDR,#PRGMEM
+	b.lt	text
+	mov	w0,#IWM_PHASE0OFF // $C0E0-$C0EF floppy disk
+	cmp	ADDR,w0
+	b.lt	nothing_to_write
+	mov	w0,#IWM_WRITEMODE
+	cmp	ADDR,w0
+	b.le	floppy_disk_write
+nothing_to_write:
+	br	lr
+
+// 40 columns text
+text:
 	ldr	x3,=msg_text
-	mov	w2,IO		// line and column
+	mov	w2,ADDR		// line and column
 	sub	w2,w2,#LINE1
 	and	w0,w2,#0x7F
 	lsr	w2,w2,#7
@@ -391,7 +412,7 @@ store_io:
 	dec_8	w2,2
 	add	w5,w5,#1
 	dec_8	w5,5
-	ldrb	w1,[MEM,IO_64]	// text effect and text
+	ldrb	w1,[MEM,ADDR_64] // text effect and text
 	lsr	w0,w1,#2
 	and	w0,w0,#0xF8
 	adr	x4,video_table
@@ -419,10 +440,14 @@ effect:
 screen_hole:
 	br	lr
 
+// Floppy disk (write)
+floppy_disk_write:
+	br	lr
+
 
 // Debugging utilities
 
-// trace each instruction
+// Trace each instruction
 trace:
 	adr	x2,hex
 	ldr	x3,=msg_trace
@@ -442,7 +467,7 @@ trace:
 	write	STDERR,53
 	br	lr
 
-// break at a given 6502 address
+// Break at a given 6502 address
 break:
 	ldrh	w0,[BREAKPOINT]
 	tst	w0,#0xFFFF
@@ -453,7 +478,7 @@ here:
 	nop
 1:	br	lr
 
-// check that registers are still 8 bit values
+// Check that registers are still 8 bit values
 check:
 	cmp	PC_REG,#0x10000
 	b.ge	invalid
