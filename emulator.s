@@ -168,6 +168,7 @@ ctl_reset:
 	mov	w0,#1
 	strb	w0,[KEYBOARD,#KBD_RESET]
 
+
 // Fetch byte from memory, taking into account I/O
 //   input:  ADDR          = address where to store the byte to read
 //   output: [MEM,ADDR_64] = byte read
@@ -322,38 +323,45 @@ select_drive1:
 select_drive2:
 	ldr	DRIVE,=drive2
 	br	lr
-read_nibble:
+transfer_nibble:
+	ldr	x1,[DRIVE,#DRV_CONTENT]
 	ldrb	w2,[DRIVE,#DRV_FLAGS]
 	mov	w4,#6656
 	ldrh	w5,[DRIVE,#DRV_HEAD]
 	ldrb	w6,[DRIVE,#DRV_HTRACK]
-	mov	w9,#0		// only read when loaded + read mode
-	cmp	w2,#FLG_LOADED
-	b.ne	2f
-	lsr	w7,w6,#1	// w9 = nibble at (track * 6656 + head position)
+	lsr	w7,w6,#1
 	mul	w7,w7,w4
 	add	w7,w7,w5
-	ldr	x2,[DRIVE,#DRV_CONTENT]
-	ldrb	w9,[x2,x7]
-	add	w8,w5,#1	// move head forward
-	cmp	w8,w4
+	mov	w9,#0
+	tst	w2,#FLG_WRITE
+	b.ne	write_nibble
+read_nibble:
+	and	w2,w2,#~FLG_READONLY // only read when loaded + read mode
+	cmp	w2,#FLG_LOADED
+	b.ne	2f
+	ldrb	w9,[x1,x7]	// read nibble at (track * 6656 + head position)
+	add	w0,w5,#1	// move head forward
+	cmp	w0,w4
 	b.lt	1f
-	mov	w8,#0
-1:	strh	w8,[DRIVE,#DRV_HEAD]
+	mov	w0,#0
+1:	strh	w0,[DRIVE,#DRV_HEAD]
 2:	strb	w9,[DRIVE,#DRV_LASTNIB]
 	strb	w9,[MEM,ADDR_64]
 	//b	print_nibble	// uncomment this line to debug
-	br	lr
-print_nibble:
-	adr	x2,hex
-	ldr	x3,=msg_disk
-	ldrb	w0,[DRIVE,#DRV_NUMBER]
-	char	w0,7
-	hex_8	w6,18
-	hex_16	w5,28
-	hex_8	w9,41
-	write	STDERR,44
-	br	lr
+	b	last_nibble
+write_nibble:
+	cmp	w2,#(FLG_LOADED|FLG_WRITE) // only write when loaded + write mode + not read-only
+	b.ne	2f
+	ldrb	w9,[DRIVE,#DRV_NEXTNIB]	// write nibble to (track * 6656 + head position)
+	strb	w9,[x1,x7]
+	add	w0,w5,#1	// move head forward
+	cmp	w0,w4
+	b.lt	1f
+	mov	w0,#0
+1:	strh	w0,[DRIVE,#DRV_HEAD]
+2:
+	//b	print_nibble	// uncomment this line to debug
+	b	last_nibble
 sense_protection:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
 	and	w9,w0,#FLG_READONLY
@@ -364,11 +372,6 @@ read_mode:
 	and	w0,w0,#~FLG_WRITE
 	strb	w0,[DRIVE,#DRV_FLAGS]
 	b	last_nibble
-write_mode:
-	ldrb	w0,[DRIVE,#DRV_FLAGS]
-	orr	w0,w0,#FLG_WRITE
-	strb	w0,[DRIVE,#DRV_FLAGS]
-	br	lr
 last_nibble:
 	ldrb	w9,[DRIVE,#DRV_LASTNIB]
 	strb	w9,[MEM,ADDR_64]
@@ -442,6 +445,16 @@ screen_hole:
 
 // Floppy disk (write)
 floppy_disk_write:
+	mov	w0,IWM_WRITEMODE
+	cmp	ADDR,w0
+	b.ne	load_next_nibble
+write_mode:
+	ldrb	w0,[DRIVE,#DRV_FLAGS]
+	orr	w0,w0,#FLG_WRITE
+	strb	w0,[DRIVE,#DRV_FLAGS]
+load_next_nibble:
+	ldrb	w9,[MEM,ADDR_64]
+	strb	w9,[DRIVE,#DRV_NEXTNIB]
 	br	lr
 
 
@@ -497,6 +510,18 @@ check:
 	tst	S_REG,#(X_FLAG | B_FLAG)
 	b.ne	invalid
 	br	lr
+
+// Print current nibble
+print_nibble:
+	adr	x2,hex
+	ldr	x3,=msg_disk
+	ldrb	w0,[DRIVE,#DRV_NUMBER]
+	char	w0,7
+	hex_8	w6,18
+	hex_16	w5,28
+	hex_8	w9,41
+	write	STDERR,44
+	b	last_nibble
 
 
 // Main loop
@@ -591,10 +616,10 @@ disk_table:
 	.quad	nothing_to_read
 	.quad	select_drive1
 	.quad	select_drive2
-	.quad	read_nibble
+	.quad	transfer_nibble
 	.quad	sense_protection
 	.quad	read_mode
-	.quad	write_mode
+	.quad	nothing_to_read
 htrack_delta:
 	.byte	 0, +1, +2, -1
 	.byte	-1,  0, +1, +2
@@ -648,11 +673,13 @@ drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// drive '1' or '2'
 	.byte	0		// flags: loaded, write, read-only
 	.byte	0		// last nibble read
+	.byte	0		// next nibble written
 	.byte	0		// phase 0-3
 	.byte	0		// half-track 0-69
 	.hword	0		// head 0-6655
 	.quad	0		// pointer to content
 drive2:
+	.byte	0
 	.byte	0
 	.byte	0
 	.byte	0

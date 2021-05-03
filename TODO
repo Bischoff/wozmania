@@ -1,9 +1,10 @@
 * missing 6502 instructions:
   when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
-  - disk writing
+  - write to disk on exiting the program
   - other disk formats than .nib
   - function key to hot-load a floppy into a drive
+  - function key to hot-write protect a floppy
 * keyboard:
   - nano timer to receive ESC key
 * command-line options:

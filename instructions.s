@@ -82,6 +82,11 @@ ins_clc:			// 18
 	and	S_REG,S_REG,~C_FLAG
 	b	emulate
 
+ins_ora_abs_y:			// 19
+	v_abs_y	w0
+	or_a	w0
+	b	emulate
+
 ins_ora_abs_x:			// 1D
 	v_abs_x	w0
 	or_a	w0
@@ -154,6 +159,13 @@ ins_sec:			// 38
 ins_and_abs_y:			// 39
 	v_abs_y	w0
 	and_a	w0
+	b	emulate
+
+ins_rol_abs_x:			// 3E
+	a_abs_x	w0
+	ldrb	w1,[MEM,x0]
+	op_rol	w1
+	store	w1,x0
 	b	emulate
 
 ins_rti:			// 40
@@ -345,6 +357,13 @@ ins_rra_abs_y:			// 7B - undocumented
 ins_adc_abs_x:			// 7D
 	v_abs_x	w0
 	add_a	w0
+	b	emulate
+
+ins_ror_abs_x:			// 7E
+	a_abs_x	w0
+	ldrb	w1,[MEM,x0]
+	op_ror	w1
+	store	w1,x0
 	b	emulate
 
 ins_sta_ind_x:			// 81
@@ -798,7 +817,7 @@ instr_table:
 	.quad	ins_asl_zp_x	// 16
 	.quad	undefined	// 17
 	.quad	ins_clc		// 18
-	.quad	undefined	// 19
+	.quad	ins_ora_abs_y	// 19
 	.quad	undefined	// 1A
 	.quad	undefined	// 1B
 	.quad	undefined	// 1C
@@ -835,7 +854,7 @@ instr_table:
 	.quad	undefined	// 3B
 	.quad	undefined	// 3C
 	.quad	undefined	// 3D
-	.quad	undefined	// 3E
+	.quad	ins_rol_abs_x	// 3E
 	.quad	undefined	// 3F
 	.quad	ins_rti		// 40
 	.quad	ins_eor_ind_x	// 41
@@ -899,7 +918,7 @@ instr_table:
 	.quad	ins_rra_abs_y	// 7B*
 	.quad	undefined	// 7C
 	.quad	ins_adc_abs_x	// 7D
-	.quad	undefined	// 7E
+	.quad	ins_ror_abs_x	// 7E
 	.quad	undefined	// 7F
 	.quad	undefined	// 80
 	.quad	ins_sta_ind_x	// 81

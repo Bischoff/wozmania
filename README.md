@@ -15,11 +15,12 @@ pure emulation, there is no just-in-time code conversion.
 
 ## What is done
 
-As of 2021-05-02:
+As of 2021-05-03:
 
-* 6502 processor instructions: 138 out of 256;
-* input: keyboard, floppy disk 1 and 2;
-* output: 40 column text mode.
+* 6502 processor instructions: 141 out of 256;
+* input: keyboard;
+* output: 40 column text mode;
+* input-output: floppy disks 1 and 2.
 
 
 ## How to use
