@@ -259,6 +259,10 @@ ins_lsr_zp_x:			// 56
 	store	w1,x0
 	b	emulate
 
+ins_cli:			// 58
+	and	S_REG,S_REG,#~I_FLAG
+	b	emulate
+
 ins_eor_abs_y:			// 59
 	v_abs_y	w0
 	eor_a	w0
@@ -338,7 +342,7 @@ ins_ror_zp_x:			// 76
 	b	emulate
 
 ins_sei:			// 78
-	orr	S_REG,S_REG,I_FLAG
+	orr	S_REG,S_REG,#I_FLAG
 	b	emulate
 
 ins_adc_abs_y:			// 79
@@ -880,7 +884,7 @@ instr_table:
 	.quad	undefined	// 55
 	.quad	ins_lsr_zp_x	// 56
 	.quad	undefined	// 57
-	.quad	undefined	// 58
+	.quad	ins_cli		// 58
 	.quad	ins_eor_abs_y	// 59
 	.quad	ins_nop		// 5A*
 	.quad	undefined	// 5B

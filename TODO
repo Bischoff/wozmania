@@ -2,6 +2,7 @@
   when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
   - other disk formats than .nib
+  - function key to flush the disk immediately
   - function key to hot-load a floppy into a drive
   - function key to hot-write protect a floppy
 * keyboard:
@@ -10,9 +11,10 @@
   - to disable disks
   - to enable debugging
 * screen modes:
-  - low resolution
-  - mixed low resolution/text
-  - high resolution
+  - low resolution graphic
+  - mixed low resolution graphic/text
+  - high resolution graphic
+  - 80 columns text
 * more hardware emulation:
   - printer
   - sound

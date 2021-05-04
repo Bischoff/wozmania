@@ -7,7 +7,6 @@
 .global prepare_terminal
 .global text
 .global clean_exit
-.global msg_end
 
 .include "defs.s"
 .include "macros.s"

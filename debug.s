@@ -89,24 +89,20 @@ print_nibble:
 // Undefined instruction
 undefined:
 	sub	PC_REG,PC_REG,#1
-	adr	x3,msg_end	// go to line 25 and restore cursor
-	write	STDOUT,14
 	adr	x2,hex		// print error message
 	ldr	x3,=msg_undefined
-	hex_8	w0,22
-	hex_16	PC_REG,28
-	write	STDERR,33
+	hex_8	w0,36
+	hex_16	PC_REG,42
+	write	STDERR,47
 	b	exit
 
 // Invalid value for register
 invalid:
 	sub	PC_REG,PC_REG,#1
-	adr	x3,msg_end	// go to line 25 and restore cursor
-	write	STDOUT,14
 	adr	x2,hex		// print error message
 	ldr	x3,=msg_invalid
-	hex_16	PC_REG,26
-	write	STDERR,31
+	hex_16	PC_REG,40
+	write	STDERR,45
 	b	exit
 
 // Fixed data
@@ -123,8 +119,8 @@ msg_trace:
 msg_disk:
 	.ascii	".  DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
 msg_undefined:
-	.ascii	"Undefined instruction .. at ....\n"
+	.ascii	"\x1B[25;01H\x1B[?25hUndefined instruction .. at ....\n"
 msg_invalid:
-	.ascii	"Invalid register value at ....\n"
+	.ascii	"\x1B[25;01H\x1B[?25hInvalid register value at ....\n"
 breakpoint:
 	.hword	0
