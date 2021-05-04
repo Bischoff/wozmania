@@ -42,13 +42,13 @@ allocate_memory:
 allocate_error:
 	adr	x3,msg_err_memory
 	write	STDERR,28
-	b	exit
+	b	final_exit
 
 // load ROM file
 load_rom:
 	mov	w0,#-100	// open ROM file
 	adr	x1,rom_filename
-	mov	w2,#0
+	mov	w2,#O_RDONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#-1
@@ -61,28 +61,28 @@ load_rom:
 	b.ne	load_failure_rom
 	br	lr
 load_failure_rom:
-	adr	x3,msg_err_rom
+	adr	x3,msg_err_load_rom
 	write	STDERR,36
-	b	exit
+	b	final_exit
 
 // load drive file
 load_drive1:
-	ldr	x4,=drive1
+	ldr	DRIVE,=drive1
 	mov	w5,#'1'
 	b	load_drive
 load_drive2:
-	ldr	x4,=drive2
+	ldr	DRIVE,=drive2
 	mov	w5,#'2'
 load_drive:
 	ldr	x1,=drive_filename // open disk file
 	strb	w5,[x1,#5]
 	mov	w0,#-100
-	mov	w2,#0
+	mov	w2,#O_RDONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
 	b.lt	no_disk
-	ldr	x1,[x4,#DRV_CONTENT] // read disk file
+	ldr	x1,[DRIVE,#DRV_CONTENT] // read disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#READ
@@ -90,15 +90,15 @@ load_drive:
 	cmp	x0,x2
 	b.ne	load_failure_drive
 	mov	w0,#FLG_LOADED	// disk is loaded
-	strb	w0,[x4,#DRV_FLAGS]
+	strb	w0,[DRIVE,#DRV_FLAGS]
 no_disk:
-	strb	w5,[x4,#DRV_NUMBER]
+	strb	w5,[DRIVE,#DRV_NUMBER]
 	br	lr
 load_failure_drive:
-	ldr	x3,=msg_err_drive
+	ldr	x3,=msg_err_load_drive
 	char	w5,31
 	write	STDERR,37
-	b	exit
+	b	final_exit
 
 // optional: hide the disks by removing controller's signature
 disable_drives:
@@ -269,7 +269,7 @@ escape_o:
 	b	3f
 1:	cmp	w9,#'S'		// power off
 	b.ne	2f
-	b	exit
+	b	clean_exit
 2:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
@@ -336,7 +336,8 @@ transfer_nibble:
 	tst	w2,#FLG_WRITE
 	b.ne	write_nibble
 read_nibble:
-	and	w2,w2,#~FLG_READONLY // only read when loaded + read mode
+	and	w2,w2,#~FLG_DIRTY // only read when loaded + read mode
+	and	w2,w2,#~FLG_READONLY
 	cmp	w2,#FLG_LOADED
 	b.ne	2f
 	ldrb	w9,[x1,x7]	// read nibble at (track * 6656 + head position)
@@ -350,7 +351,8 @@ read_nibble:
 	//b	print_nibble	// uncomment this line to debug
 	b	last_nibble
 write_nibble:
-	cmp	w2,#(FLG_LOADED|FLG_WRITE) // only write when loaded + write mode + not read-only
+	and	w2,w2,#~FLG_DIRTY // only write when loaded + write mode + not read-only
+	cmp	w2,#(FLG_LOADED|FLG_WRITE)
 	b.ne	2f
 	ldrb	w9,[DRIVE,#DRV_NEXTNIB]	// write nibble to (track * 6656 + head position)
 	strb	w9,[x1,x7]
@@ -359,6 +361,8 @@ write_nibble:
 	b.lt	1f
 	mov	w0,#0
 1:	strh	w0,[DRIVE,#DRV_HEAD]
+	orr	w2,w2,#FLG_DIRTY
+	strb	w2,[DRIVE,#DRV_FLAGS]
 2:
 	//b	print_nibble	// uncomment this line to debug
 	b	last_nibble
@@ -537,8 +541,8 @@ _start:
 	bl	load_drive2
 	//bl	disable_drives	// uncomment this line to disconnect the drives
 	bl	prepare_terminal
-coldstart:
 	bl	intercept_ctl_c
+coldstart:
 	bl	reset
 emulate:
 	//bl	trace		// uncomment these lines according to your debugging needs
@@ -556,24 +560,65 @@ next:				// trace each instruction with "b next"
 
 // Exit
 
+flush_drive:
+	ldrb	w0,[DRIVE,#DRV_FLAGS]
+	tst	w0,#FLG_DIRTY
+	b.eq	1f
+	and	w0,w0,#~FLG_DIRTY	// clean dirty flag
+	strb	w0,[DRIVE,#DRV_FLAGS]
+	ldrb	w5,[DRIVE,#DRV_NUMBER]	// open disk file
+	ldr	x1,=drive_filename
+	strb	w5,[x1,#5]
+	mov	w0,#-100
+	mov	w2,#O_WRONLY
+	mov	w8,#OPENAT
+	svc	0
+	cmp	x0,#0
+	b.lt	flush_failure_drive
+	ldr	x1,[DRIVE,#DRV_CONTENT]	// read disk file
+	mov	w2,#0x8e00
+	movk	w2,#3,lsl #16
+	mov	w8,#WRITE
+	svc	0
+	cmp	x0,x2
+	b.ne	flush_failure_drive
+1:	br	lr
+flush_failure_drive:
+	ldr	x3,=msg_err_flush_drive
+	char	w5,31
+	write	STDERR,37
+	br	lr
+
 undefined:
 	sub	PC_REG,PC_REG,#1
-	adr	x2,hex
+	adr	x3,msg_end	// go to line 25 and restore cursor
+	write	STDOUT,14
+	adr	x2,hex		// print error message
 	ldr	x3,=msg_undefined
 	hex_8	w0,22
 	hex_16	PC_REG,28
 	write	STDERR,33
 	b	exit
+
 invalid:
 	sub	PC_REG,PC_REG,#1
-	adr	x2,hex
+	adr	x3,msg_end	// go to line 25 and restore cursor
+	write	STDOUT,14
+	adr	x2,hex		// print error message
 	ldr	x3,=msg_invalid
 	hex_16	PC_REG,26
 	write	STDERR,31
-exit:
+	b	exit
+
+clean_exit:
 	adr	x3,msg_end	// go to line 25 and restore cursor
 	write	STDOUT,14
-	ldr	x2,=termios	// normal keyboard
+exit:
+	ldr	DRIVE,=drive1	// flush dirty drives
+	bl	flush_drive
+	ldr	DRIVE,=drive2
+	bl	flush_drive
+	ldr	x2,=termios	// restore normal keyboard
 	ldr	w0,[x2,#C_LFLAG]
 	orr	w0,w0,#ICANON
 	orr	w0,w0,#ECHO
@@ -587,6 +632,7 @@ exit:
 	ldr	x2,=termios
 	mov	w8,#IOCTL
 	svc	0
+final_exit:
 	mov	x0,#0		// exit program
 	mov	x8,#93
 	svc	0
@@ -631,7 +677,7 @@ hex:
 	.ascii	"0123456789ABCDEF"
 msg_err_memory:
 	.ascii	"Failed to allocate memory\n"
-msg_err_rom:
+msg_err_load_rom:
 	.ascii	"Could not load ROM file APPLE2.ROM\n"
 msg_begin:
 	.ascii	"\x1B[2J\x1B[?25l"
@@ -653,8 +699,10 @@ msg_undefined:
 	.ascii	"Undefined instruction .. at ....\n"
 msg_invalid:
 	.ascii	"Invalid register value at ....\n"
-msg_err_drive:
+msg_err_load_drive:
 	.ascii	"Could not load drive file drive..nib\n"
+msg_err_flush_drive:
+	.ascii	"Could not save drive file drive..nib\n"
 msg_text:
 	.ascii	"\x1B[..;..H\x1B[.m."
 termios:
@@ -671,7 +719,7 @@ kbd:
 	.byte	0		// reset
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// drive '1' or '2'
-	.byte	0		// flags: loaded, write, read-only
+	.byte	0		// flags: loaded, write, dirty, read-only
 	.byte	0		// last nibble read
 	.byte	0		// next nibble written
 	.byte	0		// phase 0-3

@@ -67,6 +67,8 @@ BREAKPOINT	.req	x29
 	.equ	STDOUT,1
 	.equ	STDERR,2
 	.equ	SIGINT,2
+	.equ	O_RDONLY,0x0
+	.equ	O_WRONLY,0x1
 	.equ	TCGETS,0x5401
 	.equ	TCSETS,0x5402
 	.equ	ICANON,0x2
@@ -94,6 +96,7 @@ BREAKPOINT	.req	x29
 // Internal constants
 	.equ	FLG_LOADED,0x01
 	.equ	FLG_WRITE,0x02
+	.equ	FLG_DIRTY,0x04
 	.equ	FLG_READONLY,0x80
 	.equ	SEQ,0
 	.equ	SEQ_ESC,1
