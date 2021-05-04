@@ -73,7 +73,7 @@ To single-step one 6502 instruction, use:
      (gdb) c
 ```
 
-There are four subroutines to help debugging.
+There are five subroutines to help debugging.
 They are commented out by default:
 ```
    emulate:
@@ -81,7 +81,9 @@ They are commented out by default:
         //bl    break
         //bl    check
 
-	//b	print_nibble
+	//b	nibble_read
+
+	//b	nibble_written
 ```
 You may uncomment these lines according to your debugging needs.
 
@@ -114,9 +116,11 @@ the breakpoint can then be changed at any time later.
 
 `check` verifies the value of the registers at each executed 6502 instruction.
 
-### print_nibble
+### nibble_*
 
-`print_nibble` displays the drive number, track number, position of disk head, and the last nibble read or written.
+`nibble_read` displays the drive number, track number, position of disk head, and the last nibble read.
+
+`nibble_written` does the same for the last nibble written.
 
 
 ## Bibliography

@@ -4,6 +4,11 @@
 //
 // Debugging utilities
 
+.global trace
+.global break
+.global check
+.global nibble_read
+.global nibble_written
 .global undefined
 .global breakpoint
 
@@ -62,15 +67,23 @@ check:
 	br	lr
 
 // Print current nibble
+nibble_read:
+	ldr	x3,=msg_disk
+	mov	w0,#'R'
+	char	w0,0
+	b	print_nibble
+nibble_written:
+	ldr	x3,=msg_disk
+	mov	w0,#'W'
+	char	w0,0
 print_nibble:
 	adr	x2,hex
-	ldr	x3,=msg_disk
 	ldrb	w0,[DRIVE,#DRV_NUMBER]
-	char	w0,7
-	hex_8	w6,18
-	hex_16	w5,28
-	hex_8	w9,41
-	write	STDERR,44
+	char	w0,10
+	hex_8	w6,21
+	hex_16	w5,31
+	hex_8	w9,44
+	write	STDERR,47
 	b	last_nibble
 
 // Undefined instruction
@@ -108,7 +121,7 @@ hex:
 msg_trace:
 	.ascii	"PC: ....  SP: 01..  A: ..  X: ..  Y: ..  S: ........\n"
 msg_disk:
-	.ascii	"DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
+	.ascii	".  DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
 msg_undefined:
 	.ascii	"Undefined instruction .. at ....\n"
 msg_invalid:

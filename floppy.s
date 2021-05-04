@@ -117,7 +117,7 @@ read_nibble:
 1:	strh	w0,[DRIVE,#DRV_HEAD]
 2:	strb	w9,[DRIVE,#DRV_LASTNIB]
 	strb	w9,[MEM,ADDR_64]
-	//b	print_nibble	// uncomment this line to debug
+	//b	nibble_read	// uncomment this line to debug
 	b	last_nibble
 write_nibble:
 	and	w2,w2,#~FLG_DIRTY // only write when loaded + write mode + not read-only
@@ -133,7 +133,7 @@ write_nibble:
 	orr	w2,w2,#FLG_DIRTY
 	strb	w2,[DRIVE,#DRV_FLAGS]
 2:
-	//b	print_nibble	// uncomment this line to debug
+	//b	nibble_written	// uncomment this line to debug
 	b	last_nibble
 sense_protection:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
