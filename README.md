@@ -116,7 +116,7 @@ the breakpoint can then be changed at any time later.
 
 ### print_nibble
 
-`print_nibble` displays the drive number, track number, position of disk head, and the last nibble read.
+`print_nibble` displays the drive number, track number, position of disk head, and the last nibble read or written.
 
 
 ## Bibliography
