@@ -12,8 +12,8 @@
 .global undefined
 .global breakpoint
 
-.include "defs.s"
-.include "macros.s"
+.include "src/defs.s"
+.include "src/macros.s"
 
 // Trace each instruction
 trace:

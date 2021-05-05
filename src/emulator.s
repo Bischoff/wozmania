@@ -13,8 +13,8 @@
 .global exit
 .global final_exit
 
-.include "defs.s"
-.include "macros.s"
+.include "src/defs.s"
+.include "src/macros.s"
 
 // Allocate memory (0x10000) and disk contents (0x38e00 each)
 allocate_memory:
@@ -127,8 +127,8 @@ _start:
 	//bl	disable_drives	// uncomment this line to disconnect the drives
 	bl	prepare_terminal
 	bl	prepare_keyboard
-	bl	intercept_ctl_c
 coldstart:
+	bl	intercept_ctl_c
 	bl	reset
 emulate:
 	//bl	trace		// uncomment these lines according to your debugging needs

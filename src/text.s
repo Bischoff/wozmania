@@ -8,8 +8,8 @@
 .global text
 .global clean_exit
 
-.include "defs.s"
-.include "macros.s"
+.include "src/defs.s"
+.include "src/macros.s"
 
 // Prepare text terminal
 prepare_terminal:

@@ -11,8 +11,8 @@
 .global restore_keyboard
 .global kbd
 
-.include "defs.s"
-.include "macros.s"
+.include "src/defs.s"
+.include "src/macros.s"
 
 // Set non-blocking keyboard
 prepare_keyboard:
