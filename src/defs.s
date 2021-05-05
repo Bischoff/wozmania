@@ -51,6 +51,7 @@ BREAKPOINT	.req	x29
 	.equ	OPENAT,56
 	.equ	READ,63
 	.equ	WRITE,64
+	.equ	FSTAT,80
 	.equ	RT_SIGACTION,134
 	.equ	MMAP,222
 
@@ -59,6 +60,8 @@ BREAKPOINT	.req	x29
 	.equ	C_CC_VTIME,(17+5)
 	.equ	C_CC_VMIN,(17+6)
 	.equ	SIZEOF_TERMIOS,60
+	.equ	ST_MODE,16
+	.equ	SIZEOF_STAT,128
 	.equ	SA_HANDLER,0
 	.equ	SIZEOF_SIGACTION,152
 
@@ -73,6 +76,7 @@ BREAKPOINT	.req	x29
 	.equ	TCSETS,0x5402
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
+	.equ	S_IWUSR,0x80
 	.equ	PROT_READ,0x1
 	.equ	PROT_WRITE,0x2
 	.equ	MAP_PRIVATE,0x2

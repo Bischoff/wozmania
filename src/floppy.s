@@ -33,7 +33,21 @@ load_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	no_disk
-	ldr	x1,[DRIVE,#DRV_CONTENT] // read disk file
+	mov	w9,w0		// test file protection
+	mov	w4,#FLG_LOADED
+	ldr	x1,=stat
+	mov	w8,#FSTAT
+	svc	0
+	cmp	x0,#0
+	b.lt	load_failure_drive
+	ldr	x1,=stat
+	ldr	w0,[x1,#ST_MODE]
+	tst	w0,#S_IWUSR
+	b.ne	1f
+	orr	w4,w4,#FLG_READONLY
+1:	strb	w4,[DRIVE,#DRV_FLAGS]
+	mov	w0,w9		// read disk file
+	ldr	x1,[DRIVE,#DRV_CONTENT]
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#READ
@@ -41,7 +55,6 @@ load_drive:
 	cmp	x0,x2
 	b.ne	load_failure_drive
 	mov	w0,#FLG_LOADED	// disk is loaded
-	strb	w0,[DRIVE,#DRV_FLAGS]
 no_disk:
 	strb	w5,[DRIVE,#DRV_NUMBER]
 	br	lr
@@ -228,6 +241,8 @@ msg_err_load_drive:
 	.ascii	"Could not load drive file drive..nib\n"
 msg_err_flush_drive:
 	.ascii	"Could not save drive file drive..nib\n"
+stat:
+	.fill	SIZEOF_STAT,1,0
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// drive '1' or '2'
 	.byte	0		// flags: loaded, write, dirty, read-only

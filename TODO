@@ -1,7 +1,6 @@
 * missing 6502 instructions:
   when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
-  - recognize the floppy as write-protected when the file has no w permission
   - other disk formats than .nib
   - function key to flush the disk immediately
   - function key to hot-load a floppy into a drive

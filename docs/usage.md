@@ -15,12 +15,12 @@
 
 ## How to use
 
-1. Assemble the emulation by running the command `./assemble.sh`.
+1. Assemble WozMania by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
    Apple ][ ROM; it must be named `APPLE2.ROM` and contain the
    last 20,480 bytes of the memory.
-2. Run the emulator with the command `./wozmania`.
-3. To exit the emulator, press F4.
+3. Run the emulator with the command `./wozmania`.
+4. To exit the emulator, press F4.
 
 
 <a name="keyboard"/>
@@ -53,10 +53,12 @@ to revert them to blank, replace them with the file `disks/blank.nib`.
 You can also replace them with any other `.nib` file, for example with
 the DOS master disk.
 
-To prevent accidental writing on them, use a command like:
+To prevent accidental writing on a disk, use a command like:
 ```
 $ chmod -w drive1.nib
 ```
+This is equivalent to closing the write protection punch with black
+tape on an original floppy disk.
 
 You may completly disable the floppy disk controller by uncommenting
 this line:
