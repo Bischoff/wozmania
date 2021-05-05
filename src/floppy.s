@@ -41,7 +41,7 @@ load_drive:
 	cmp	x0,#0
 	b.lt	load_failure_drive
 	ldr	x1,=stat
-	ldr	w0,[x1,#ST_MODE]
+	ldr	x0,[x1,#ST_MODE]
 	tst	w0,#S_IWUSR
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
@@ -241,8 +241,6 @@ msg_err_load_drive:
 	.ascii	"Could not load drive file drive..nib\n"
 msg_err_flush_drive:
 	.ascii	"Could not save drive file drive..nib\n"
-stat:
-	.fill	SIZEOF_STAT,1,0
 drive1:				// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0		// drive '1' or '2'
 	.byte	0		// flags: loaded, write, dirty, read-only

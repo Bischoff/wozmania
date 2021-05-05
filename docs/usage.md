@@ -17,11 +17,12 @@
 
 1. Assemble WozMania by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
-   Apple ][ ROM; it must be named `APPLE2.ROM` and contain the
-   last 20,480 bytes of the memory.
+   ROM of the Apple ][ and that must be named `APPLE2.ROM`.
 3. Run the emulator with the command `./wozmania`.
 4. To exit the emulator, press F4.
 
+WozMania emulates only the hardware of an Apple ][+. It is therefore
+recommended to use the ROM of that model (20,480 bytes long).
 
 <a name="keyboard"/>
 
@@ -87,26 +88,26 @@ $ gdb wozmania
 
 From `gdb`, you may inspect the 6502 registers like this:
 ```
-     (gdb) i r w19              program counter
-               w20              stack pointer
-               w21              A
-               w22              X
-               w23              Y
-               w24              program status
+(gdb) i r w19              program counter
+          w20              stack pointer
+          w21              A
+          w22              X
+          w23              Y
+          w24              program status
 ```
 
 To inspect contents of the Apple's memory, for example at emulated
 address `$0300`, use:
 ```
-     (gdb) x /32xb $x25 + 0x0300
+(gdb) x /32xb $x25 + 0x0300
 ```
 
 To single-step one 6502 instruction, use:
 ```
-     (gdb) b next
-     (gdb) run
-     ...
-     (gdb) c
+(gdb) b next
+(gdb) run
+      ...
+(gdb) c
 ```
 
 
@@ -117,7 +118,7 @@ To single-step one 6502 instruction, use:
 There are five subroutines to help debugging.
 They are commented out by default:
 ```
-   emulate:
+emulate:
         //bl    trace
         //bl    break
         //bl    check
@@ -130,11 +131,11 @@ You may uncomment these lines according to your debugging needs.
 
 You can redirect the output of these routines like this:
 ```
-   $ ./wozmania 2> debug.txt
+$ ./wozmania 2> debug.txt
 ```
 and then follow the debugging in another terminal:
 ```
-   $ tail -f debug.txt
+$ tail -f debug.txt
 ```
 
 #### trace
@@ -146,10 +147,10 @@ and then follow the debugging in another terminal:
 `break` allows to set a 6502 breakpoint. For example, from `gdb`, to specify
 `$DAF2` as a break point address:
 ```
-     (gdb) b here
-     (gdb) run
-     (gdb) set *(short *) &breakpoint = 0xDAF2
-     (gdb) c
+(gdb) b here
+(gdb) run
+(gdb) set *(short *) &breakpoint = 0xDAF2
+(gdb) c
 ```
 the breakpoint can then be changed at any time later.
 

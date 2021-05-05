@@ -12,6 +12,7 @@
 .global nothing_to_write
 .global exit
 .global final_exit
+.global stat
 
 .include "src/defs.s"
 .include "src/macros.s"
@@ -53,8 +54,20 @@ load_rom:
 	svc	0
 	cmp	x0,#-1
 	b.eq	load_failure_rom
-	add	x1,MEM,#0xB000	// read ROM file
-	mov	w2,#0x5000
+	mov	w9,w0		// get file size
+	mov	w4,#FLG_LOADED
+	ldr	x1,=stat
+	mov	w8,#FSTAT
+	svc	0
+	cmp	x0,#0
+	b.lt	load_failure_rom
+	ldr	x1,=stat
+	ldr	x2,[x1,#ST_SIZE]
+	mov	w0,w9		// read ROM file
+	add	x1,MEM,#0x10000
+	sub	x1,x1,x2
+	cmp	x2,#0x10000
+	b.ge	load_failure_rom
 	mov	w8,#READ
 	svc	0
 	cmp	x0,x2
@@ -168,3 +181,6 @@ msg_err_load_rom:
 // Variable data
 
 .data
+
+stat:
+	.fill	SIZEOF_STAT,1,0
