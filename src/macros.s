@@ -304,20 +304,16 @@
 
 
 // Access to memory
-// Handles special I/O addresses
 	.macro	fetch reg,where
-	mov	ADDR_64,\where		// Read I/O
-	bl	fetch_io
-	ldrb	\reg,[MEM,ADDR_64]	// Load the byte
+	mov	ADDR_64,\where
+	bl	fetch_addr
+	mov	\reg,VALUE
 	.endm
 
 	.macro	store reg,where
-	cmp	\where,#0xD000		// Don't write in ROM!
-	b.ge	1f
-	strb	\reg,[MEM,\where]	// Store the byte
 	mov	ADDR_64,\where
-	bl	store_io		// Write I/O
-1:
+	mov	VALUE,\reg
+	bl	store_addr
 	.endm
 
 // Text output

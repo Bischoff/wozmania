@@ -7,7 +7,6 @@
 .global prepare_keyboard
 .global intercept_ctl_c
 .global keyboard
-.global clear_strobe
 .global restore_keyboard
 .global kbd
 
@@ -16,12 +15,12 @@
 
 // Set non-blocking keyboard
 prepare_keyboard:
-	mov	w0,#STDIN	// get previous terminal definition
+	mov	w0,#STDIN		// get previous terminal definition
 	mov	w1,#TCGETS
 	ldr	x2,=termios
 	mov	w8,#IOCTL
 	svc	0
-	ldr	x2,=termios	// amend it
+	ldr	x2,=termios		// amend it
 	ldr	w0,[x2,#C_LFLAG]
 	and	w0,w0,#~ICANON
 	and	w0,w0,#~ECHO
@@ -39,7 +38,7 @@ prepare_keyboard:
 
 // Intercept Ctrl-C
 intercept_ctl_c:
-	ldr	x1,=sigaction	// SA_MASK and SA_FLAGS entries are already zero
+	ldr	x1,=sigaction		// SA_MASK and SA_FLAGS entries are already zero
 	adr	x0,ctl_reset
 	str	x0,[x1,#SA_HANDLER]
 	mov	w0,#SIGINT
@@ -47,7 +46,7 @@ intercept_ctl_c:
 	mov	w3,#8
 	mov	w8,#RT_SIGACTION
 	svc	0
-	mov	w0,#0		// clear previous reset
+	mov	w0,#0			// clear previous reset
 	strb	w0,[KEYBOARD,#KBD_RESET]
 	br	lr
 
@@ -58,16 +57,25 @@ ctl_reset:
 	strb	w0,[KEYBOARD,#KBD_RESET]
 	br	lr
 
-// Keyboard
+// Keyboard I/O addresses
+keyboard:
+	cmp	ADDR,#KBD
+	b.eq	read_key
+	mov	w0,#KBDSTRB
+	cmp	ADDR,w0
+	b.eq	clear_strobe
+	b	nothing_to_read
+
+// Read a key and set key strobe if successful
 // Part of this code is extra complicated due to the fact we use an ANSI terminal
 // That will go away when we switch to a real graphical window of our own
-keyboard:
+read_key:
 	ldrb	w0,[KEYBOARD,#KBD_STROBE]
 	tst	w0,#0xFF
-	b.eq	read_key
+	b.eq	get_key
 	mov	w0,#KBD_LASTKEY
 	b	analyze_key
-read_key:
+get_key:
 	mov	w0,#STDIN
 	mov	x1,KEYBOARD
 	mov	w2,#1
@@ -77,29 +85,29 @@ read_key:
 	b.lt	no_key
 	mov	w0,#KBD_BUFFER
 analyze_key:
-	ldrb	w9,[KEYBOARD,x0]
+	ldrb	VALUE,[KEYBOARD,x0]
 	ldrb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	cmp	w0,#SEQ
 	b.ne	escape
-	cmp	w9,#0x0A	// carriage return
+	cmp	VALUE,#0x0A		// carriage return
 	b.ne	1f
-	mov	w9,#0x8D
+	mov	VALUE,#0x8D
 	b	found_key
-1:	cmp	w9,#0x1B
+1:	cmp	VALUE,#0x1B
 	b.ne	2f
 	mov	w0,#SEQ_ESC
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
-2:	orr	w9,w9,#0x80
+2:	orr	VALUE,VALUE,#0x80
 	b	found_key
 escape:
 	cmp	w0,#SEQ_ESC
 	b.ne	escape_bracket
-	cmp	w9,#'['
+	cmp	VALUE,#'['
 	b.ne	1f
 	mov	w0,#SEQ_ESC_BRA
 	b	3f
-1:	cmp	w9,#'O'
+1:	cmp	VALUE,#'O'
 	b.ne	2f
 	mov	w0,#SEQ_ESC_O
 	b	3f
@@ -109,21 +117,21 @@ escape:
 escape_bracket:
 	cmp	w0,#SEQ_ESC_BRA
 	b.ne	escape_o
-	cmp	w9,#'A'		// up
+	cmp	VALUE,#'A'		// up
 	b.ne	1f
-	mov	w9,#0x8B
+	mov	VALUE,#0x8B
 	b	5f
-1:	cmp	w9,#'B'		// down
+1:	cmp	VALUE,#'B'		// down
 	b.ne	2f
-	mov	w9,#0x8A
+	mov	VALUE,#0x8A
 	b	5f
-2:	cmp	w9,#'C'		// right
+2:	cmp	VALUE,#'C'		// right
 	b.ne	3f
-	mov	w9,#0x95
+	mov	VALUE,#0x95
 	b	5f
-3:	cmp	w9,#'D'		// left
+3:	cmp	VALUE,#'D'		// left
 	b.ne	4f
-	mov	w9,#0x88
+	mov	VALUE,#0x88
 	b	5f
 4:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
@@ -132,11 +140,11 @@ escape_bracket:
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 escape_o:
-	cmp	w9,#'R'		// Ctrl-C
+	cmp	VALUE,#'R'		// Ctrl-C
 	b.ne	1f
-	mov	w9,#0x83
+	mov	VALUE,#0x83
 	b	3f
-1:	cmp	w9,#'S'		// power off
+1:	cmp	VALUE,#'S'		// power off
 	b.ne	2f
 	b	clean_exit
 2:	mov	w0,#SEQ
@@ -146,24 +154,23 @@ escape_o:
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 found_key:
-	strb	w9,[KEYBOARD,#KBD_LASTKEY]
+	strb	VALUE,[KEYBOARD,#KBD_LASTKEY]
 	mov	w0,#1
 	strb	w0,[KEYBOARD,#KBD_STROBE]
-	strb	w9,[MEM,ADDR_64]
 	br	lr
 no_key:
+	mov	VALUE,#0x00
 	mov	w0,#0
 	strb	w0,[KEYBOARD,#KBD_STROBE]
-	strb	w0,[MEM,ADDR_64]
 	br	lr
 
-// Keyboard strobe
+// Clear strobe to prepare for next read
 clear_strobe:
 	b	no_key
 
 // Restore keyboard on exit
 restore_keyboard:
-	ldr	x2,=termios	// restore normal keyboard
+	ldr	x2,=termios		// restore normal keyboard
 	ldr	w0,[x2,#C_LFLAG]
 	orr	w0,w0,#ICANON
 	orr	w0,w0,#ECHO
@@ -188,8 +195,8 @@ termios:
 sigaction:
 	.fill	SIZEOF_SIGACTION,1,0
 kbd:
-	.byte	0		// buffer
-	.byte	0		// strobe
-	.byte	0		// last key
-	.byte	0		// key sequence
-	.byte	0		// reset
+	.byte	0			// buffer
+	.byte	0			// strobe
+	.byte	0			// last key
+	.byte	0			// key sequence
+	.byte	0			// reset

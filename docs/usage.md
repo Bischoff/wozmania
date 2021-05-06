@@ -173,13 +173,13 @@ NMOS 6502 opcodes,
 John Pickens et. al.,
 http://6502.org/tutorials/6502opcodes.html
 
-Apple II ROM disassembly,
-James P. Davis,
-https://6502disassembly.com/a2-rom/APPLE2.ROM.html
-
 The 6502 overflow flag explained mathematically,
 Ken Shirriff,
 http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+
+Apple II ROM disassembly,
+James P. Davis,
+https://6502disassembly.com/a2-rom/APPLE2.ROM.html
 
 Beneath Apple DOS,
 Don Worth and Peter Lechner,

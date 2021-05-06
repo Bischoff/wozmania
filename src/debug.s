@@ -82,7 +82,7 @@ print_nibble:
 	char	w0,10
 	hex_8	w6,21
 	hex_16	w5,31
-	hex_8	w9,44
+	hex_8	VALUE,44
 	write	STDERR,47
 	b	last_nibble
 

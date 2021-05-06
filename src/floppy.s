@@ -25,7 +25,7 @@ load_drive2:
 	ldr	DRIVE,=drive2
 	mov	w5,#'2'
 load_drive:
-	ldr	x1,=drive_filename // open disk file
+	ldr	x1,=drive_filename	// open disk file
 	strb	w5,[x1,#5]
 	mov	w0,#-100
 	mov	w2,#O_RDONLY
@@ -33,7 +33,7 @@ load_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	no_disk
-	mov	w9,w0		// test file protection
+	mov	w9,w0			// test file protection
 	mov	w4,#FLG_LOADED
 	ldr	x1,=stat
 	mov	w8,#FSTAT
@@ -46,7 +46,7 @@ load_drive:
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
 1:	strb	w4,[DRIVE,#DRV_FLAGS]
-	mov	w0,w9		// read disk file
+	mov	w0,w9			// read disk file
 	ldr	x1,[DRIVE,#DRV_CONTENT]
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
@@ -54,7 +54,7 @@ load_drive:
 	svc	0
 	cmp	x0,x2
 	b.ne	load_failure_drive
-	mov	w0,#FLG_LOADED	// disk is loaded
+	mov	w0,#FLG_LOADED		// disk is loaded
 no_disk:
 	strb	w5,[DRIVE,#DRV_NUMBER]
 	br	lr
@@ -82,14 +82,14 @@ floppy_disk_read:
 	ldr	x2,[x0,x1,LSL 3]
 	br	x2
 change_track:
-	lsr	w0,w1,#1	// w0 = new phase, w3 = old phase
+	lsr	w0,w1,#1		// w0 = new phase, w3 = old phase
 	ldrb	w3,[DRIVE,#DRV_PHASE]
 	strb	w0,[DRIVE,#DRV_PHASE]
-	ldr	x2,=htrack_delta // w4 = half-track delta
+	ldr	x2,=htrack_delta	// w4 = half-track delta
 	lsl	w3,w3,#2
 	add	w3,w3,w0
 	ldrsb	w4,[x2,x3]
-	ldrb	w5,[DRIVE,#DRV_HTRACK] // compute new half-track
+	ldrb	w5,[DRIVE,#DRV_HTRACK]	// compute new half-track
 	adds	w5,w5,w4
 	b.pl	1f
 	mov	w5,#0
@@ -114,31 +114,30 @@ transfer_nibble:
 	lsr	w7,w6,#1
 	mul	w7,w7,w4
 	add	w7,w7,w5
-	mov	w9,#0
+	mov	VALUE,#0x00
 	tst	w2,#FLG_WRITE
 	b.ne	write_nibble
 read_nibble:
-	and	w2,w2,#~FLG_DIRTY // only read when loaded + read mode
+	and	w2,w2,#~FLG_DIRTY	// only read when loaded + read mode
 	and	w2,w2,#~FLG_READONLY
 	cmp	w2,#FLG_LOADED
 	b.ne	2f
-	ldrb	w9,[x1,x7]	// read nibble at (track * 6656 + head position)
-	add	w0,w5,#1	// move head forward
+	ldrb	VALUE,[x1,x7]		// read nibble at (track * 6656 + head position)
+	add	w0,w5,#1		// move head forward
 	cmp	w0,w4
 	b.lt	1f
 	mov	w0,#0
 1:	strh	w0,[DRIVE,#DRV_HEAD]
-2:	strb	w9,[DRIVE,#DRV_LASTNIB]
-	strb	w9,[MEM,ADDR_64]
-	//b	nibble_read	// uncomment this line to debug
+2:	strb	VALUE,[DRIVE,#DRV_LASTNIB]
+	//b	nibble_read		// uncomment this line to debug
 	b	last_nibble
 write_nibble:
-	and	w2,w2,#~FLG_DIRTY // only write when loaded + write mode + not read-only
+	and	w2,w2,#~FLG_DIRTY	// only write when loaded + write mode + not read-only
 	cmp	w2,#(FLG_LOADED|FLG_WRITE)
 	b.ne	2f
-	ldrb	w9,[DRIVE,#DRV_NEXTNIB]	// write nibble to (track * 6656 + head position)
-	strb	w9,[x1,x7]
-	add	w0,w5,#1	// move head forward
+	ldrb	VALUE,[DRIVE,#DRV_NEXTNIB] // write nibble to (track * 6656 + head position)
+	strb	VALUE,[x1,x7]
+	add	w0,w5,#1		// move head forward
 	cmp	w0,w4
 	b.lt	1f
 	mov	w0,#0
@@ -146,12 +145,12 @@ write_nibble:
 	orr	w2,w2,#FLG_DIRTY
 	strb	w2,[DRIVE,#DRV_FLAGS]
 2:
-	//b	nibble_written	// uncomment this line to debug
+	//b	nibble_written		// uncomment this line to debug
 	b	last_nibble
 sense_protection:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
-	and	w9,w0,#FLG_READONLY
-	strb	w9,[DRIVE,#DRV_LASTNIB]
+	and	VALUE,w0,#FLG_READONLY
+	strb	VALUE,[DRIVE,#DRV_LASTNIB]
 	br	lr
 read_mode:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
@@ -159,8 +158,7 @@ read_mode:
 	strb	w0,[DRIVE,#DRV_FLAGS]
 	b	last_nibble
 last_nibble:
-	ldrb	w9,[DRIVE,#DRV_LASTNIB]
-	strb	w9,[MEM,ADDR_64]
+	ldrb	VALUE,[DRIVE,#DRV_LASTNIB]
 	br	lr
 
 // Floppy disk (write access to memory)
@@ -173,8 +171,7 @@ write_mode:
 	orr	w0,w0,#FLG_WRITE
 	strb	w0,[DRIVE,#DRV_FLAGS]
 load_next_nibble:
-	ldrb	w9,[MEM,ADDR_64]
-	strb	w9,[DRIVE,#DRV_NEXTNIB]
+	strb	VALUE,[DRIVE,#DRV_NEXTNIB]
 	br	lr
 
 // Flush drive on exit
@@ -193,7 +190,7 @@ flush_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	flush_failure_drive
-	ldr	x1,[DRIVE,#DRV_CONTENT]	// read disk file
+	ldr	x1,[DRIVE,#DRV_CONTENT] // read disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#WRITE
@@ -209,7 +206,7 @@ flush_failure_drive:
 
 // Fixed data
 disk_table:
-	.quad	last_nibble	// $C0E0
+	.quad	last_nibble		// $C0E0
 	.quad	change_track
 	.quad	last_nibble
 	.quad	change_track
@@ -217,7 +214,7 @@ disk_table:
 	.quad	change_track
 	.quad	last_nibble
 	.quad	change_track
-	.quad	last_nibble	// $C0E8
+	.quad	last_nibble		// $C0E8
 	.quad	nothing_to_read
 	.quad	select_drive1
 	.quad	select_drive2
@@ -241,15 +238,15 @@ msg_err_load_drive:
 	.ascii	"Could not load drive file drive..nib\n"
 msg_err_flush_drive:
 	.ascii	"Could not save drive file drive..nib\n"
-drive1:				// 35 tracks, 13 sectors of 512 nibbles
-	.byte	0		// drive '1' or '2'
-	.byte	0		// flags: loaded, write, dirty, read-only
-	.byte	0		// last nibble read
-	.byte	0		// next nibble written
-	.byte	0		// phase 0-3
-	.byte	0		// half-track 0-69
-	.hword	0		// head 0-6655
-	.quad	0		// pointer to content
+drive1:					// 35 tracks, 13 sectors of 512 nibbles
+	.byte	0			// drive '1' or '2'
+	.byte	0			// flags: loaded, write, dirty, read-only
+	.byte	0			// last nibble read
+	.byte	0			// next nibble written
+	.byte	0			// phase 0-3
+	.byte	0			// half-track 0-69
+	.hword	0			// head 0-6655
+	.quad	0			// pointer to content
 drive2:
 	.byte	0
 	.byte	0

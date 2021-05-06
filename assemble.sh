@@ -5,14 +5,15 @@ if [ "$DEBUG" != "" ]; then
   AS_OPTS="-g"
 fi
 
-as $AS_OPTS src/instructions.s -o instructions.o
-as $AS_OPTS src/emulator.s -o emulator.o
-as $AS_OPTS src/floppy.s -o floppy.o
-as $AS_OPTS src/keyboard.s -o keyboard.o
-as $AS_OPTS src/text.s -o text.o
-as $AS_OPTS src/debug.s -o debug.o
-ld instructions.o emulator.o floppy.o keyboard.o text.o debug.o -o wozmania
-rm instructions.o emulator.o floppy.o keyboard.o text.o debug.o
+for file in instructions emulator memory floppy keyboard text debug; do
+  as $AS_OPTS src/$file.s -o $file.o
+done
+
+ld instructions.o emulator.o memory.o floppy.o keyboard.o text.o debug.o -o wozmania
+
+for file in instructions emulator memory floppy keyboard text debug; do
+  rm $file.o
+done
 
 if [ ! -f drive1.nib ]; then
   cp disks/blank.nib drive1.nib
