@@ -190,15 +190,15 @@ the breakpoint can then be changed at any time later.
 
 ## Technical Details
 
-I tried to write code that was as fast as possible, even at the price of
-compactness, therefore it uses macros instead of subroutines. The stack
-is intentionally not used at all.
+I tried to write code that was as fast as possible, even at the price of compactness,
+therefore it uses macros instead of subroutines. The stack is intentionally not used
+at all.
 
-The nature of an emulator makes it difficult to use the pre-increment
-and post-increment functionalities of the ARM 64, this is why you will
-see very few of them.
+The nature of an emulator makes it difficult to use the pre-increment and
+post-increment functionalities of the ARM 64 (there are almost no loops, for instance).
+This is why you will see very little use of those functionalities.
 
-The performance is quite disappointing. For example, Rugg-Feldman benchmark 1
+The performance is quite disappointing. For example, the Rugg-Feldman benchmark 1
 executes in 1'44s on my Raspberry Pi 400, against 1.3s on a real Apple ][,
 i.e. 80 times slower. I don't know if the other emulators do better.
 

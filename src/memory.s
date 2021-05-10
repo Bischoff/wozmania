@@ -25,7 +25,7 @@
 //                  -------
 //                  0x85c00
 allocate_memory:
-	mov	w0,#0
+	mov	w0,#0			// ask memory to system
 	mov	w1,#0x5c00
 	movk	w1,#8,lsl #16
 	mov	w2,#(PROT_READ|PROT_WRITE)
@@ -37,7 +37,7 @@ allocate_memory:
 	cmp	x0,#-1
 	b.eq	allocate_error
 	mov	MEM,x0
-	mov	w1,#0x4000
+	mov	w1,#0x4000		// compute position of floppy disk buffers
 	movk	w1,#1,LSL #16
 	add	x0,x0,x1
 	ldr	x1,=drive1

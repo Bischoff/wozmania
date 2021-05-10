@@ -76,6 +76,11 @@ ins_ora_ind_y:			// 11
 	or_a	w0
 	b	emulate
 
+ins_ora_zp_x:			// 15
+	v_zp_x	w0
+	or_a	w0
+	b	emulate
+
 ins_asl_zp_x:			// 16
 	a_zp_x	w0
 	fetch_b	w1,x0
@@ -154,6 +159,11 @@ ins_bmi:			// 30
 
 ins_and_ind_y:			// 31
 	v_ind_y	w0
+	and_a	w0
+	b	emulate
+
+ins_and_zp_x:			// 35
+	v_zp_x	w0
 	and_a	w0
 	b	emulate
 
@@ -325,6 +335,13 @@ ins_jmp_ind:			// 6C
 ins_adc_abs:			// 6D
 	v_abs	w0
 	add_a	w0
+	b	emulate
+
+ins_ror_abs:			// 6E
+	a_abs	w0
+	fetch_b	w1,x0
+	op_ror	w1
+	store_b	w1,x0
 	b	emulate
 
 ins_bvs:			// 70
@@ -822,7 +839,7 @@ instr_table:
 	.quad	undefined	// 12
 	.quad	undefined	// 13
 	.quad	undefined	// 14
-	.quad	undefined	// 15
+	.quad	ins_ora_zp_x	// 15
 	.quad	ins_asl_zp_x	// 16
 	.quad	undefined	// 17
 	.quad	ins_clc		// 18
@@ -854,7 +871,7 @@ instr_table:
 	.quad	undefined	// 32
 	.quad	undefined	// 33
 	.quad	undefined	// 34
-	.quad	undefined	// 35
+	.quad	ins_and_zp_x	// 35
 	.quad	undefined	// 36
 	.quad	undefined	// 37
 	.quad	ins_sec		// 38
@@ -911,7 +928,7 @@ instr_table:
 	.quad	undefined	// 6B
 	.quad	ins_jmp_ind	// 6C
 	.quad	ins_adc_abs	// 6D
-	.quad	undefined	// 6E
+	.quad	ins_ror_abs	// 6E
 	.quad	undefined	// 6F
 	.quad	ins_bvs		// 70
 	.quad	ins_adc_ind_y	// 71

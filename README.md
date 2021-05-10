@@ -14,13 +14,11 @@ the strict minimum.
 
 As of 2021-05-10:
 
-* 6502 processor, 143 instructions out of 256;
+* 6502 processor, 146 instructions out of 256;
 * keyboard;
 * 40 column text mode;
 * floppy disks 1 and 2, .nib format only;
 * language card.
-
-
 
 
 ## Usage
@@ -28,9 +26,21 @@ As of 2021-05-10:
 See the [documentation](/docs/usage.md).
 
 
+## Contributing
+
+Help wanted:
+
+* ideas;
+* test more Apple ][ programs;
+* test on more machines: Apple M1, smartphones;
+* code.
+
+Contact: eric dot1 bischoff dot2 fr snail gmail dot3 com.
+
+
 ## Copyright and License
 
 WozMania is (c) 2021 Eric Bischoff.
 
 WozMania is released under GNU GENERAL PUBLIC LICENSE, Version 2.
-See LICENSE file for details.
+See [LICENSE](LICENSE) file for details.

@@ -2,13 +2,10 @@
   when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
   - other disk formats than .nib
-  - function key to flush the disk immediately
-  - function key to hot-load a floppy into a drive
-* keyboard:
-  - nano timer to receive ESC key
 * command-line options:
   - to disable disks
   - to disable the language card
+* build option:
   - to enable debugging
 * screen modes:
   - low resolution graphic
@@ -17,5 +14,15 @@
   - 80 columns text
 * more hardware emulation:
   - printer
+  - serial card
   - sound
   - game paddles
+* what about other Apple II models?
+
+Items at risk of becoming moot when we run in a window:
+
+* keyboard:
+  - nano timer to receive ESC key
+* floppy disk support:
+  - function key to flush the disk immediately
+  - function key to hot-load a floppy into a drive

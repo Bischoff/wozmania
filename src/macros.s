@@ -177,7 +177,6 @@
 	eor	S_REG,S_REG,C_FLAG
 	.endm
 
-	// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
 	.macro	overflow result,op1,op2
 	eor	w4,\op1,\result
 	eor	w5,\op2,\result
@@ -214,7 +213,8 @@
 	and	A_REG,A_REG,#0xFF
 	z_flag	A_REG,#0xFF
 	n_flag	A_REG,#0x80
-	overflow A_REG,\what,w2
+	eor	\what,\what,#0xFF
+	overflow A_REG,w2,\what
 	.endm
 
 	.macro	add_a,what
@@ -225,7 +225,7 @@
 	and	A_REG,A_REG,#0xFF
 	z_flag	A_REG,#0xFF
 	n_flag	A_REG,#0x80
-	overflow A_REG,\what,w2
+	overflow A_REG,w2,\what
 	.endm
 
 	.macro	and_a,what
