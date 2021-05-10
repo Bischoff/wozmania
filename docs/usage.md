@@ -1,19 +1,21 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
-##### Table of Contents  
+##### Table of Contents
 
- * [How to use](#use)  
-    * [Using the keyboard](#keyboard)
-    * [Using the floppy disks](#floppy)
- * [How to debug](#debug)  
+ * [How to Use](#use)
+    * [Using the Keyboard](#keyboard)
+    * [Using the Floppy Disks](#floppy)
+    * [Using the Language Card](#language)
+ * [How to Debug](#debug)
     * [Debugging with gdb](#gdb)
-    * [Helper routines](#helpers)
- * [Bibliography](#biblio)  
+    * [Helper Routines](#helpers)
+ * [Technical Details](#details)
+ * [Bibliography](#biblio)
 
 
 <a name="use"/>
 
-## How to use
+## How to Use
 
 1. Assemble WozMania by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
@@ -24,9 +26,10 @@
 WozMania emulates only the hardware of an Apple ][+. It is therefore
 recommended to use the ROM of that model (20,480 bytes long).
 
+
 <a name="keyboard"/>
 
-### Using the keyboard
+### Using the Keyboard
 
 The following keys are defined:
 
@@ -39,7 +42,7 @@ The following keys are defined:
 
 <a name="floppy"/>
 
-### Using the floppy disks
+### Using the Floppy Disks
 
 In the same directory as the emulator, there are two files, `drive1.nib`
 and `drive2.nib`. They represent the contents of the two floppy drives
@@ -68,9 +71,27 @@ this line:
 ```
 
 
+<a name="language"/>
+
+## Using the Language Card
+
+Apple's language card offers additional 16 KiB of RAM and 2 KiB of ROM.
+It is designed to host a language other than Applesoft BASIC,
+like Integer BASIC or Pascal.
+
+If you boot on the DOS system master disk, it loads the Integer BASIC
+into the language card. You can then switch to this BASIC with the
+command `INT`, and back to AppleSoft BASIC with the command `FP`.
+
+You may completly disable the language card by uncommenting this line:
+```
+	//bl	disable_langcard
+```
+
+
 <a name="debug"/>
 
-## How to debug
+## How to Debug
 
 
 <a name="gdb"/>
@@ -113,7 +134,7 @@ To single-step one 6502 instruction, use:
 
 <a name="helpers"/>
 
-### Helper routines
+### Helper Routines
 
 There are five subroutines to help debugging.
 They are commented out by default:
@@ -165,6 +186,23 @@ the breakpoint can then be changed at any time later.
 `nibble_written` does the same for the last nibble written.
 
 
+<a name="details"/>
+
+## Technical Details
+
+I tried to write code that was as fast as possible, even at the price of
+compactness, therefore it uses macros instead of subroutines. The stack
+is intentionally not used at all.
+
+The nature of an emulator makes it difficult to use the pre-increment
+and post-increment functionalities of the ARM 64, this is why you will
+see very few of them.
+
+The performance is quite disappointing. For example, Rugg-Feldman benchmark 1
+executes in 1'44s on my Raspberry Pi 400, against 1.3s on a real Apple ][,
+i.e. 80 times slower. I don't know if the other emulators do better.
+
+
 <a name="biblio"/>
 
 ## Bibliography
@@ -184,3 +222,6 @@ https://6502disassembly.com/a2-rom/APPLE2.ROM.html
 Beneath Apple DOS,
 Don Worth and Peter Lechner,
 Quality Software, 4th edition, May 1982
+
+Apple Language Card,
+Apple Computer Inc.

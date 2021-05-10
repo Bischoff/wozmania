@@ -25,6 +25,7 @@ reset:
 
 // Main loop
 _start:
+	mov	MEM_FLAGS,#LC_Z
 	adr	INSTR,instr_table
 	ldr	KEYBOARD,=kbd
 	ldr	DRIVE,=drive1
@@ -46,9 +47,8 @@ emulate:
 	ldrb	w0,[KEYBOARD,#KBD_RESET]
 	tst	w0,#0xFF
 	b.ne	coldstart
+	v_imm	w0
 next:					// trace each instruction with "b next"
-	ldrb	w0,[MEM,PC_REG_64]
-	add	PC_REG,PC_REG,#1
 	ldr	x1,[INSTR,x0,LSL 3]
 	br	x1
 

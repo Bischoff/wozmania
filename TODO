@@ -8,6 +8,7 @@
   - nano timer to receive ESC key
 * command-line options:
   - to disable disks
+  - to disable the language card
   - to enable debugging
 * screen modes:
   - low resolution graphic
@@ -18,4 +19,3 @@
   - printer
   - sound
   - game paddles
-  - language card

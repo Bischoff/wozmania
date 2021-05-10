@@ -15,6 +15,7 @@ Y_REG		.req	w23
 S_REG		.req	w24
 
 // "variable" registers
+MEM_FLAGS	.req	w16
 VALUE		.req	w17
 ADDR		.req	w18
 ADDR_64		.req	x18
@@ -40,6 +41,8 @@ BREAKPOINT	.req	x29
 	.equ	LINE1,0x400
 	.equ	KBD,0xC000
 	.equ	KBDSTRB,0xC010
+	.equ	RAM_CTL_BEGIN,0xC080
+	.equ	RAM_CTL_END,0xC08F
 	.equ	IWM_PHASE0OFF,0xC0E0
 	.equ	IWM_WRITEMODE,0xC0EF
 	.equ	DISK2ROM,0xC600
@@ -109,3 +112,7 @@ BREAKPOINT	.req	x29
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2
 	.equ	SEQ_ESC_O,3
+	.equ	LC_Z,0x0
+	.equ	LC_R,0x1
+	.equ	LC_W,0x2
+	.equ	LC_2,0x4
