@@ -106,7 +106,7 @@ fetch_b_io:
 	ldrb	VALUE,[MEM,ADDR_64]
 	mov	w0,#KBDSTRB		// $C000-$C010 keyboard
 	cmp	ADDR,w0
-	b.le	keyboard
+	b.le	keyboard_read
 	mov	w0,#RAM_CTL_BEGIN	// $C080-$C08B language card control
 	cmp	ADDR,w0
 	b.lt	nothing_to_read
@@ -204,6 +204,9 @@ store_b_not_ram:
 	b	store_b_ef		// $F800-$FFFF card's bank 1 or normal ROM or card's ROM
 store_b_io:
 	strb	VALUE,[MEM,ADDR_64]
+	mov	w0,#KBDSTRB		// $C000-$C010 keyboard
+	cmp	ADDR,w0
+	b.le	keyboard_write
 	mov	w0,#RAM_CTL_BEGIN	// $C080-$C08B language card control
 	cmp	ADDR,w0
 	b.lt	nothing_to_write

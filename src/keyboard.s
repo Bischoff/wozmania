@@ -6,7 +6,8 @@
 
 .global prepare_keyboard
 .global intercept_ctl_c
-.global keyboard
+.global keyboard_read
+.global keyboard_write
 .global restore_keyboard
 .global kbd
 
@@ -58,9 +59,15 @@ ctl_reset:
 	br	lr
 
 // Keyboard I/O addresses
-keyboard:
+keyboard_read:
 	cmp	ADDR,#KBD
 	b.eq	read_key
+	mov	w0,#KBDSTRB
+	cmp	ADDR,w0
+	b.eq	clear_strobe
+	b	nothing_to_read
+
+keyboard_write:
 	mov	w0,#KBDSTRB
 	cmp	ADDR,w0
 	b.eq	clear_strobe

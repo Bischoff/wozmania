@@ -23,8 +23,9 @@
 3. Run the emulator with the command `./wozmania`.
 4. To exit the emulator, press F4.
 
-WozMania emulates only the hardware of an Apple ][+. It is therefore
-recommended to use the ROM of that model (20,480 bytes long).
+The ROM file must contain the last part of the memory.
+For example, Apple ][+ ROMs covering memory from
+`$B000` to `$FFFF` are 20,480 bytes long (5 x 4096).
 
 
 <a name="keyboard"/>
