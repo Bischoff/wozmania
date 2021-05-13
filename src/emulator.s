@@ -34,7 +34,8 @@ _start:
 	bl	load_rom
 	bl	load_drive1
 	bl	load_drive2
-	//bl	disable_drives		// uncomment this line to disconnect the drives
+	//bl	disable_drives		// uncomment this line to disconnect the floppy controller
+	//bl	enable_drives		// uncomment this line to connect the floppy controller
 	bl	prepare_terminal
 	bl	prepare_keyboard
 coldstart:

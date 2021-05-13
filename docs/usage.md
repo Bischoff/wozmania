@@ -65,6 +65,12 @@ $ chmod -w drive1.nib
 This is equivalent to closing the write protection punch with black
 tape on an original floppy disk.
 
+Some ROM files do not contain the controller's ROM at `$C600`.
+To enable it, uncomment this line:
+```
+	//bl	enable_drives
+```
+
 You may completly disable the floppy disk controller by uncommenting
 this line:
 ```

@@ -2,11 +2,8 @@
   when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
   - other disk formats than .nib
-* command-line options:
-  - to disable disks
-  - to disable the language card
-* build option:
-  - to enable debugging
+* build options:
+  - to enable the various debugging routines
 * screen modes:
   - low resolution graphic
   - mixed low resolution graphic/text
@@ -21,6 +18,10 @@
 
 Items at risk of becoming moot when we run in a window:
 
+* command-line options:
+  - to disable disks
+  - to load 16 sectors controller ROM
+  - to disable the language card
 * keyboard:
   - nano timer to receive ESC key
 * floppy disk support:
