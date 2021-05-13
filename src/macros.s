@@ -71,7 +71,7 @@
 	.macro	v_zp reg
 	fetch_b	w0,PC_REG_64
 	add	PC_REG,PC_REG,#1
-	fetch_b	\reg,x0
+	fe_zp_b	\reg,x0
 	.endm
 
 	.macro	v_zp_x reg
@@ -79,7 +79,7 @@
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,X_REG
 	and	w0,w0,#0xFF
-	fetch_b	\reg,x0
+	fe_zp_b	\reg,x0
 	.endm
 
 	.macro	v_zp_y reg
@@ -87,7 +87,7 @@
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,Y_REG
 	and	w0,w0,#0xFF
-	fetch_b	\reg,x0
+	fe_zp_b	\reg,x0
 	.endm
 
 	.macro	v_abs reg
@@ -115,14 +115,14 @@
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,X_REG
 	and	w0,w0,#0xFF
-	fetch_h	w0,x0
+	fe_zp_h	w0,x0
 	fetch_b	\reg,x0
 	.endm
 
 	.macro	v_ind_y reg
 	fetch_b	w0,PC_REG_64
 	add	PC_REG,PC_REG,#1
-	fetch_h	w0,x0
+	fe_zp_h	w0,x0
 	add	w0,w0,Y_REG
 	fetch_b	\reg,x0
 	.endm
@@ -151,7 +151,6 @@
 	ldrh	\reg,[MEM,SP_REG_64]
 	add	SP_REG,SP_REG,#1
 	.endm
-
 
 // Set status register flags
 	.macro	c_flag reg,mask
@@ -319,18 +318,29 @@
 	n_flag	\reg,#0x80
 	.endm
 
-
 // Access to emulated memory
+	.macro	fe_zp_b reg,where
+	ldrb	\reg,[MEM,\where]
+	.endm
+
 	.macro	fetch_b reg,where
 	mov	ADDR_64,\where
 	bl	fetch_b_addr
 	mov	\reg,VALUE
 	.endm
 
+	.macro	fe_zp_h reg,where
+	ldrh	\reg,[MEM,\where]
+	.endm
+
 	.macro	fetch_h reg,where
 	mov	ADDR_64,\where
 	bl	fetch_h_addr
 	mov	\reg,VALUE
+	.endm
+
+	.macro	st_zp_b reg,where
+	strb	\reg,[MEM,\where]
 	.endm
 
 	.macro	store_b reg,where
