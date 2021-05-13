@@ -38,6 +38,7 @@ BREAKPOINT	.req	x29
 	.equ	N_FLAG,0x80
 
 // ROM routines and I/O addresses
+	.equ	STACK,0x100
 	.equ	LINE1,0x400
 	.equ	KBD,0xC000
 	.equ	KBDSTRB,0xC010

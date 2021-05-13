@@ -113,6 +113,8 @@
 	.endm
 
 // Stack usage
+// For performance reasons, there is no check against overflow or underflow,
+// nor any rotation like on a real 6502
 	.macro	push_b reg
 	strb	\reg,[MEM,SP_REG_64]
 	sub	SP_REG,SP_REG,#1

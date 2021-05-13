@@ -14,6 +14,8 @@ ins_brk:			// 00
 	push_h	PC_REG
 	orr	w0,S_REG,#(B_FLAG | X_FLAG)
 	push_b	w0
+	cmp	SP_REG,#STACK	// unlike other instructions, we protect against stack overflow
+	b.lt	stack_overflow
 	mov	x0,#0xFFFA
         fetch_h	PC_REG,x0
 	b	emulate

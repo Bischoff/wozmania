@@ -9,6 +9,7 @@
 .global check
 .global nibble_read
 .global nibble_written
+.global stack_overflow
 .global undefined
 .global breakpoint
 
@@ -86,10 +87,18 @@ print_nibble:
 	write	STDERR,47
 	b	last_nibble
 
+// Stack overflow
+stack_overflow:
+	adr	x2,hex
+	ldr	x3,=msg_overflow
+	hex_16	PC_REG,32
+	write	STDERR,37
+	b	exit
+
 // Undefined instruction
 undefined:
 	sub	PC_REG,PC_REG,#1
-	adr	x2,hex		// print error message
+	adr	x2,hex
 	ldr	x3,=msg_undefined
 	hex_8	w0,36
 	hex_16	PC_REG,42
@@ -99,7 +108,7 @@ undefined:
 // Invalid value for register
 invalid:
 	sub	PC_REG,PC_REG,#1
-	adr	x2,hex		// print error message
+	adr	x2,hex
 	ldr	x3,=msg_invalid
 	hex_16	PC_REG,40
 	write	STDERR,45
@@ -118,6 +127,8 @@ msg_trace:
 	.ascii	"PC: ....  SP: 01..  A: ..  X: ..  Y: ..  S: ........\n"
 msg_disk:
 	.ascii	".  DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
+msg_overflow:
+	.ascii	"\x1B[25;01H\x1B[?25hStack overflow at ....\n"
 msg_undefined:
 	.ascii	"\x1B[25;01H\x1B[?25hUndefined instruction .. at ....\n"
 msg_invalid:
