@@ -143,8 +143,11 @@ read_nibble:
 	mov	w0,#0
 1:	strh	w0,[DRIVE,#DRV_HEAD]
 2:	strb	VALUE,[DRIVE,#DRV_LASTNIB]
-	//b	nibble_read		// uncomment this line to debug
+	.ifdef	F_READ
+	b	f_read
+	.else
 	b	last_nibble
+	.endif
 write_nibble:
 	and	w2,w2,#~FLG_DIRTY	// only write when loaded + write mode + not read-only
 	cmp	w2,#(FLG_LOADED|FLG_WRITE)
@@ -159,8 +162,11 @@ write_nibble:
 	orr	w2,w2,#FLG_DIRTY
 	strb	w2,[DRIVE,#DRV_FLAGS]
 2:
-	//b	nibble_written		// uncomment this line to debug
+	.ifdef	F_WRITE
+	b	f_write
+	.else
 	b	last_nibble
+	.endif
 sense_protection:
 	ldrb	w0,[DRIVE,#DRV_FLAGS]
 	and	VALUE,w0,#FLG_READONLY

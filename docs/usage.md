@@ -3,6 +3,7 @@
 ##### Table of Contents
 
  * [How to Use](#use)
+    * [Running WozMania](#run)
     * [Using the Keyboard](#keyboard)
     * [Using the Floppy Disks](#floppy)
     * [Using the Language Card](#language)
@@ -16,6 +17,11 @@
 <a name="use"/>
 
 ## How to Use
+
+
+<a name="run"/>
+
+### Running WozMania
 
 1. Assemble WozMania by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
@@ -34,7 +40,7 @@ For example, Apple ][+ ROMs covering memory from
 
 The following keys are defined:
 
-| Linux  | Apple ][   |
+| Linux  | Apple ]\[  |
 | ------ | ---------- |
 | Ctrl-C | Ctrl-Reset |
 | F3     | Ctrl-C     |
@@ -143,19 +149,22 @@ To single-step one 6502 instruction, use:
 
 ### Helper Routines
 
-There are five subroutines to help debugging.
-They are commented out by default:
-```
-emulate:
-        //bl    trace
-        //bl    break
-        //bl    check
+There are five routines to help debugging:
 
-	//b	nibble_read
+* trace
+* break
+* check
+* f_read
+* f_write
 
-	//b	nibble_written
+By default, they are not assembled. To assemble them, use
+environment variables, e.g:
 ```
-You may uncomment these lines according to your debugging needs.
+$ TRACE=y ./assemble.sh
+```
+
+The environment variables that can be defined are
+`TRACE`, `BREAK`, `CHECK`, `F_READ`, and `F_WRITE`.
 
 You can redirect the output of these routines like this:
 ```
@@ -186,11 +195,12 @@ the breakpoint can then be changed at any time later.
 
 `check` verifies the value of the registers at each executed 6502 instruction.
 
-#### nibble_*
+#### f_read and f_write
 
-`nibble_read` displays the drive number, track number, position of disk head, and the last nibble read.
+`f_read` displays the drive number, track number, position of disk head,
+and the last nibble read from the floppy disk.
 
-`nibble_written` does the same for the last nibble written.
+`f_write` does the same for the last nibble written.
 
 
 <a name="details"/>

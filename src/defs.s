@@ -25,7 +25,9 @@ MEM		.req	x25
 INSTR		.req	x26
 KEYBOARD	.req	x27
 DRIVE		.req	x28
+		.ifdef	BREAK
 BREAKPOINT	.req	x29
+		.endif
 
 // 6502 status register flags
 	.equ	C_FLAG,0x01

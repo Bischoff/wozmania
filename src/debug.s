@@ -4,19 +4,32 @@
 //
 // Debugging utilities
 
+	.ifdef	TRACE
 .global trace
+	.endif
+	.ifdef	BREAK
 .global break
+	.endif
+	.ifdef	CHECK
 .global check
-.global nibble_read
-.global nibble_written
+	.endif
+	.ifdef	F_READ
+.global f_read
+	.endif
+	.ifdef	F_WRITE
+.global f_write
+	.endif
 .global stack_overflow
 .global undefined
+	.ifdef	BREAK
 .global breakpoint
+	.endif
 
 .include "src/defs.s"
 .include "src/macros.s"
 
 // Trace each instruction
+	.ifdef	TRACE
 trace:
 	adr	x2,hex
 	ldr	x3,=msg_trace
@@ -35,19 +48,23 @@ trace:
 	s_bit	N_FLAG,'N',44
 	write	STDERR,53
 	br	lr
+	.endif
 
 // Break at a given 6502 address
+	.ifdef	BREAK
 break:
 	ldrh	w0,[BREAKPOINT]
 	tst	w0,#0xFFFF
 	b.eq	here
 	cmp	PC_REG,w0
-	b.ne	1f
-here:
-	nop
-1:	br	lr
+	b.ne	breakout
+here:	nop				// use this symbol as your gdb breakpoint
+breakout:				// pun intended
+	br	lr
+	.endif
 
 // Check that registers are still 8 bit values
+	.ifdef	CHECK
 check:
 	cmp	PC_REG,#0x10000
 	b.ge	invalid
@@ -66,17 +83,24 @@ check:
 	tst	S_REG,#(X_FLAG | B_FLAG)
 	b.ne	invalid
 	br	lr
+	.endif
 
 // Print current nibble
-nibble_read:
+	.ifdef	F_READ
+f_read:
 	ldr	x3,=msg_disk
 	mov	w0,#'R'
 	char	w0,0
 	b	print_nibble
-nibble_written:
+	.endif
+	.ifdef	F_WRITE
+f_write:
 	ldr	x3,=msg_disk
 	mov	w0,#'W'
 	char	w0,0
+	b	print_nibble
+	.endif
+	.if	(F_READ == 1) || (F_WRITE == 1)
 print_nibble:
 	adr	x2,hex
 	ldrb	w0,[DRIVE,#DRV_NUMBER]
@@ -86,6 +110,7 @@ print_nibble:
 	hex_8	VALUE,44
 	write	STDERR,47
 	b	last_nibble
+	.endif
 
 // Stack overflow
 stack_overflow:
@@ -106,6 +131,7 @@ undefined:
 	b	exit
 
 // Invalid value for register
+	.ifdef	CHECK
 invalid:
 	sub	PC_REG,PC_REG,#1
 	adr	x2,hex
@@ -113,25 +139,36 @@ invalid:
 	hex_16	PC_REG,40
 	write	STDERR,45
 	b	exit
+	.endif
+
 
 // Fixed data
 
 hex:
 	.ascii	"0123456789ABCDEF"
 
+
 // Variable data
 
 .data
 
+	.ifdef	TRACE
 msg_trace:
 	.ascii	"PC: ....  SP: 01..  A: ..  X: ..  Y: ..  S: ........\n"
+	.endif
+	.if	(F_READ == 1) || (F_WRITE == 1)
 msg_disk:
 	.ascii	".  DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
+	.endif
 msg_overflow:
 	.ascii	"\x1B[25;01H\x1B[?25hStack overflow at ....\n"
 msg_undefined:
 	.ascii	"\x1B[25;01H\x1B[?25hUndefined instruction .. at ....\n"
+	.ifdef	CHECK
 msg_invalid:
 	.ascii	"\x1B[25;01H\x1B[?25hInvalid register value at ....\n"
+	.endif
+	.ifdef	BREAK
 breakpoint:
 	.hword	0
+	.endif

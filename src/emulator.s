@@ -29,7 +29,6 @@ _start:
 	adr	INSTR,instr_table
 	ldr	KEYBOARD,=kbd
 	ldr	DRIVE,=drive1
-	ldr	BREAKPOINT,=breakpoint
 	bl	allocate_memory
 	bl	load_rom
 	bl	load_drive1
@@ -38,13 +37,22 @@ _start:
 	//bl	enable_drives		// uncomment this line to connect the floppy controller
 	bl	prepare_terminal
 	bl	prepare_keyboard
+	.ifdef	BREAK
+	ldr	BREAKPOINT,=breakpoint
+	.endif
 coldstart:
 	bl	intercept_ctl_c
 	bl	reset
 emulate:
-	//bl	trace			// uncomment these lines according to your debugging needs
-	//bl	break
-	//bl	check
+	.ifdef	TRACE
+	bl	trace
+	.endif
+	.ifdef	BREAK
+	bl	break
+	.endif
+	.ifdef	CHECK
+	bl	check
+	.endif
 	ldrb	w0,[KEYBOARD,#KBD_RESET]
 	tst	w0,#0xFF
 	b.ne	coldstart
