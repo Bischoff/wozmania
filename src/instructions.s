@@ -20,6 +20,11 @@ ins_brk:			// 00
         fetch_h	PC_REG,x0
 	b	emulate
 
+ins_ora_ind_x:			// 01
+	v_ind_x	w0
+	or_a	w0
+	b	emulate
+
 ins_ora_zp:			// 05
 	v_zp	w0
 	or_a	w0
@@ -104,11 +109,23 @@ ins_ora_abs_x:			// 1D
 	or_a	w0
 	b	emulate
 
+ins_asl_abs_x:			// 1E
+	a_abs_x	w0
+	fetch_b	w1,x0
+	op_asl	w1
+	store_b	w1,x0
+	b	emulate
+
 ins_jsr:			// 20
 	a_abs	w0
 	sub	PC_REG,PC_REG,#1
 	push_h	PC_REG
 	mov	PC_REG,w0
+	b	emulate
+
+ins_and_ind_x:			// 21
+	v_ind_x	w0
+	and_a	w0
 	b	emulate
 
 ins_bit_zp:			// 24
@@ -152,6 +169,13 @@ ins_and_abs:			// 2D
 	and_a	w0
 	b	emulate
 
+ins_rol_abs:			// 2E
+	a_abs	w0
+	fetch_b	w1,x0
+	op_rol	w1
+	store_b	w1,x0
+	b	emulate
+
 ins_bmi:			// 30
 	a_rel	w0
 	tst	S_REG,N_FLAG
@@ -167,6 +191,13 @@ ins_and_ind_y:			// 31
 ins_and_zp_x:			// 35
 	v_zp_x	w0
 	and_a	w0
+	b	emulate
+
+ins_rol_zp_x:			// 36
+	a_zp_x	w0
+	fetch_b	w1,x0
+	op_rol	w1
+	store_b	w1,x0
 	b	emulate
 
 ins_sec:			// 38
@@ -461,6 +492,11 @@ ins_sta_zp_x:			// 95
 	store_b	A_REG,x0
 	b	emulate
 
+ins_stx_zp_y:			// 96
+	a_zp_y	w0
+	store_b	X_REG,x0
+	b	emulate
+
 ins_tya:			// 98
 	mov	A_REG,Y_REG
 	z_flag	A_REG,#0xFF
@@ -576,6 +612,12 @@ ins_lda_zp_x:			// B5
 	v_zp_x	A_REG
 	z_flag	A_REG,#0xFF
 	n_flag	A_REG,#0x80
+	b	emulate
+
+ins_ldx_zp_y:			// B6
+	v_zp_y	X_REG
+	z_flag	X_REG,#0xFF
+	n_flag	X_REG,#0x80
 	b	emulate
 
 ins_clv:			// B8
@@ -821,7 +863,7 @@ ins_inc_abs_x:			// FE
 
 instr_table:
 	.quad	ins_brk		// 00
-	.quad	undefined	// 01
+	.quad	ins_ora_ind_x	// 01
 	.quad	undefined	// 02
 	.quad	undefined	// 03
 	.quad	undefined	// 04
@@ -850,10 +892,10 @@ instr_table:
 	.quad	undefined	// 1B
 	.quad	undefined	// 1C
 	.quad	ins_ora_abs_x	// 1D
-	.quad	undefined	// 1E
+	.quad	ins_asl_abs_x	// 1E
 	.quad	undefined	// 1F
 	.quad	ins_jsr		// 20
-	.quad	undefined	// 21
+	.quad	ins_and_ind_x	// 21
 	.quad	undefined	// 22
 	.quad	undefined	// 23
 	.quad	ins_bit_zp	// 24
@@ -866,7 +908,7 @@ instr_table:
 	.quad	undefined	// 2B
 	.quad	ins_bit_abs	// 2C
 	.quad	ins_and_abs	// 2D
-	.quad	undefined	// 2E
+	.quad	ins_rol_abs	// 2E
 	.quad	undefined	// 2F
 	.quad	ins_bmi		// 30
 	.quad	ins_and_ind_y	// 31
@@ -874,7 +916,7 @@ instr_table:
 	.quad	undefined	// 33
 	.quad	undefined	// 34
 	.quad	ins_and_zp_x	// 35
-	.quad	undefined	// 36
+	.quad	ins_rol_zp_x	// 36
 	.quad	undefined	// 37
 	.quad	ins_sec		// 38
 	.quad	ins_and_abs_y	// 39
@@ -970,7 +1012,7 @@ instr_table:
 	.quad	undefined	// 93
 	.quad	ins_sty_zp_x	// 94
 	.quad	ins_sta_zp_x	// 95
-	.quad	undefined	// 96
+	.quad	ins_stx_zp_y	// 96
 	.quad	undefined	// 97
 	.quad	ins_tya		// 98
 	.quad	ins_sta_abs_y	// 99
@@ -1002,7 +1044,7 @@ instr_table:
 	.quad	undefined	// B3
 	.quad	ins_ldy_zp_x	// B4
 	.quad	ins_lda_zp_x	// B5
-	.quad	undefined	// B6
+	.quad	ins_ldx_zp_y	// B6
 	.quad	undefined	// B7
 	.quad	ins_clv		// B8
 	.quad	ins_lda_abs_y	// B9

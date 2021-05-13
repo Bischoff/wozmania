@@ -12,9 +12,9 @@ the strict minimum.
 
 ## What is done
 
-As of 2021-05-10:
+As of 2021-05-13:
 
-* 6502 processor, 146 instructions out of 256;
+* 6502 processor, 153 instructions out of 256;
 * keyboard;
 * 40 column text mode;
 * floppy disks 1 and 2, .nib format only;

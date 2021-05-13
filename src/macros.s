@@ -17,6 +17,13 @@
 	and	\reg,\reg,#0xFF
 	.endm
 
+	.macro	a_zp_y reg
+	fetch_b	w0,PC_REG_64
+	add	PC_REG,PC_REG,#1
+	add	\reg,w0,Y_REG
+	and	\reg,\reg,#0xFF
+	.endm
+
 	.macro	a_abs reg
 	fetch_h	\reg,PC_REG_64
 	add	PC_REG,PC_REG,#2
@@ -71,6 +78,14 @@
 	fetch_b	w0,PC_REG_64
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,X_REG
+	and	w0,w0,#0xFF
+	fetch_b	\reg,x0
+	.endm
+
+	.macro	v_zp_y reg
+	fetch_b	w0,PC_REG_64
+	add	PC_REG,PC_REG,#1
+	add	w0,w0,Y_REG
 	and	w0,w0,#0xFF
 	fetch_b	\reg,x0
 	.endm
