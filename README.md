@@ -31,6 +31,7 @@ See the [documentation](/docs/usage.md).
 Help wanted:
 
 * ideas;
+* a nice logo;
 * test more Apple ][ programs;
 * test on more machines: Apple M1, smartphones;
 * code.
