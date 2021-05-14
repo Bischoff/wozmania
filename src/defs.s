@@ -6,7 +6,6 @@
 
 // 6502 processor registers
 PC_REG		.req	w19
-PC_REG_64	.req	x19
 SP_REG		.req	w20
 SP_REG_64	.req	x20
 A_REG		.req	w21

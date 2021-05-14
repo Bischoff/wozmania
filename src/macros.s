@@ -6,125 +6,125 @@
 
 // Get address (for write operations)
 	.macro	a_zp reg
-	fetch_b	\reg,PC_REG_64
+	fetch_b	\reg,PC_REG
 	add	PC_REG,PC_REG,#1
 	.endm
 
 	.macro	a_zp_x reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	\reg,w0,X_REG
 	and	\reg,\reg,#0xFF
 	.endm
 
 	.macro	a_zp_y reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	\reg,w0,Y_REG
 	and	\reg,\reg,#0xFF
 	.endm
 
 	.macro	a_abs reg
-	fetch_h	\reg,PC_REG_64
+	fetch_h	\reg,PC_REG
 	add	PC_REG,PC_REG,#2
 	.endm
 
 	.macro	a_abs_x reg
-	fetch_h	w0,PC_REG_64
+	fetch_h	w0,PC_REG
 	add	PC_REG,PC_REG,#2
 	add	\reg,w0,X_REG
 	.endm
 
 	.macro	a_abs_y reg
-	fetch_h	w0,PC_REG_64
+	fetch_h	w0,PC_REG
 	add	PC_REG,PC_REG,#2
 	add	\reg,w0,Y_REG
 	.endm
 
 	.macro	a_ind_x reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,X_REG
 	and	w0,w0,#0xFF
-	fetch_h	\reg,x0
+	fetch_h	\reg,w0
 	.endm
 
 	.macro	a_ind_y reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
-	fetch_h	w0,x0
+	fetch_h	w0,w0
 	add	\reg,w0,Y_REG
 	.endm
 
 	.macro	a_rel reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	\reg,PC_REG,w0,SXTB
 	.endm
 
 // Get value (for read operations)
 	.macro	v_imm reg
-	fetch_b	\reg,PC_REG_64
+	fetch_b	\reg,PC_REG
 	add	PC_REG,PC_REG,#1
 	.endm
 
 	.macro	v_zp reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
-	fe_zp_b	\reg,x0
+	fe_zp_b	\reg,w0
 	.endm
 
 	.macro	v_zp_x reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,X_REG
 	and	w0,w0,#0xFF
-	fe_zp_b	\reg,x0
+	fe_zp_b	\reg,w0
 	.endm
 
 	.macro	v_zp_y reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,Y_REG
 	and	w0,w0,#0xFF
-	fe_zp_b	\reg,x0
+	fe_zp_b	\reg,w0
 	.endm
 
 	.macro	v_abs reg
-	fetch_h	w0,PC_REG_64
+	fetch_h	w0,PC_REG
 	add	PC_REG,PC_REG,#2
-	fetch_b	\reg,x0
+	fetch_b	\reg,w0
 	.endm
 
 	.macro	v_abs_x reg
-	fetch_h	w0,PC_REG_64
+	fetch_h	w0,PC_REG
 	add	PC_REG,PC_REG,#2
 	add	w0,w0,X_REG
-	fetch_b	\reg,x0
+	fetch_b	\reg,w0
 	.endm
 
 	.macro	v_abs_y reg
-	fetch_h	w0,PC_REG_64
+	fetch_h	w0,PC_REG
 	add	PC_REG,PC_REG,#2
 	add	w0,w0,Y_REG
-	fetch_b	\reg,x0
+	fetch_b	\reg,w0
 	.endm
 
 	.macro	v_ind_x reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
 	add	w0,w0,X_REG
 	and	w0,w0,#0xFF
-	fe_zp_h	w0,x0
-	fetch_b	\reg,x0
+	fe_zp_h	w0,w0
+	fetch_b	\reg,w0
 	.endm
 
 	.macro	v_ind_y reg
-	fetch_b	w0,PC_REG_64
+	fetch_b	w0,PC_REG
 	add	PC_REG,PC_REG,#1
-	fe_zp_h	w0,x0
+	fe_zp_h	w0,w0
 	add	w0,w0,Y_REG
-	fetch_b	\reg,x0
+	fetch_b	\reg,w0
 	.endm
 
 // Stack usage
@@ -320,31 +320,34 @@
 
 // Access to emulated memory
 	.macro	fe_zp_b reg,where
-	ldrb	\reg,[MEM,\where]
+	mov	ADDR,\where
+	ldrb	\reg,[MEM,ADDR_64]
 	.endm
 
 	.macro	fetch_b reg,where
-	mov	ADDR_64,\where
+	mov	ADDR,\where
 	bl	fetch_b_addr
 	mov	\reg,VALUE
 	.endm
 
 	.macro	fe_zp_h reg,where
-	ldrh	\reg,[MEM,\where]
+	mov	ADDR,\where
+	ldrh	\reg,[MEM,ADDR_64]
 	.endm
 
 	.macro	fetch_h reg,where
-	mov	ADDR_64,\where
+	mov	ADDR,\where
 	bl	fetch_h_addr
 	mov	\reg,VALUE
 	.endm
 
 	.macro	st_zp_b reg,where
-	strb	\reg,[MEM,\where]
+	mov	ADDR,\where
+	strb	\reg,[MEM,ADDR_64]
 	.endm
 
 	.macro	store_b reg,where
-	mov	ADDR_64,\where
+	mov	ADDR,\where
 	mov	VALUE,\reg
 	bl	store_b_addr
 	.endm

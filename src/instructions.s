@@ -16,8 +16,8 @@ ins_brk:			// 00
 	push_b	w0
 	cmp	SP_REG,#STACK	// unlike other instructions, we protect against stack overflow
 	b.lt	stack_overflow
-	mov	x0,#0xFFFA
-        fetch_h	PC_REG,x0
+	mov	w9,#0xFFFA
+	fetch_h	PC_REG,w9
 	b	emulate
 
 ins_ora_ind_x:			// 01
@@ -26,11 +26,11 @@ ins_ora_ind_x:			// 01
 	b	emulate
 
 ins_slo_ind_x:			// 03 - undocumented
-	a_ind_x	w0
-	fetch_b	w1,x0
-	op_asl	w1
-	or_a	w1
-	store_b	w1,x0
+	a_ind_x	w9
+	fetch_b	w0,w9
+	op_asl	w0
+	or_a	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_ora_zp:			// 05
@@ -39,18 +39,18 @@ ins_ora_zp:			// 05
 	b	emulate
 
 ins_asl_zp:			// 06
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_asl	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_asl	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_slo_zp:			// 07 - undocumented
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_asl	w1
-	or_a	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_asl	w0
+	or_a	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_php:			// 08
@@ -73,25 +73,25 @@ ins_ora_abs:			// 0D
 	b	emulate
 
 ins_asl_abs:			// 0E
-	a_abs	w0
-	fetch_b	w1,x0
-	op_asl	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_asl	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_slo_abs:			// 0F - undocumented
-	a_abs	w0
-	fetch_b	w1,x0
-	op_asl	w1
-	or_a	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_asl	w0
+	or_a	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_bpl:			// 10
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,N_FLAG
 	b.ne	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_ora_ind_y:			// 11
@@ -100,11 +100,11 @@ ins_ora_ind_y:			// 11
 	b	emulate
 
 ins_slo_ind_y:			// 13 - undocumented
-	a_ind_y	w0
-	fetch_b	w1,x0
-	op_asl	w1
-	or_a	w1
-	store_b	w1,x0
+	a_ind_y	w9
+	fetch_b	w0,w9
+	op_asl	w0
+	or_a	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_ora_zp_x:			// 15
@@ -113,18 +113,18 @@ ins_ora_zp_x:			// 15
 	b	emulate
 
 ins_asl_zp_x:			// 16
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_asl	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_asl	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_slo_zp_x:			// 17 - undocumented
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_asl	w1
-	or_a	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_asl	w0
+	or_a	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_clc:			// 18
@@ -142,17 +142,17 @@ ins_ora_abs_x:			// 1D
 	b	emulate
 
 ins_asl_abs_x:			// 1E
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_asl	w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_asl	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_jsr:			// 20
-	a_abs	w0
+	a_abs	w9
 	sub	PC_REG,PC_REG,#1
 	push_h	PC_REG
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_and_ind_x:			// 21
@@ -171,10 +171,10 @@ ins_and_zp:			// 25
 	b	emulate
 
 ins_rol_zp:			// 26
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_rol	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_rol	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_plp:			// 28
@@ -202,17 +202,17 @@ ins_and_abs:			// 2D
 	b	emulate
 
 ins_rol_abs:			// 2E
-	a_abs	w0
-	fetch_b	w1,x0
-	op_rol	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_rol	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_bmi:			// 30
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,N_FLAG
 	b.eq	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_and_ind_y:			// 31
@@ -226,10 +226,10 @@ ins_and_zp_x:			// 35
 	b	emulate
 
 ins_rol_zp_x:			// 36
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_rol	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_rol	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_sec:			// 38
@@ -247,10 +247,10 @@ ins_and_abs_x:			// 3D
 	b	emulate
 
 ins_rol_abs_x:			// 3E
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_rol	w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_rol	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_rti:			// 40
@@ -274,18 +274,18 @@ ins_eor_zp:			// 45
 	b	emulate
 
 ins_lsr_zp:			// 46
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_lsr	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_lsr	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_sre_zp:			// 47 - undocumented
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_lsr	w1
-	eor_a	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_lsr	w0
+	eor_a	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_pha:			// 48
@@ -302,7 +302,7 @@ ins_lsr_a:			// 4A
 	b	emulate
 
 ins_jmp_abs:			// 4C
-	fetch_h	PC_REG,PC_REG_64
+	fetch_h	PC_REG,PC_REG
 	b	emulate
 
 ins_eor_abs:			// 4D
@@ -311,25 +311,25 @@ ins_eor_abs:			// 4D
 	b	emulate
 
 ins_lsr_abs:			// 4E
-	a_abs	w0
-	fetch_b	w1,x0
-	op_lsr	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_lsr	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_sre_abs:			// 4F - undocumented
-	a_abs	w0
-	fetch_b	w1,x0
-	op_lsr	w1
-	eor_a	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_lsr	w0
+	eor_a	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_bvc:			// 50
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,V_FLAG
 	b.ne	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_eor_ind_y:			// 51
@@ -343,10 +343,10 @@ ins_eor_zp_x:			// 55
 	b	emulate
 
 ins_lsr_zp_x:			// 56
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_lsr	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_lsr	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_cli:			// 58
@@ -364,10 +364,10 @@ ins_eor_abs_x:			// 5D
 	b	emulate
 
 ins_lsr_abs_x:			// 5E
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_lsr	w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_lsr	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_rts:			// 60
@@ -386,10 +386,10 @@ ins_adc_zp:			// 65
 	b	emulate
 
 ins_ror_zp:			// 66
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_ror	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_ror	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_pla:			// 68
@@ -408,8 +408,8 @@ ins_ror_a:			// 6A
 	b	emulate
 
 ins_jmp_ind:			// 6C
-	fetch_h	w0,PC_REG_64
-	fetch_h	PC_REG,x0
+	fetch_h	w9,PC_REG
+	fetch_h	PC_REG,w9
 	b	emulate
 
 ins_adc_abs:			// 6D
@@ -418,17 +418,17 @@ ins_adc_abs:			// 6D
 	b	emulate
 
 ins_ror_abs:			// 6E
-	a_abs	w0
-	fetch_b	w1,x0
-	op_ror	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_bvs:			// 70
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,V_FLAG
 	b.eq	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_adc_ind_y:			// 71
@@ -442,10 +442,10 @@ ins_adc_zp_x:			// 75
 	b	emulate
 
 ins_ror_zp_x:			// 76
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_ror	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_ror	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_sei:			// 78
@@ -458,11 +458,11 @@ ins_adc_abs_y:			// 79
 	b	emulate
 
 ins_rra_abs_y:			// 7B - undocumented
-	a_abs_y	w0
-	fetch_b	w1,x0
-	op_ror	w1
-	add_a	w1
-	store_b	w1,x0
+	a_abs_y	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	add_a	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_adc_abs_x:			// 7D
@@ -471,30 +471,30 @@ ins_adc_abs_x:			// 7D
 	b	emulate
 
 ins_ror_abs_x:			// 7E
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_ror	w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_sta_ind_x:			// 81
-	a_ind_x	w0
-	store_b	A_REG,x0
+	a_ind_x	w9
+	store_b	A_REG,w9
 	b	emulate
 
 ins_sty_zp:			// 84
-	a_zp	w0
-	st_zp_b	Y_REG,x0
+	a_zp	w9
+	st_zp_b	Y_REG,w9
 	b	emulate
 
 ins_sta_zp:			// 85
-	a_zp	w0
-	st_zp_b	A_REG,x0
+	a_zp	w9
+	st_zp_b	A_REG,w9
 	b	emulate
 
 ins_stx_zp:			// 86
-	a_zp	w0
-	st_zp_b	X_REG,x0
+	a_zp	w9
+	st_zp_b	X_REG,w9
 	b	emulate
 
 ins_dey:			// 88
@@ -508,45 +508,45 @@ ins_txa:			// 8A
 	b	emulate
 
 ins_sty_abs:			// 8C
-	a_abs	w0
-	store_b	Y_REG,x0
+	a_abs	w9
+	store_b	Y_REG,w9
 	b	emulate
 
 ins_sta_abs:			// 8D
-	a_abs	w0
-	store_b	A_REG,x0
+	a_abs	w9
+	store_b	A_REG,w9
 	b	emulate
 
 ins_stx_abs:			// 8E
-	a_abs	w0
-	store_b	X_REG,x0
+	a_abs	w9
+	store_b	X_REG,w9
 	b	emulate
 
 ins_bcc:			// 90
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,C_FLAG
 	b.ne	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_sta_ind_y:			// 91
-	a_ind_y	w0
-	store_b	A_REG,x0
+	a_ind_y	w9
+	store_b	A_REG,w9
 	b	emulate
 
 ins_sty_zp_x:			// 94
-	a_zp_x	w0
-	st_zp_b	Y_REG,x0
+	a_zp_x	w9
+	st_zp_b	Y_REG,w9
 	b	emulate
 
 ins_sta_zp_x:			// 95
-	a_zp_x	w0
-	st_zp_b	A_REG,x0
+	a_zp_x	w9
+	st_zp_b	A_REG,w9
 	b	emulate
 
 ins_stx_zp_y:			// 96
-	a_zp_y	w0
-	st_zp_b	X_REG,x0
+	a_zp_y	w9
+	st_zp_b	X_REG,w9
 	b	emulate
 
 ins_tya:			// 98
@@ -556,8 +556,8 @@ ins_tya:			// 98
 	b	emulate
 
 ins_sta_abs_y:			// 99
-	a_abs_y	w0
-	store_b	A_REG,x0
+	a_abs_y	w9
+	store_b	A_REG,w9
 	b	emulate
 
 ins_txs:			// 9A
@@ -565,8 +565,8 @@ ins_txs:			// 9A
 	b	emulate
 
 ins_sta_abs_x:			// 9D
-	a_abs_x	w0
-	store_b	A_REG,x0
+	a_abs_x	w9
+	store_b	A_REG,w9
 	b	emulate
 
 ins_ldy_imm:			// A0
@@ -642,10 +642,10 @@ ins_ldx_abs:			// AE
 	b	emulate
 
 ins_bcs:			// B0
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,C_FLAG
 	b.eq	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_lda_ind_y:			// B1
@@ -728,10 +728,10 @@ ins_cmp_zp:			// C5
 	b	emulate
 
 ins_dec_zp:			// C6
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_dec	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_dec	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_iny:			// C8
@@ -758,17 +758,17 @@ ins_cmp_abs:			// CD
 	b	emulate
 
 ins_dec_abs:			// CE
-	a_abs	w0
-	fetch_b	w1,x0
-	op_dec	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_bne:			// D0
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,Z_FLAG
 	b.ne	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_cmp_ind_y:			// D1
@@ -786,10 +786,10 @@ ins_cmp_zp_x:			// D5
 	b	emulate
 
 ins_dec_zp_x:			// D6
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_dec	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_dec	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_cld:			// D8
@@ -807,18 +807,18 @@ ins_cmp_abs_x:			// DD
 	b	emulate
 
 ins_dec_abs_x:			// DE
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_dec	w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_dcp_abs_x:			// DF - undocumented
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_dec	w1
-	compare	A_REG,w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
+	store_b	w0,w9
 	b	emulate
 
 ins_cpx_imm:			// E0
@@ -842,10 +842,10 @@ ins_sbc_zp:			// E5
 	b	emulate
 
 ins_inc_zp:			// E6
-	a_zp	w0
-	fe_zp_b	w1,x0
-	op_inc	w1
-	st_zp_b	w1,x0
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_inc	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_inx:			// E8
@@ -871,17 +871,17 @@ ins_sbc_abs:			// ED
 	b	emulate
 
 ins_inc_abs:			// EE
-	a_abs	w0
-	fetch_b	w1,x0
-	op_inc	w1
-	store_b	w1,x0
+	a_abs	w9
+	fetch_b	w0,w9
+	op_inc	w0
+	store_b	w0,w9
 	b	emulate
 
 ins_beq:			// F0
-	a_rel	w0
+	a_rel	w9
 	tst	S_REG,Z_FLAG
 	b.eq	emulate
-	mov	PC_REG,w0
+	mov	PC_REG,w9
 	b	emulate
 
 ins_sbc_ind_y:			// F1
@@ -895,10 +895,10 @@ ins_sbc_zp_x:			// F5
 	b	emulate
 
 ins_inc_zp_x:			// F6
-	a_zp_x	w0
-	fe_zp_b	w1,x0
-	op_inc	w1
-	st_zp_b	w1,x0
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_inc	w0
+	st_zp_b	w0,w9
 	b	emulate
 
 ins_sed:			// F8
@@ -916,10 +916,10 @@ ins_sbc_abs_x:			// FD
 	b	emulate
 
 ins_inc_abs_x:			// FE
-	a_abs_x	w0
-	fetch_b	w1,x0
-	op_inc	w1
-	store_b	w1,x0
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_inc	w0
+	store_b	w0,w9
 	b	emulate
 
 instr_table:

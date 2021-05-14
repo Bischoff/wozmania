@@ -89,7 +89,7 @@ load_failure_rom:
 // Fetch byte from memory, taking into account I/O
 //   input:  ADDR  = address where to store the byte to read
 //   output: VALUE = byte read
-//   this routine makes registers dirty and must be called very last when emulating an instruction
+//   beware this routine may modify w0-w8
 fetch_b_addr:
 	cmp	ADDR,#0xC000
 	b.ge	fetch_b_not_ram
@@ -185,7 +185,7 @@ fetch_h_ef:
 // Store byte from memory, taking into account I/O
 //   input: ADDR  = 6502 address of byte to write
 //          VALUE = byte to write
-//   this routine makes registers dirty and must be called very first when emulating an instruction
+//   beware this routine may modify w0-w8
 store_b_addr:
 	cmp	ADDR,#0xC000
 	b.ge	store_b_not_ram
