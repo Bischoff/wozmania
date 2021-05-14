@@ -79,9 +79,15 @@ keyboard_write:
 read_key:
 	ldrb	w0,[KEYBOARD,#KBD_STROBE]
 	tst	w0,#0xFF
-	b.eq	get_key
+	b.eq	slow_polling
 	mov	w0,#KBD_LASTKEY
 	b	analyze_key
+slow_polling:
+	ldrb	w0,[KEYBOARD,#KBD_WAIT]
+	add	w0,w0,#1
+	strb	w0,[KEYBOARD,#KBD_WAIT]
+	tst	w0,#0xFF
+	b.ne	no_key
 get_key:
 	mov	w0,#STDIN
 	mov	x1,KEYBOARD
@@ -205,5 +211,6 @@ kbd:
 	.byte	0			// buffer
 	.byte	0			// strobe
 	.byte	0			// last key
+	.byte	0			// wait counter to slow down polling
 	.byte	0			// key sequence
 	.byte	0			// reset

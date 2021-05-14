@@ -10,7 +10,7 @@
  * [How to Debug](#debug)
     * [Debugging with gdb](#gdb)
     * [Helper Routines](#helpers)
- * [Technical Details](#details)
+ * [Performance Considerations](#performance)
  * [Bibliography](#biblio)
 
 
@@ -25,13 +25,14 @@
 
 1. Assemble WozMania by running the command `./assemble.sh`.
 2. Download to the same directory a file that contains the
-   ROM of the Apple ][ and that must be named `APPLE2.ROM`.
+   ROM of the Apple ]\[ and that must be named `APPLE2.ROM`.
 3. Run the emulator with the command `./wozmania`.
 4. To exit the emulator, press F4.
 
-The ROM file must contain the last part of the memory.
-For example, Apple ][+ ROMs covering memory from
-`$B000` to `$FFFF` are 20,480 bytes long (5 x 4096).
+The ROM file must contain the last part of the memory. For example,
+Apple ]\[+ ROM files covering memory from `$B000` to `$FFFF` are
+20,480 bytes long (5 x 4,096). That's larger than the ROM space
+(`$D000` to `$FFFF`, 3 * 4,096 bytes), but that's not a problem.
 
 
 <a name="keyboard"/>
@@ -203,21 +204,26 @@ and the last nibble read from the floppy disk.
 `f_write` does the same for the last nibble written.
 
 
-<a name="details"/>
+<a name="performance"/>
 
-## Technical Details
+## Performance Considerations
 
 I tried to write code that was as fast as possible, even at the price of compactness,
 therefore it uses macros instead of subroutines. The stack is intentionally not used
 at all.
 
-The nature of an emulator makes it difficult to use the pre-increment and
-post-increment functionalities of the ARM 64 (there are almost no loops, for instance).
+The nature of an emulator makes it difficult to use pre-incrementation and
+post-incrementation of registers as offered by the ARM 64 (there are almost no loops).
 This is why you will see very little use of those functionalities.
 
-The performance is quite disappointing. For example, the Rugg-Feldman benchmark 1
-executes in 1'44s on my Raspberry Pi 400, against 1.3s on a real Apple ][,
-i.e. 80 times slower. I don't know if the other emulators do better.
+Access to zero page is priviledged in the emulator, with less memory mappings.
+
+Keyboard is polled for real only one time out of 256. This has a huge performance
+impact, as the Apple's ROM keeps polling the keyboard a lot, even when running
+non-interative BASIC programs.
+
+There is no interception of calls to well-known routines. Performance is good enough
+without using such tricks.
 
 
 <a name="biblio"/>

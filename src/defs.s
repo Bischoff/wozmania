@@ -95,8 +95,9 @@ BREAKPOINT	.req	x29
 	.equ	KBD_BUFFER,0
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2
-	.equ	KBD_KEYSEQ,3
-	.equ	KBD_RESET,4
+	.equ	KBD_WAIT,3
+	.equ	KBD_KEYSEQ,4
+	.equ	KBD_RESET,5
 	.equ	DRV_NUMBER,0
 	.equ	DRV_FLAGS,1
 	.equ	DRV_LASTNIB,2
