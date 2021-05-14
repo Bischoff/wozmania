@@ -40,14 +40,14 @@ ins_ora_zp:			// 05
 
 ins_asl_zp:			// 06
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_asl	w1
 	st_zp_b	w1,x0
 	b	emulate
 
 ins_slo_zp:			// 07 - undocumented
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_asl	w1
 	or_a	w1
 	st_zp_b	w1,x0
@@ -114,14 +114,14 @@ ins_ora_zp_x:			// 15
 
 ins_asl_zp_x:			// 16
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_asl	w1
 	st_zp_b	w1,x0
 	b	emulate
 
 ins_slo_zp_x:			// 17 - undocumented
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_asl	w1
 	or_a	w1
 	st_zp_b	w1,x0
@@ -172,7 +172,7 @@ ins_and_zp:			// 25
 
 ins_rol_zp:			// 26
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_rol	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -227,7 +227,7 @@ ins_and_zp_x:			// 35
 
 ins_rol_zp_x:			// 36
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_rol	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -275,14 +275,14 @@ ins_eor_zp:			// 45
 
 ins_lsr_zp:			// 46
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_lsr	w1
 	st_zp_b	w1,x0
 	b	emulate
 
 ins_sre_zp:			// 47 - undocumented
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_lsr	w1
 	eor_a	w1
 	st_zp_b	w1,x0
@@ -344,7 +344,7 @@ ins_eor_zp_x:			// 55
 
 ins_lsr_zp_x:			// 56
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_lsr	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -387,7 +387,7 @@ ins_adc_zp:			// 65
 
 ins_ror_zp:			// 66
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_ror	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -443,7 +443,7 @@ ins_adc_zp_x:			// 75
 
 ins_ror_zp_x:			// 76
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_ror	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -729,7 +729,7 @@ ins_cmp_zp:			// C5
 
 ins_dec_zp:			// C6
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_dec	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -787,7 +787,7 @@ ins_cmp_zp_x:			// D5
 
 ins_dec_zp_x:			// D6
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_dec	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -843,7 +843,7 @@ ins_sbc_zp:			// E5
 
 ins_inc_zp:			// E6
 	a_zp	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_inc	w1
 	st_zp_b	w1,x0
 	b	emulate
@@ -896,7 +896,7 @@ ins_sbc_zp_x:			// F5
 
 ins_inc_zp_x:			// F6
 	a_zp_x	w0
-	fetch_b	w1,x0
+	fe_zp_b	w1,x0
 	op_inc	w1
 	st_zp_b	w1,x0
 	b	emulate
