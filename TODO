@@ -3,10 +3,10 @@
 * floppy disk support:
   - other disk formats than .nib
 * screen modes:
+  - 80 columns text
   - low resolution graphic
   - mixed low resolution graphic/text
   - high resolution graphic
-  - 80 columns text
 * more hardware emulation:
   - printer
   - serial card
@@ -20,6 +20,7 @@ Items at risk of becoming moot when we run in a window:
   - to disable disks
   - to load 16 sectors controller ROM
   - to disable the language card
+  - to control speed
 * keyboard:
   - nano timer to receive ESC key
 * floppy disk support:

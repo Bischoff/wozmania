@@ -11,6 +11,9 @@
     * [Debugging with gdb](#gdb)
     * [Helper Routines](#helpers)
  * [Performance Considerations](#performance)
+    * [Coding Style](#style)
+    * [Implemented Accelerations](#implemented)
+    * [Not Implemented Accelerations](#not-implemented)
  * [Bibliography](#biblio)
 
 
@@ -87,7 +90,7 @@ this line:
 
 <a name="language"/>
 
-## Using the Language Card
+### Using the Language Card
 
 Apple's language card offers additional 16 KiB of RAM and 2 KiB of ROM.
 It is designed to host a language other than Applesoft BASIC,
@@ -161,11 +164,8 @@ There are five routines to help debugging:
 By default, they are not assembled. To assemble them, use
 environment variables, e.g:
 ```
-$ TRACE=y ./assemble.sh
+$ TRACE=1 ./assemble.sh
 ```
-
-The environment variables that can be defined are
-`TRACE`, `BREAK`, `CHECK`, `F_READ`, and `F_WRITE`.
 
 You can redirect the output of these routines like this:
 ```
@@ -180,6 +180,8 @@ $ tail -f debug.txt
 
 `trace` prints the registers for each executed 6502 instruction.
 
+To activate this routine, assemble with `TRACE=1`.
+
 #### break
 
 `break` allows to set a 6502 breakpoint. For example, from `gdb`, to specify
@@ -192,38 +194,75 @@ $ tail -f debug.txt
 ```
 the breakpoint can then be changed at any time later.
 
+To activate this routine, assemble with `BREAK=1`.
+
 #### check
 
 `check` verifies the value of the registers at each executed 6502 instruction.
+
+To activate this routine, assemble with `CHECK=1`.
 
 #### f_read and f_write
 
 `f_read` displays the drive number, track number, position of disk head,
 and the last nibble read from the floppy disk.
 
+To activate this routine, assemble with `F_READ=1`.
+
 `f_write` does the same for the last nibble written.
+
+To activate this routine, assemble with `F_WRITE=1`.
 
 
 <a name="performance"/>
 
 ## Performance Considerations
 
-I tried to write code that was as fast as possible, even at the price of compactness,
-therefore it uses macros instead of subroutines. The stack is intentionally not used
-at all.
+<a name="style"/>
+
+### Coding Style
+
+I tried to write code that was as fast as possible, even at the price of
+compactness, therefore it uses macros instead of subroutines. The ARM stack
+is intentionally not used at all.
 
 The nature of an emulator makes it difficult to use pre-incrementation and
-post-incrementation of registers as offered by the ARM 64 (there are almost no loops).
-This is why you will see very little use of those functionalities.
+post-incrementation of registers as offered by the ARM 64 (there are almost
+no loops). This is why you will see very little use of those functionalities.
+
+
+<a name="implemented"/>
+
+### Implemented Accelerations
 
 Access to zero page is priviledged in the emulator, with less memory mappings.
 
-Keyboard is polled for real only one time out of 256. This has a huge performance
-impact, as the Apple's ROM keeps polling the keyboard a lot, even when running
-non-interative BASIC programs.
+Keyboard is polled for real only one time out of 256. This has a huge
+performance impact, as the Apple's ROM keeps polling the keyboard a lot,
+even when running non-interative BASIC programs.
 
-There is no interception of calls to well-known routines. Performance is good enough
-without using such tricks.
+Some accelerations might lead to less accurate emulation:
+ * 16-bit addresses are loaded in one ARM instruction (`ldrh`). This will
+   lead to inaccuracies when loading addresses that span over two different
+   memory banks, or span over I/O addresses.
+ * Indexed indirect addressing mode, like in `LDA   ($1A,X)`, will not cycle
+   inside page 0.
+ * The stack pointer will not cycle inside page 1 when there is a stack
+   overflow or underflow. Stack overflow is detected only at `BRK`
+   instructions.
+
+All those cases are very marginal and should not impact real-life scenarios.
+
+
+<a name="not-implemented"/>
+
+### Not Implemented Accelerations
+
+WozMania is a pure interpreter, there is no just-in-time compilation of
+6502 code.
+
+There is no interception of calls to well-known routines. Performance is
+good enough without using such tricks.
 
 
 <a name="biblio"/>

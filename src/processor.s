@@ -33,6 +33,10 @@ ins_slo_ind_x:			// 03 - undocumented
 	store_b	w0,w9
 	b	emulate
 
+ins_ign_zp:			// 04 - undocumented
+	v_zp	w0
+	b	emulate
+
 ins_ora_zp:			// 05
 	v_zp	w0
 	or_a	w0
@@ -65,6 +69,10 @@ ins_ora_imm:			// 09
 
 ins_asl_a:			// 0A
 	op_asl	A_REG
+	b	emulate
+
+ins_ign_abs:			// 0C - undocumented
+	v_abs	w0
 	b	emulate
 
 ins_ora_abs:			// 0D
@@ -107,6 +115,10 @@ ins_slo_ind_y:			// 13 - undocumented
 	store_b	w0,w9
 	b	emulate
 
+ins_ign_zp_x:			// 14 - undocumented
+	v_zp_x	w0
+	b	emulate
+
 ins_ora_zp_x:			// 15
 	v_zp_x	w0
 	or_a	w0
@@ -134,6 +146,10 @@ ins_clc:			// 18
 ins_ora_abs_y:			// 19
 	v_abs_y	w0
 	or_a	w0
+	b	emulate
+
+ins_ign_abs_x:			// 1C - undocumented
+	v_abs_x	w0
 	b	emulate
 
 ins_ora_abs_x:			// 1D
@@ -264,10 +280,6 @@ ins_eor_ind_x:			// 41
 	eor_a	w0
 	b	emulate
 
-ins_ign_zp:			// 44 - undocumented
-	v_zp	w0
-	b	emulate
-
 ins_eor_zp:			// 45
 	v_zp	w0
 	eor_a	w0
@@ -380,6 +392,14 @@ ins_adc_ind_x:			// 61
 	add_a	w0
 	b	emulate
 
+ins_rra_ind_x:			// 63 - undocumented
+	a_ind_x	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	add_a	w0
+	store_b	w0,w9
+	b	emulate
+
 ins_adc_zp:			// 65
 	v_zp	w0
 	add_a	w0
@@ -389,6 +409,14 @@ ins_ror_zp:			// 66
 	a_zp	w9
 	fe_zp_b	w0,w9
 	op_ror	w0
+	st_zp_b	w0,w9
+	b	emulate
+
+ins_rra_zp:			// 67 - undocumented
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_ror	w0
+	add_a	w0
 	st_zp_b	w0,w9
 	b	emulate
 
@@ -424,6 +452,14 @@ ins_ror_abs:			// 6E
 	store_b	w0,w9
 	b	emulate
 
+ins_rra_abs:			// 6F - undocumented
+	a_abs	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	add_a	w0
+	store_b	w0,w9
+	b	emulate
+
 ins_bvs:			// 70
 	a_rel	w9
 	tst	S_REG,V_FLAG
@@ -436,6 +472,14 @@ ins_adc_ind_y:			// 71
 	add_a	w0
 	b	emulate
 
+ins_rra_ind_y:			// 73 - undocumented
+	a_ind_y	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	add_a	w0
+	store_b	w0,w9
+	b	emulate
+
 ins_adc_zp_x:			// 75
 	v_zp_x	w0
 	add_a	w0
@@ -445,6 +489,14 @@ ins_ror_zp_x:			// 76
 	a_zp_x	w9
 	fe_zp_b	w0,w9
 	op_ror	w0
+	st_zp_b	w0,w9
+	b	emulate
+
+ins_rra_zp_x:			// 77 - undocumented
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_ror	w0
+	add_a	w0
 	st_zp_b	w0,w9
 	b	emulate
 
@@ -474,6 +526,14 @@ ins_ror_abs_x:			// 7E
 	a_abs_x	w9
 	fetch_b	w0,w9
 	op_ror	w0
+	store_b	w0,w9
+	b	emulate
+
+ins_rra_abs_x:			// 7F - undocumented
+	a_abs_x	w9
+	fetch_b	w0,w9
+	op_ror	w0
+	add_a	w0
 	store_b	w0,w9
 	b	emulate
 
@@ -717,6 +777,14 @@ ins_cmp_ind_x:			// C1
 	compare	A_REG,w0
 	b	emulate
 
+ins_dcp_ind_x:			// C3 - undocumented
+	a_ind_x	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
+	store_b	w0,w9
+	b	emulate
+
 ins_cpy_zp:			// C4
 	v_zp	w0
 	compare	Y_REG,w0
@@ -731,6 +799,14 @@ ins_dec_zp:			// C6
 	a_zp	w9
 	fe_zp_b	w0,w9
 	op_dec	w0
+	st_zp_b	w0,w9
+	b	emulate
+
+ins_dcp_zp:			// C7 - undocumented
+	a_zp	w9
+	fe_zp_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
 	st_zp_b	w0,w9
 	b	emulate
 
@@ -764,6 +840,14 @@ ins_dec_abs:			// CE
 	store_b	w0,w9
 	b	emulate
 
+ins_dcp_abs:			// CF - undocumented
+	a_abs	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
+	store_b	w0,w9
+	b	emulate
+
 ins_bne:			// D0
 	a_rel	w9
 	tst	S_REG,Z_FLAG
@@ -776,8 +860,12 @@ ins_cmp_ind_y:			// D1
 	compare	A_REG,w0
 	b	emulate
 
-ins_ign_zp_x:			// D4 - undocumented
-	v_zp_x	w0
+ins_dcp_ind_y:			// D3 - undocumented
+	a_ind_y	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
+	store_b	w0,w9
 	b	emulate
 
 ins_cmp_zp_x:			// D5
@@ -792,6 +880,14 @@ ins_dec_zp_x:			// D6
 	st_zp_b	w0,w9
 	b	emulate
 
+ins_dcp_zp_x:			// D7 - undocumented
+	a_zp_x	w9
+	fe_zp_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
+	st_zp_b	w0,w9
+	b	emulate
+
 ins_cld:			// D8
 	and	S_REG,S_REG,~D_FLAG
 	b	emulate
@@ -799,6 +895,14 @@ ins_cld:			// D8
 ins_cmp_abs_y:			// D9
 	v_abs_y	w0
 	compare	A_REG,w0
+	b	emulate
+
+ins_dcp_abs_y:			// DB - undocumented
+	a_abs_y	w9
+	fetch_b	w0,w9
+	op_dec	w0
+	compare	A_REG,w0
+	store_b	w0,w9
 	b	emulate
 
 ins_cmp_abs_x:			// DD
@@ -926,32 +1030,32 @@ instr_table:
 	.quad	ins_brk		// 00
 	.quad	ins_ora_ind_x	// 01
 	.quad	undefined	// 02
-	.quad	ins_slo_ind_x	// 03*
-	.quad	undefined	// 04
+	.quad	ins_slo_ind_x	// 03 - undocumented
+	.quad	ins_ign_zp	// 04 - undocumented
 	.quad	ins_ora_zp	// 05
 	.quad	ins_asl_zp	// 06
-	.quad	ins_slo_zp	// 07*
+	.quad	ins_slo_zp	// 07 - undocumented
 	.quad	ins_php		// 08
 	.quad	ins_ora_imm	// 09
 	.quad	ins_asl_a	// 0A
 	.quad	undefined	// 0B
-	.quad	undefined	// 0C
+	.quad	ins_ign_abs	// 0C - undocumented
 	.quad	ins_ora_abs	// 0D
 	.quad	ins_asl_abs	// 0E
-	.quad	ins_slo_abs	// 0F*
+	.quad	ins_slo_abs	// 0F - undocumented
 	.quad	ins_bpl		// 10
 	.quad	ins_ora_ind_y	// 11
 	.quad	undefined	// 12
-	.quad	ins_slo_ind_y	// 13*
-	.quad	undefined	// 14
+	.quad	ins_slo_ind_y	// 13 - undocumented
+	.quad	ins_ign_zp_x	// 14 - undocumented
 	.quad	ins_ora_zp_x	// 15
 	.quad	ins_asl_zp_x	// 16
-	.quad	ins_slo_zp_x	// 17*
+	.quad	ins_slo_zp_x	// 17 - undocumented
 	.quad	ins_clc		// 18
 	.quad	ins_ora_abs_y	// 19
 	.quad	undefined	// 1A
 	.quad	undefined	// 1B
-	.quad	undefined	// 1C
+	.quad	ins_ign_abs_x	// 1C - undocumented
 	.quad	ins_ora_abs_x	// 1D
 	.quad	ins_asl_abs_x	// 1E
 	.quad	undefined	// 1F
@@ -975,7 +1079,7 @@ instr_table:
 	.quad	ins_and_ind_y	// 31
 	.quad	undefined	// 32
 	.quad	undefined	// 33
-	.quad	undefined	// 34
+	.quad	ins_ign_zp_x	// 34 - undocumented
 	.quad	ins_and_zp_x	// 35
 	.quad	ins_rol_zp_x	// 36
 	.quad	undefined	// 37
@@ -983,7 +1087,7 @@ instr_table:
 	.quad	ins_and_abs_y	// 39
 	.quad	undefined	// 3A
 	.quad	undefined	// 3B
-	.quad	undefined	// 3C
+	.quad	ins_ign_abs_x	// 3C - undocumented
 	.quad	ins_and_abs_x	// 3D
 	.quad	ins_rol_abs_x	// 3E
 	.quad	undefined	// 3F
@@ -991,10 +1095,10 @@ instr_table:
 	.quad	ins_eor_ind_x	// 41
 	.quad	undefined	// 42
 	.quad	undefined	// 43
-	.quad	ins_ign_zp	// 44*
+	.quad	ins_ign_zp	// 44 - undocumented
 	.quad	ins_eor_zp	// 45
 	.quad	ins_lsr_zp	// 46
-	.quad	ins_sre_zp	// 47*
+	.quad	ins_sre_zp	// 47 - undocumented
 	.quad	ins_pha		// 48
 	.quad	ins_eor_imm	// 49
 	.quad	ins_lsr_a	// 4A
@@ -1002,31 +1106,31 @@ instr_table:
 	.quad	ins_jmp_abs	// 4C
 	.quad	ins_eor_abs	// 4D
 	.quad	ins_lsr_abs	// 4E
-	.quad	ins_sre_abs	// 4F*
+	.quad	ins_sre_abs	// 4F - undocumented
 	.quad	ins_bvc		// 50
 	.quad	ins_eor_ind_y	// 51
 	.quad	undefined	// 52
 	.quad	undefined	// 53
-	.quad	undefined	// 54
+	.quad	ins_ign_zp_x	// 54 - undocumented
 	.quad	ins_eor_zp_x	// 55
 	.quad	ins_lsr_zp_x	// 56
 	.quad	undefined	// 57
 	.quad	ins_cli		// 58
 	.quad	ins_eor_abs_y	// 59
-	.quad	ins_nop		// 5A*
+	.quad	ins_nop		// 5A - undocumented
 	.quad	undefined	// 5B
-	.quad	undefined	// 5C
+	.quad	ins_ign_abs_x	// 5C - undocumented
 	.quad	ins_eor_abs_x	// 5D
 	.quad	ins_lsr_abs_x	// 5E
 	.quad	undefined	// 5F
 	.quad	ins_rts		// 60
 	.quad	ins_adc_ind_x	// 61
 	.quad	undefined	// 62
-	.quad	undefined	// 63
-	.quad	undefined	// 64
+	.quad	ins_rra_ind_x	// 63 - undocumented
+	.quad	ins_ign_zp	// 64 - undocumented
 	.quad	ins_adc_zp	// 65
 	.quad	ins_ror_zp	// 66
-	.quad	undefined	// 67
+	.quad	ins_rra_zp	// 67 - undocumented
 	.quad	ins_pla		// 68
 	.quad	ins_adc_imm	// 69
 	.quad	ins_ror_a	// 6A
@@ -1034,23 +1138,23 @@ instr_table:
 	.quad	ins_jmp_ind	// 6C
 	.quad	ins_adc_abs	// 6D
 	.quad	ins_ror_abs	// 6E
-	.quad	undefined	// 6F
+	.quad	ins_rra_abs	// 6F - undocumented
 	.quad	ins_bvs		// 70
 	.quad	ins_adc_ind_y	// 71
 	.quad	undefined	// 72
-	.quad	undefined	// 73
-	.quad	undefined	// 74
+	.quad	ins_rra_ind_y	// 73 - undocumented
+	.quad	ins_ign_zp_x	// 74 - undocumented
 	.quad	ins_adc_zp_x	// 75
 	.quad	ins_ror_zp_x	// 76
-	.quad	undefined	// 77
+	.quad	ins_rra_zp_x	// 77 - undocumented
 	.quad	ins_sei		// 78
 	.quad	ins_adc_abs_y	// 79
 	.quad	undefined	// 7A
-	.quad	ins_rra_abs_y	// 7B*
-	.quad	undefined	// 7C
+	.quad	ins_rra_abs_y	// 7B - undocumented
+	.quad	ins_ign_abs_x	// 7C - undocumented
 	.quad	ins_adc_abs_x	// 7D
 	.quad	ins_ror_abs_x	// 7E
-	.quad	undefined	// 7F
+	.quad	ins_rra_abs_x	// 7F - undocumented
 	.quad	undefined	// 80
 	.quad	ins_sta_ind_x	// 81
 	.quad	undefined	// 82
@@ -1118,11 +1222,11 @@ instr_table:
 	.quad	ins_cpy_imm	// C0
 	.quad	ins_cmp_ind_x	// C1
 	.quad	undefined	// C2
-	.quad	undefined	// C3
+	.quad	ins_dcp_ind_x	// C3 - undocumented
 	.quad	ins_cpy_zp	// C4
 	.quad	ins_cmp_zp	// C5
 	.quad	ins_dec_zp	// C6
-	.quad	undefined	// C7
+	.quad	ins_dcp_zp	// C7 - undocumented
 	.quad	ins_iny		// C8
 	.quad	ins_cmp_imm	// C9
 	.quad	ins_dex		// CA
@@ -1130,23 +1234,23 @@ instr_table:
 	.quad	ins_cpy_abs	// CC
 	.quad	ins_cmp_abs	// CD
 	.quad	ins_dec_abs	// CE
-	.quad	undefined	// CF
+	.quad	ins_dcp_abs	// CF - undocumented
 	.quad	ins_bne		// D0
 	.quad	ins_cmp_ind_y	// D1
 	.quad	undefined	// D2
-	.quad	undefined	// D3
-	.quad	ins_ign_zp_x	// D4*
+	.quad	ins_dcp_ind_y	// D3 - undocumented
+	.quad	ins_ign_zp_x	// D4 - undocumented
 	.quad	ins_cmp_zp_x	// D5
 	.quad	ins_dec_zp_x	// D6
-	.quad	undefined	// D7
+	.quad	ins_dcp_zp_x	// D7 - undocumented
 	.quad	ins_cld		// D8
 	.quad	ins_cmp_abs_y	// D9
 	.quad	undefined	// DA
-	.quad	undefined	// DB
-	.quad	undefined	// DC
+	.quad	ins_dcp_abs_y	// DB - undocumented
+	.quad	ins_ign_abs_x	// DC - undocumented
 	.quad	ins_cmp_abs_x	// DD
 	.quad	ins_dec_abs_x	// DE
-	.quad	ins_dcp_abs_x	// DF*
+	.quad	ins_dcp_abs_x	// DF - undocumented
 	.quad	ins_cpx_imm	// E0
 	.quad	ins_sbc_ind_x	// E1
 	.quad	undefined	// E2
@@ -1167,7 +1271,7 @@ instr_table:
 	.quad	ins_sbc_ind_y	// F1
 	.quad	undefined	// F2
 	.quad	undefined	// F3
-	.quad	undefined	// F4
+	.quad	ins_ign_zp_x	// F4 - undocumented
 	.quad	ins_sbc_zp_x	// F5
 	.quad	ins_inc_zp_x	// F6
 	.quad	undefined	// F7
@@ -1175,7 +1279,7 @@ instr_table:
 	.quad	ins_sbc_abs_y	// F9
 	.quad	undefined	// FA
 	.quad	undefined	// FB
-	.quad	undefined	// FC
+	.quad	ins_ign_abs_x	// FC - undocumented
 	.quad	ins_sbc_abs_x	// FD
 	.quad	ins_inc_abs_x	// FE
 	.quad	undefined	// FF
