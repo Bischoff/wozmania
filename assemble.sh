@@ -30,13 +30,16 @@ if [ "$F_WRITE" != "" ]; then
   echo "  enabling floppy write printout"
 fi
 
-for file in instructions emulator memory floppy keyboard text debug; do
+files="emulator processor memory floppy keyboard screen debug"
+for file in $files; do
   as $AS_OPTS src/$file.s -o $file.o
 done
-
-ld instructions.o emulator.o memory.o floppy.o keyboard.o text.o debug.o -o wozmania
-
-for file in instructions emulator memory floppy keyboard text debug; do
+objects=""
+for file in $files; do
+  objects="$objects $file.o"
+done
+ld $objects -o wozmania
+for file in $files; do
   rm $file.o
 done
 
@@ -44,7 +47,6 @@ if [ ! -f drive1.nib ]; then
   cp disks/blank.nib drive1.nib
   echo "Creating blank disk drive1.nib"
 fi
-
 if [ ! -f drive2.nib ]; then
   cp disks/blank.nib drive2.nib
   echo "Creating blank disk drive2.nib"
