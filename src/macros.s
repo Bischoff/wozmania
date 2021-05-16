@@ -128,69 +128,75 @@
 	.endm
 
 // Stack usage
-// For performance reasons, there is no check against overflow or underflow,
-// nor any rotation like on a real 6502
 	.macro	push_b reg
 	strb	\reg,[MEM,SP_REG_64]
 	sub	SP_REG,SP_REG,#1
+	and	SP_REG,SP_REG,#0xFF
+	orr	SP_REG,SP_REG,#0x100
 	.endm
 
 	.macro	push_h reg
 	sub	SP_REG,SP_REG,#1
-	strh	\reg,[MEM,SP_REG_64]
+	strh	\reg,[MEM,SP_REG_64]	// might dirty address $FF :-(
 	sub	SP_REG,SP_REG,#1
+	and	SP_REG,SP_REG,#0xFF
+	orr	SP_REG,SP_REG,#0x100
 	.endm
 
 	.macro	pop_b reg
 	add	SP_REG,SP_REG,#1
 	ldrb	\reg,[MEM,SP_REG_64]
+	and	SP_REG,SP_REG,#0xFF
+	orr	SP_REG,SP_REG,#0x100
 	.endm
 
 	.macro	pop_h reg
 	add	SP_REG,SP_REG,#1
-	ldrh	\reg,[MEM,SP_REG_64]
+	ldrh	\reg,[MEM,SP_REG_64]	// might dirty address $200 :-(
 	add	SP_REG,SP_REG,#1
+	and	SP_REG,SP_REG,#0xFF
+	orr	SP_REG,SP_REG,#0x100
 	.endm
 
 // Set status register flags
 	.macro	c_flag reg,mask
 	tst	\reg,\mask
 	b.ne	1f
-	and	S_REG,S_REG,~C_FLAG
+	and	S_REG,S_REG,#~C_FLAG
 	b	2f
-1:	orr	S_REG,S_REG,C_FLAG
+1:	orr	S_REG,S_REG,#C_FLAG
 2:
 	.endm
 
 	.macro	z_flag reg,mask
 	tst	\reg,\mask
 	b.eq	1f
-	and	S_REG,S_REG,~Z_FLAG
+	and	S_REG,S_REG,#~Z_FLAG
 	b	2f
-1:	orr	S_REG,S_REG,Z_FLAG
+1:	orr	S_REG,S_REG,#Z_FLAG
 2:
 	.endm
 
 	.macro	n_flag reg,mask
 	tst	\reg,\mask
 	b.ne	1f
-	and	S_REG,S_REG,~N_FLAG
+	and	S_REG,S_REG,#~N_FLAG
 	b	2f
-1:	orr	S_REG,S_REG,N_FLAG
+1:	orr	S_REG,S_REG,#N_FLAG
 2:
 	.endm
 
 	.macro	v_flag reg,mask
 	tst	\reg,\mask
 	b.ne	1f
-	and	S_REG,S_REG,~V_FLAG
+	and	S_REG,S_REG,#~V_FLAG
 	b	2f
-1:	orr	S_REG,S_REG,V_FLAG
+1:	orr	S_REG,S_REG,#V_FLAG
 2:
 	.endm
 
 	.macro	c_inv
-	eor	S_REG,S_REG,C_FLAG
+	eor	S_REG,S_REG,#C_FLAG
 	.endm
 
 	.macro	overflow result,op1,op2
@@ -203,7 +209,7 @@
 // Transfer carry from 6502 status register to ARM 64 status register
 	.macro	t_carry
 	mrs	x3,nzcv
-	tst	S_REG,C_FLAG
+	tst	S_REG,#C_FLAG
 	b.eq	1f
 	orr	w3,w3,#0x20000000
 	b	2f

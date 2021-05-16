@@ -19,8 +19,6 @@
 	.ifdef	F_WRITE
 .global f_write
 	.endif
-.global stack_overflow
-.global undefined
 	.ifdef	BREAK
 .global breakpoint
 	.endif
@@ -112,24 +110,6 @@ print_nibble:
 	b	last_nibble
 	.endif
 
-// Stack overflow
-stack_overflow:
-	adr	x2,hex
-	ldr	x3,=msg_overflow
-	hex_16	PC_REG,32
-	write	STDERR,37
-	b	exit
-
-// Undefined instruction
-undefined:
-	sub	PC_REG,PC_REG,#1
-	adr	x2,hex
-	ldr	x3,=msg_undefined
-	hex_8	w0,36
-	hex_16	PC_REG,42
-	write	STDERR,47
-	b	exit
-
 // Invalid value for register
 	.ifdef	CHECK
 invalid:
@@ -160,10 +140,6 @@ msg_trace:
 msg_disk:
 	.ascii	".  DRIVE: .  HTRACK: ..  HEAD: ....  VALUE: ..\n"
 	.endif
-msg_overflow:
-	.ascii	"\x1B[25;01H\x1B[?25hStack overflow at ....\n"
-msg_undefined:
-	.ascii	"\x1B[25;01H\x1B[?25hUndefined instruction .. at ....\n"
 	.ifdef	CHECK
 msg_invalid:
 	.ascii	"\x1B[25;01H\x1B[?25hInvalid register value at ....\n"

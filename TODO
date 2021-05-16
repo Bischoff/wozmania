@@ -1,5 +1,3 @@
-* missing 6502 instructions:
-  when done, remove "unimplemented instruction" code and messages
 * floppy disk support:
   - other disk formats than .nib
 * screen modes:

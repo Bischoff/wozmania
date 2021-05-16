@@ -241,15 +241,17 @@ Keyboard is polled for real only one time out of 256. This has a huge
 performance impact, as the Apple's ROM keeps polling the keyboard a lot,
 even when running non-interative BASIC programs.
 
-Some accelerations might lead to less accurate emulation:
- * 16-bit addresses are loaded in one ARM instruction (`ldrh`). This will
-   lead to inaccuracies when loading addresses that span over two different
-   memory banks, or span over I/O addresses.
- * Indexed indirect addressing mode, like in `LDA   ($1A,X)`, will not cycle
-   inside page 0.
- * The stack pointer will not cycle inside page 1 when there is a stack
-   overflow or underflow. Stack overflow is detected only at `BRK`
-   instructions.
+16-bit addresses are loaded in one ARM instruction (`ldrh`).
+This will lead to emulation inaccuracies for the second byte:
+
+ * addresses that span over two different memory banks will use the
+   wrong bank for that byte;
+ * addresses that span over I/O addresses will not trigger I/O
+   for that byte;
+ * indexed indirect addressing mode, like in `LDA   ($1A,X)`,
+   will not cycle inside page 0 for that byte;
+ * when there is a stack overflow or underflow, the pushed or pulled
+   address will not cycle inside page 1 for that byte.
 
 All those cases are very marginal and should not impact real-life scenarios.
 
@@ -276,6 +278,10 @@ http://6502.org/tutorials/6502opcodes.html
 The 6502 overflow flag explained mathematically,
 Ken Shirriff,
 http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+
+CPU unofficial opcodes,
+Damian Yerrick et. al.,
+https://wiki.nesdev.com/w/index.php/CPU_unofficial_opcodes
 
 Apple II ROM disassembly,
 James P. Davis,
