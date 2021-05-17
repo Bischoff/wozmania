@@ -59,6 +59,7 @@ BREAKPOINT	.req	x29
 	.equ	READ,63
 	.equ	WRITE,64
 	.equ	FSTAT,80
+	.equ	EXIT,93
 	.equ	RT_SIGACTION,134
 	.equ	MMAP,222
 

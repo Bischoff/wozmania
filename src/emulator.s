@@ -70,5 +70,5 @@ exit:
 	bl	restore_keyboard	// restore normal keyboard
 final_exit:
 	mov	x0,#0			// exit program
-	mov	x8,#93
+	mov	x8,#EXIT
 	svc	0

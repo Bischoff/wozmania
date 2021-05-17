@@ -18,15 +18,24 @@
 .include "src/defs.s"
 .include "src/macros.s"
 
-// Load drive file
+// Try to load drive 1
 load_drive1:
 	ldr	DRIVE,=drive1
 	mov	w5,#'1'
+	strb	w5,[DRIVE,#DRV_NUMBER]
 	b	load_drive
+
+// Try to load drive 2
 load_drive2:
 	ldr	DRIVE,=drive2
 	mov	w5,#'2'
+	strb	w5,[DRIVE,#DRV_NUMBER]
+	b	load_drive
+
+// Try to load nib drive file
 load_drive:
+	mov	w4,#0			// initialize flags
+	strb	w4,[DRIVE,#DRV_FLAGS]
 	ldr	x1,=drive_filename	// open disk file
 	strb	w5,[x1,#5]
 	mov	w0,#-100
@@ -36,7 +45,6 @@ load_drive:
 	cmp	x0,#0
 	b.lt	no_disk
 	mov	w9,w0			// test file protection
-	mov	w4,#FLG_LOADED
 	ldr	x1,=stat
 	mov	w8,#FSTAT
 	svc	0
@@ -47,8 +55,7 @@ load_drive:
 	tst	w0,#S_IWUSR
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
-1:	strb	w4,[DRIVE,#DRV_FLAGS]
-	mov	w0,w9			// read disk file
+1:	mov	w0,w9			// read disk file
 	ldr	x1,[DRIVE,#DRV_CONTENT]
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
@@ -56,15 +63,19 @@ load_drive:
 	svc	0
 	cmp	x0,x2
 	b.ne	load_failure_drive
-	mov	w0,#FLG_LOADED		// disk is loaded
-no_disk:
-	strb	w5,[DRIVE,#DRV_NUMBER]
+	orr	w4,w4,#FLG_LOADED	// disk is loaded
+	strb	w4,[DRIVE,#DRV_FLAGS]
 	br	lr
 load_failure_drive:
 	ldr	x3,=msg_err_load_drive
 	char	w5,31
 	write	STDERR,37
 	b	final_exit
+
+// No disk found at all
+no_disk:
+	br	lr
+
 
 // Optional: hide the disks by removing controller's signature
 disable_drives:
@@ -196,11 +207,13 @@ load_next_nibble:
 
 // Flush drive on exit
 flush_drive:
-	ldrb	w0,[DRIVE,#DRV_FLAGS]
-	tst	w0,#FLG_DIRTY
-	b.eq	1f
-	and	w0,w0,#~FLG_DIRTY	// clean dirty flag
-	strb	w0,[DRIVE,#DRV_FLAGS]
+	ldrb	w4,[DRIVE,#DRV_FLAGS]
+	tst	w4,#FLG_DIRTY
+	b.ne	save_drive
+	br	lr
+
+// Attempt to save nib drive
+save_drive:
 	ldrb	w5,[DRIVE,#DRV_NUMBER]	// open disk file
 	ldr	x1,=drive_filename
 	strb	w5,[x1,#5]
@@ -209,17 +222,19 @@ flush_drive:
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	flush_failure_drive
-	ldr	x1,[DRIVE,#DRV_CONTENT] // read disk file
+	b.lt	save_failure_drive
+	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#WRITE
 	svc	0
 	cmp	x0,x2
-	b.ne	flush_failure_drive
-1:	br	lr
-flush_failure_drive:
-	ldr	x3,=msg_err_flush_drive
+	b.ne	save_failure_drive
+	and	w4,w4,#~FLG_DIRTY	// clean dirty flag
+	strb	w4,[DRIVE,#DRV_FLAGS]
+	br	lr
+save_failure_drive:
+	ldr	x3,=msg_err_save_drive
 	char	w5,31
 	write	STDERR,37
 	br	lr
@@ -292,7 +307,7 @@ drive_filename:
 	.asciz	"drive..nib"
 msg_err_load_drive:
 	.ascii	"Could not load drive file drive..nib\n"
-msg_err_flush_drive:
+msg_err_save_drive:
 	.ascii	"Could not save drive file drive..nib\n"
 drive1:					// 35 tracks, 13 sectors of 512 nibbles
 	.byte	0			// drive '1' or '2'

@@ -43,6 +43,8 @@ for file in $files; do
   rm $file.o
 done
 
+echo "Assembly complete"
+
 if [ ! -f drive1.nib ]; then
   cp disks/blank.nib drive1.nib
   echo "Creating blank disk drive1.nib"
@@ -51,5 +53,3 @@ if [ ! -f drive2.nib ]; then
   cp disks/blank.nib drive2.nib
   echo "Creating blank disk drive2.nib"
 fi
-
-echo "Assembly complete"
