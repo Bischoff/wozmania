@@ -1,5 +1,5 @@
 * floppy disk support:
-  - other disk formats than .nib
+  - write to .dsk file
 * screen modes:
   - 80 columns text
   - low resolution graphic

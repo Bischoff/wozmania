@@ -23,33 +23,39 @@ load_drive1:
 	ldr	DRIVE,=drive1
 	mov	w5,#'1'
 	strb	w5,[DRIVE,#DRV_NUMBER]
-	b	load_drive
+	b	load_nib_drive
 
 // Try to load drive 2
 load_drive2:
 	ldr	DRIVE,=drive2
 	mov	w5,#'2'
 	strb	w5,[DRIVE,#DRV_NUMBER]
-	b	load_drive
+	b	load_nib_drive
 
 // Try to load nib drive file
-load_drive:
+load_nib_drive:
 	mov	w4,#0			// initialize flags
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	ldr	x1,=drive_filename	// open disk file
 	strb	w5,[x1,#5]
+	mov	w6,#'n'
+	strb	w6,[x1,#7]
+	mov	w6,#'i'
+	strb	w6,[x1,#8]
+	mov	w6,#'b'
+	strb	w6,[x1,#9]
 	mov	w0,#-100
 	mov	w2,#O_RDONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	no_disk
+	b.lt	load_dsk_drive
 	mov	w9,w0			// test file protection
 	ldr	x1,=stat
 	mov	w8,#FSTAT
 	svc	0
 	cmp	x0,#0
-	b.lt	load_failure_drive
+	b.lt	load_failure_nib_drive
 	ldr	x1,=stat
 	ldr	x0,[x1,#ST_MODE]
 	tst	w0,#S_IWUSR
@@ -62,13 +68,83 @@ load_drive:
 	mov	w8,#READ
 	svc	0
 	cmp	x0,x2
-	b.ne	load_failure_drive
+	b.ne	load_failure_nib_drive
 	orr	w4,w4,#FLG_LOADED	// disk is loaded
 	strb	w4,[DRIVE,#DRV_FLAGS]
+	mov	w4,#6656
+	strh	w4,[DRIVE,#DRV_TSIZE]
 	br	lr
-load_failure_drive:
-	ldr	x3,=msg_err_load_drive
+load_failure_nib_drive:
+	ldr	x3,=msg_err_drive
+	char_i	'l',10
+	char_i	'o',11
+	char_i	'a',12
+	char_i	'd',13
 	char	w5,31
+	char_i	'n',33
+	char_i	'i',34
+	char_i	'b',35
+	write	STDERR,37
+	b	final_exit
+
+// Try to load dsk drive file
+load_dsk_drive:
+	mov	w4,#0			// initialize flags
+	strb	w4,[DRIVE,#DRV_FLAGS]
+	ldr	x1,=drive_filename	// open disk file
+	strb	w5,[x1,#5]
+	mov	w6,#'d'
+	strb	w6,[x1,#7]
+	mov	w6,#'s'
+	strb	w6,[x1,#8]
+	mov	w6,#'k'
+	strb	w6,[x1,#9]
+	mov	w0,#-100
+	mov	w2,#O_RDONLY
+	mov	w8,#OPENAT
+	svc	0
+	cmp	x0,#0
+	b.lt	no_disk
+	mov	w9,w0			// test file protection
+	ldr	x1,=stat
+	mov	w8,#FSTAT
+	svc	0
+	cmp	x0,#0
+	b.lt	load_failure_dsk_drive
+	ldr	x1,=stat
+	ldr	x0,[x1,#ST_MODE]
+	tst	w0,#S_IWUSR
+	b.ne	1f
+	orr	w4,w4,#FLG_READONLY
+	mov	w0,w9			// read disk file
+	ldr	x1,[DRIVE,#DRV_CONTENT]
+	mov	x9,x1
+	mov	w2,#0x3000
+	movk	w2,#2,lsl #16
+	add	x1,x1,x2
+	mov	x10,x1
+	mov	w8,#READ
+	svc	0
+	cmp	x0,x2
+	b.ne	load_failure_dsk_drive
+	orr	w4,w4,#FLG_LOADED	// disk is loaded
+	strb	w4,[DRIVE,#DRV_FLAGS]
+	mov	w4,#8192
+	strh	w4,[DRIVE,#DRV_TSIZE]
+	mov	x0,x9
+	mov	x1,x10
+	mov	w2,#254
+	b	explode_disk
+load_failure_dsk_drive:
+	ldr	x3,=msg_err_drive
+	char_i	'l',10
+	char_i	'o',11
+	char_i	'a',12
+	char_i	'd',13
+	char	w5,31
+	char_i	'd',33
+	char_i	's',34
+	char_i	'k',35
 	write	STDERR,37
 	b	final_exit
 
@@ -76,6 +152,113 @@ load_failure_drive:
 no_disk:
 	br	lr
 
+// Convert dsk format to nib format
+// input: x0 = destination (at start of content)
+//        x1 = source      (0x23000 bytes ahead)
+//        w2 = volume number
+explode_disk:
+	mov	w3,#0			// w3 = track number
+explode_track:
+	ldr	x6,=track_buffer	// copy source track to buffer (to avoid
+					//   overlapping between source and destination)
+	add	x7,x6,#(16*256)
+1:	ldr	x8,[x1],#8
+	str	x8,[x6],#8
+	cmp	x6,x7
+	b.lt	1b
+	mov	w4,#0			// w4 = sector number
+explode_sector:
+	ldr	x6,=track_buffer
+	adr	x9,sectors_order
+	ldrb	w8,[x9,x4]
+	lsl	w8,w8,#8
+	add	x11,x6,x8
+	mov	w5,#0			// w5 = destination byte count
+gap_1:
+	cmp	w4,#0			// $FF x 128, 40, or 38
+	b.ne	1f
+	mov	w6,#128
+	b	3f
+1:	cmp	w3,#0
+	b.ne	2f
+	mov	w6,#40
+	b	3f
+2:	mov	w6,#38
+3:	nibble	#0xff,x0,w5
+	cmp	w5,w6
+	b.lt	3b
+address_field:
+	nibble	#0xd5,x0,w5		// $D5
+	nibble	#0xaa,x0,w5		// $AA
+	nibble	#0x96,x0,w5		// $96
+	en4n4	w2,x0,w5		// volume
+	mov	w6,w2
+	en4n4	w3,x0,w5		// track
+	eor	w6,w6,w3
+	en4n4	w4,x0,w5		// sector
+	eor	w6,w6,w4
+	en4n4	w6,x0,w5		// checksum
+	nibble	#0xde,x0,w5		// $DE
+	nibble	#0xaa,x0,w5		// $AA
+	nibble	#0xeb,x0,w5		// $EB
+gap_2:
+	add	w6,w5,#5		// $FF x 5
+1:	nibble	#0xff,x0,w5
+	cmp	w5,w6
+	b.lt	1b
+data_field:
+	nibble	#0xd5,x0,w5		// $D5
+	nibble	#0xaa,x0,w5		// $AA
+	nibble	#0xad,x0,w5		// $AD
+	mov	x10,x0			// 86 extra nibbles in 2-buffer
+	add	x0,x0,#86
+	add	w5,w5,#86
+	add	w6,w5,#86		// 86 source bytes
+1:	ldrb	w9,[x11],#1
+	en6n2	w9,x10,0,x0,w5
+	cmp	w5,w6
+	b.lt	1b
+	sub	x10,x10,#86		// 86 source bytes
+	add	w6,w5,#86
+2:	ldrb	w9,[x11],#1
+	en6n2	w9,x10,2,x0,w5
+	cmp	w5,w6
+	b.lt	2b
+	sub	x10,x10,#86		// 84 source bytes
+	add	w6,w5,#84
+3:	ldrb	w9,[x11],#1
+	en6n2	w9,x10,4,x0,w5
+	cmp	w5,w6
+	b.lt	3b
+	sub	x10,x0,#342		// conversion to nibbles
+	adr	x11,map_6n2
+	mov	w6,#0
+4:	ldrb	w9,[x10]
+	eor	w7,w9,w6
+	mov	w6,w9
+	ldrb	w9,[x11,x7]
+	strb	w9,[x10],#1
+	cmp	x10,x0
+	b.lt	4b
+	ldrb	w9,[x11,x6]		// checksum
+	strb	w9,[x0],#1
+	add	w5,w5,#1
+	nibble	#0xde,x0,w5		// $DE
+	nibble	#0xaa,x0,w5		// $AA
+	nibble	#0xeb,x0,w5		// $EB
+gap_3:
+	nibble	#0xff,x0,w5		// $FF -> end
+	cmp	w5,#512
+	b.lt	gap_3
+next_sector:
+	add	w4,w4,#1
+	cmp	w4,#16
+	b.lt	explode_sector
+next_track:
+	add	w3,w3,#1
+	cmp	w3,#35
+	b.lt	explode_track
+	br	lr
 
 // Optional: hide the disks by removing controller's signature
 disable_drives:
@@ -133,7 +316,7 @@ select_drive2:
 transfer_nibble:
 	ldr	x1,[DRIVE,#DRV_CONTENT]
 	ldrb	w2,[DRIVE,#DRV_FLAGS]
-	mov	w4,#6656
+	ldrh	w4,[DRIVE,#DRV_TSIZE]
 	ldrh	w5,[DRIVE,#DRV_HEAD]
 	ldrb	w6,[DRIVE,#DRV_HTRACK]
 	lsr	w7,w6,#1
@@ -147,7 +330,7 @@ read_nibble:
 	and	w2,w2,#~FLG_READONLY
 	cmp	w2,#FLG_LOADED
 	b.ne	2f
-	ldrb	VALUE,[x1,x7]		// read nibble at (track * 6656 + head position)
+	ldrb	VALUE,[x1,x7]		// read nibble at (track * tsize + head position)
 	add	w0,w5,#1		// move head forward
 	cmp	w0,w4
 	b.lt	1f
@@ -163,7 +346,7 @@ write_nibble:
 	and	w2,w2,#~FLG_DIRTY	// only write when loaded + write mode + not read-only
 	cmp	w2,#(FLG_LOADED|FLG_WRITE)
 	b.ne	2f
-	ldrb	VALUE,[DRIVE,#DRV_NEXTNIB] // write nibble to (track * 6656 + head position)
+	ldrb	VALUE,[DRIVE,#DRV_NEXTNIB] // write nibble to (track * tsize + head position)
 	strb	VALUE,[x1,x7]
 	add	w0,w5,#1		// move head forward
 	cmp	w0,w4
@@ -209,39 +392,64 @@ load_next_nibble:
 flush_drive:
 	ldrb	w4,[DRIVE,#DRV_FLAGS]
 	tst	w4,#FLG_DIRTY
-	b.ne	save_drive
+	b.ne	save_nib_drive
 	br	lr
 
 // Attempt to save nib drive
-save_drive:
+save_nib_drive:
 	ldrb	w5,[DRIVE,#DRV_NUMBER]	// open disk file
 	ldr	x1,=drive_filename
 	strb	w5,[x1,#5]
+	mov	w6,#'n'
+	strb	w6,[x1,#7]
+	mov	w6,#'i'
+	strb	w6,[x1,#8]
+	mov	w6,#'b'
+	strb	w6,[x1,#9]
 	mov	w0,#-100
 	mov	w2,#O_WRONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	save_failure_drive
+	b.lt	save_failure_nib_drive
 	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#WRITE
 	svc	0
 	cmp	x0,x2
-	b.ne	save_failure_drive
+	b.ne	save_failure_nib_drive
 	and	w4,w4,#~FLG_DIRTY	// clean dirty flag
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	br	lr
-save_failure_drive:
-	ldr	x3,=msg_err_save_drive
+save_failure_nib_drive:
+	ldr	x3,=msg_err_drive
+	char_i	's',10
+	char_i	'a',11
+	char_i	'v',12
+	char_i	'e',13
 	char	w5,31
+	char_i	'n',33
+	char_i	'i',34
+	char_i	'b',35
 	write	STDERR,37
 	br	lr
 
 
 // Fixed data
 
+sectors_order:
+	.byte	0x0,0x7,0xe,0x6,0xd,0x5,0xc,0x4
+	.byte	0xb,0x3,0xa,0x2,0x9,0x1,0x8,0xf
+map_6n2:
+	.byte	0x96,0x97,0x9a,0x9b,0x9d,0x9e,0x9f,0xa6
+	.byte	0xa7,0xab,0xac,0xad,0xae,0xaf,0xb2,0xb3
+	.byte	0xb4,0xb5,0xb6,0xb7,0xb9,0xba,0xbb,0xbc
+	.byte	0xbd,0xbe,0xbf,0xcb,0xcd,0xce,0xcf,0xd3
+	.byte	0xd6,0xd7,0xd9,0xda,0xdb,0xdc,0xdd,0xde
+	.byte	0xdf,0xe5,0xe6,0xe7,0xe9,0xea,0xeb,0xec
+	.byte	0xed,0xee,0xef,0xf2,0xf3,0xf4,0xf5,0xf6
+	.byte	0xf7,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
 rom_c600:
 	.byte	0xa2,0x20,0xa0,0x00,0xa2,0x03,0x86,0x3c
 	.byte	0x8a,0x0a,0x24,0x3c,0xf0,0x10,0x05,0x3c
@@ -304,19 +512,18 @@ htrack_delta:
 .data
 
 drive_filename:
-	.asciz	"drive..nib"
-msg_err_load_drive:
-	.ascii	"Could not load drive file drive..nib\n"
-msg_err_save_drive:
-	.ascii	"Could not save drive file drive..nib\n"
-drive1:					// 35 tracks, 13 sectors of 512 nibbles
+	.asciz	"drive....."
+msg_err_drive:
+	.ascii	"Could not .... drive file drive.....\n"
+drive1:					// 35 tracks, 13 or 16 sectors, 512 nibbles each (for 256 bytes)
 	.byte	0			// drive '1' or '2'
 	.byte	0			// flags: loaded, write, dirty, read-only
 	.byte	0			// last nibble read
 	.byte	0			// next nibble written
 	.byte	0			// phase 0-3
 	.byte	0			// half-track 0-69
-	.hword	0			// head 0-6655
+	.hword	0			// head 0-6655 or 0-8191
+	.hword	0			// track size 6656 or 8192
 	.quad	0			// pointer to content
 drive2:
 	.byte	0
@@ -326,4 +533,7 @@ drive2:
 	.byte	0
 	.byte	0
 	.hword	0
+	.hword	0
 	.quad	0
+track_buffer:				// buffer for one track of a .dsk disk
+	.fill	16*256,1,0

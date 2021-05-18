@@ -358,9 +358,57 @@
 	bl	store_b_addr
 	.endm
 
+// Floppy disk encoding
+	.macro	nibble what,where,counter
+	mov	w7,\what
+	strb	w7,[\where],#1
+	add	\counter,\counter,#1
+	.endm
+
+	.macro	en4n4 reg,where,counter	// ABCD EFGH
+	mov	w7,#0xaa		// 1010 1010
+	and	w8,\reg,w7		// A0C0 E0G0
+	lsr	w8,w8,#1		// 0A0C 0E0G
+	orr	w8,w8,w7		// 1A1C 1E1G
+	strb	w8,[\where],#1
+	mov	w7,#0x55		// 0101 0101
+	and	w8,\reg,w7		// 0B0D 0F0H
+	mov	w7,#0xaa		// 1010 1010
+	orr	w8,w8,w7		// 1B1D 1F1H
+	strb	w8,[\where],#1
+	add	\counter,\counter,#2
+	.endm
+
+	.macro	en6n2 what,where2,shift,where6,counter
+	.if	\shift == 0
+	mov	w7,#0
+	.else
+	ldrb	w7,[\where2]
+	.endif
+	and	w8,\what,#0x01
+	lsl	w8,w8,#(\shift+1)
+	orr	w7,w7,w8
+	and	w8,\what,#0x02
+	.if	\shift > 1
+	lsl	w8,w8,#(\shift-1)
+	.else
+	lsr	w8,w8,#(1-\shift)
+	.endif
+	orr	w7,w7,w8
+	strb	w7,[\where2],#1
+	lsr	w8,\what,#2
+	strb	w8,[\where6],#1
+	add	\counter,\counter,#1
+	.endm
+
 // Text output
 	.macro	char reg,where
 	strb	\reg,[x3,#\where]
+	.endm
+
+	.macro	char_i imm,where
+	mov	w6,#\imm
+	strb	w6,[x3,#\where]
 	.endm
 
 	.macro	hex_8 reg,where

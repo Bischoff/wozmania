@@ -20,14 +20,13 @@
 // Allocate:
 // - memory         0x10000
 // - language card   0x4000
-// - drive1         0x38e00
-// - drive2         0x38e00
+// - drive1         0x46000  (38e00 for 13 sectors,
+// - drive2         0x46000   46000 for 16 sectors)
 //                  -------
-//                  0x85c00
+//                  0xa0000
 allocate_memory:
 	mov	w0,#0			// ask memory to system
-	mov	w1,#0x5c00
-	movk	w1,#8,lsl #16
+	mov	w1,#0xa0000
 	mov	w2,#(PROT_READ|PROT_WRITE)
 	mov	w3,#(MAP_PRIVATE|MAP_ANONYMOUS)
 	mov	x4,#-1
@@ -42,8 +41,8 @@ allocate_memory:
 	add	x0,x0,x1
 	ldr	x1,=drive1
 	str	x0,[x1,#DRV_CONTENT]
-	mov	w1,#0x8e00
-	movk	w1,#3,lsl #16
+	mov	w1,#0x6000
+	movk	w1,#4,LSL #16
 	add	x0,x0,x1
 	ldr	x1,=drive2
 	str	x0,[x1,#DRV_CONTENT]

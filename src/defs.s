@@ -105,7 +105,8 @@ BREAKPOINT	.req	x29
 	.equ	DRV_PHASE,4
 	.equ	DRV_HTRACK,5
 	.equ	DRV_HEAD,6
-	.equ	DRV_CONTENT,8
+	.equ	DRV_TSIZE,8
+	.equ	DRV_CONTENT,10
 
 // Internal constants
 	.equ	FLG_LOADED,0x01

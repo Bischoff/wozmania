@@ -55,18 +55,29 @@ The following keys are defined:
 
 ### Using the Floppy Disks
 
+#### Supported formats
+
 In the same directory as the emulator, there are two files, `drive1.nib`
 and `drive2.nib`. They represent the contents of the two floppy drives
-and contain 232,960 bytes each (35 tracks of 13 sectors of 512 nibbles).
+and contain 232,960 nibbles each (35 tracks of 13 sectors of 512 nibbles).
+Two nibbles are needed to represent one useful byte, therefore that
+is only a capacity of 35 track of 13 sectors of 256 bytes.
 
-If you remove these files, the emulator still starts, but the DOS hangs
-trying to read them. In such a case, press Ctrl-C, this will emulate
-a Ctrl-Reset and bring you to BASIC.
+You can also use files in `.dsk` format, `drive1.dsk` and `drive2.dsk`
+They contain 143,360 bytes each (35 tracks of 16 sectors of 256 bytes).
+WozMania first tries to load `drive1.nib`, and if it is absent,
+it takes `drive1.dsk`, and the same goes for the second drive.
 
-These files are initially blank. If you saved new data on them but want
-to revert them to blank, replace them with the file `disks/blank.nib`.
-You can also replace them with any other `.nib` file, for example with
-the DOS master disk.
+If you have no file at all for the first drive, the emulator still starts,
+but the DOS hangs trying to read the floppy. In such a case, press Ctrl-C,
+this will emulate a Ctrl-Reset and bring you to BASIC.
+
+#### Saving Data
+
+The files shipped with WozMania are initially blank. If you saved new data
+on them but want to revert them to blank, replace them with the file
+`disks/blank.nib`. You can also replace them with any other disk file,
+for example with the DOS master disk.
 
 To prevent accidental writing on a disk, use a command like:
 ```
@@ -75,7 +86,11 @@ $ chmod -w drive1.nib
 This is equivalent to closing the write protection punch with black
 tape on an original floppy disk.
 
-Some ROM files do not contain the controller's ROM at `$C600`.
+Writing on `.dsk` files is not supported yet.
+
+#### Enabling or Disabling the Controller
+
+Some ROM files do not contain the floppy disk controller's ROM at `$C600`.
 To enable it, uncomment this line:
 ```
 	//bl	enable_drives
@@ -99,6 +114,15 @@ like Integer BASIC or Pascal.
 If you boot on the DOS system master disk, it loads the Integer BASIC
 into the language card. You can then switch to this BASIC with the
 command `INT`, and back to AppleSoft BASIC with the command `FP`.
+
+WozMania makes the following approximations:
+
+* the emulator considers the ROM of the card as identical to
+  the normal ROM of the Apple ]\[;
+* when the language card is write-protected, it is enough to read
+  only one time the relevant address to unlock the card.
+
+Those simplifications should have no effect in real-life scenarios.
 
 You may completly disable the language card by uncommenting this line:
 ```
@@ -155,14 +179,14 @@ To single-step one 6502 instruction, use:
 
 There are five routines to help debugging:
 
-* trace
-* break
-* check
-* f_read
-* f_write
+* `trace`
+* `break`
+* `check`
+* `f_read`
+* `f_write`
 
 By default, they are not assembled. To assemble them, use
-environment variables, e.g:
+environment variables, e.g.:
 ```
 $ TRACE=1 ./assemble.sh
 ```

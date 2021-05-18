@@ -45,11 +45,11 @@ done
 
 echo "Assembly complete"
 
-if [ ! -f drive1.nib ]; then
+if [ ! -f drive1.nib -a ! -f drive1.dsk ]; then
   cp disks/blank.nib drive1.nib
   echo "Creating blank disk drive1.nib"
 fi
-if [ ! -f drive2.nib ]; then
+if [ ! -f drive2.nib -a ! -f drive2.dsk ]; then
   cp disks/blank.nib drive2.nib
   echo "Creating blank disk drive2.nib"
 fi
