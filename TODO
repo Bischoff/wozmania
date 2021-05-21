@@ -1,7 +1,11 @@
+* 80 column support:
+  - display cursor
 * floppy disk support:
   - write to .dsk file
+* configuration:
+  - allow choosing file names from configuration file
+  - find a way to control speed (for games)
 * screen modes:
-  - 80 columns text
   - low resolution graphic
   - mixed low resolution graphic/text
   - high resolution graphic
@@ -10,7 +14,6 @@
   - serial card
   - sound
   - game paddles
-* find a way to control speed (for games)
 * what about other Apple II models?
 
 Items at risk of becoming moot when we run in a window:

@@ -13,6 +13,28 @@
 .include "src/defs.s"
 .include "src/macros.s"
 
+// Adjust optional hardware
+adjust_hardware:
+	mov	x8,lr
+	ldr	x0,=conf_flags
+	ldrb	w1,[x0]
+	tst	w1,#CNF_LANGCARD_E
+	b.eq	1f
+	bl	enable_langcard
+	b	2f
+1:	bl	disable_langcard
+2:	tst	w1,#CNF_FLOPPY_E
+	b.eq	3f
+	bl	enable_floppy
+	b	4f
+3:	bl	disable_floppy
+4:	tst	w1,#CNF_80COL_E
+	b.eq	5f
+	bl	enable_80col
+	b	6f
+5:	bl	disable_80col
+6:	br	x8
+
 // Put 6502 processor in initial state
 reset:
 	mov	A_REG,#0
@@ -26,7 +48,7 @@ reset:
 
 // Main loop
 _start:
-	mov	MEM_FLAGS,#LC_Z		// set main registers
+	mov	MEM_FLAGS,#0		// set main registers
 	adr	INSTR,instr_table
 	ldr	KEYBOARD,=kbd
 	ldr	DRIVE,=drive1
@@ -38,16 +60,8 @@ _start:
 	bl	load_rom
 	bl	load_drive1
 	bl	load_drive2
-	ldr	x0,=conf_flags		// apply options
-	ldrb	w1,[x0]
-	tst	w1,#CNF_FLOPPY_D
-	b.eq	1f
-	bl	disable_floppy
-	b	2f
-1:	tst	w1,#CNF_FLOPPY_I
-	b.eq	2f
-	bl	install_floppy
-2:	bl	prepare_terminal	// prepare terminal
+	bl	adjust_hardware
+	bl	prepare_terminal
 	bl	prepare_keyboard
 coldstart:
 	bl	intercept_ctl_c

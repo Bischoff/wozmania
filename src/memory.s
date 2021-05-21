@@ -11,22 +11,23 @@
 .global nothing_to_read
 .global store_b_addr
 .global nothing_to_write
-.global language_card
 .global stat
 
 .include "src/defs.s"
 .include "src/macros.s"
 
 // Allocate:
-// - memory         0x10000
-// - language card   0x4000
-// - drive1         0x46000  (38e00 for 13 sectors,
-// - drive2         0x46000   46000 for 16 sectors)
-//                  -------
-//                  0xa0000
+// - memory          0x10000
+// - language card    0x4000
+// - 80 column card    0x800
+// - drive1          0x46000  (38e00 for 13 sectors,
+// - drive2          0x46000   46000 for 16 sectors)
+//                   -------
+//                   0xa0800
 allocate_memory:
 	mov	w0,#0			// ask memory to system
-	mov	w1,#0xa0000
+	mov	w1,#0x0800
+	movk	w1,#0xa,LSL #16
 	mov	w2,#(PROT_READ|PROT_WRITE)
 	mov	w3,#(MAP_PRIVATE|MAP_ANONYMOUS)
 	mov	x4,#-1
@@ -36,7 +37,7 @@ allocate_memory:
 	cmp	x0,#-1
 	b.eq	allocate_error
 	mov	MEM,x0
-	mov	w1,#0x4000		// compute position of floppy disk buffers
+	mov	w1,#0x4800		// compute position of floppy disk buffers
 	movk	w1,#1,LSL #16
 	add	x0,x0,x1
 	ldr	x1,=drive1
@@ -112,19 +113,46 @@ fetch_b_io:
 	mov	w0,#RAM_CTL_END
 	cmp	ADDR,w0
 	b.le	language_card
+	mov	w0,#V80_PAGE0		// $C0B0-$C0BC 80 column card control
+	cmp	ADDR,w0
+	b.lt	nothing_to_read
+	mov	w0,#V80_PAGE3
+	cmp	ADDR,w0
+	b.le	videx80_read
 	mov	w0,#IWM_PHASE0OFF	// $C0E0-$C0EF floppy disk
 	cmp	ADDR,w0
 	b.lt	nothing_to_read
 	mov	w0,#IWM_WRITEMODE
 	cmp	ADDR,w0
 	b.le	floppy_disk_read
+	mov	w0,#0xC300		// $C300-$C3FF 80 column ROM
+	cmp	ADDR,w0
+	b.lt	nothing_to_read
+	mov	w0,#0xC400
+	cmp	ADDR,w0
+	b.lt	col80_rom_b
+	mov	w0,#0xC600		// $C600-$C6FF floppy ROM
+	cmp	ADDR,w0
+	b.lt	nothing_to_read
+	mov	w0,#0xC700
+	cmp	ADDR,w0
+	b.lt	floppy_rom_b
+	mov	w0,#0xC800		// $C800-$CBFF 80 column ROM
+	cmp	ADDR,w0
+	b.lt	nothing_to_read
+	mov	w0,#0xCC00
+	cmp	ADDR,w0
+	b.lt	col80_rom_b
+	mov	w0,#0xCE00		// $CC00-$CDFF 80 column text
+	cmp	ADDR,w0
+	b.lt	text80_read
 	br	lr
 fetch_b_d:
-	tst	MEM_FLAGS,#LC_R
+	tst	MEM_FLAGS,#MEM_LC_R
 	b.ne	1f
 	ldrb	VALUE,[MEM,ADDR_64]	// normal ROM, unchanged
 	br	lr
-1:	tst	MEM_FLAGS,#LC_2
+1:	tst	MEM_FLAGS,#MEM_LC_2
 	b.ne	2f
 	add	ADDR,ADDR,#0x3000
 	ldrb	VALUE,[MEM,ADDR_64]	// card's RAM, $D000 -> $10000
@@ -133,7 +161,7 @@ fetch_b_d:
 	ldrb	VALUE,[MEM,ADDR_64]	// card's RAM 2, $D000 -> $13000
 	br	lr
 fetch_b_ef:
-	tst	MEM_FLAGS,#LC_R
+	tst	MEM_FLAGS,#MEM_LC_R
 	b.ne	1f
 	ldrb	VALUE,[MEM,ADDR_64]	// normal ROM, unchanged
 	br	lr
@@ -158,13 +186,31 @@ fetch_h_not_ram:
 	b	fetch_h_ef		// $F800-$FFFF card's bank 1 or normal ROM or card's ROM
 fetch_h_io:
 	ldrh	VALUE,[MEM,ADDR_64]	// Optimization: don't trigger I/O when reading 16-bit addresses
+	mov	w0,#0xC300		// $C300-$C3FF 80 column ROM
+	cmp	addr,w0
+	b.lt	nothing_to_read
+	mov	w0,#0xC400
+	cmp	addr,w0
+	b.lt	col80_rom_h
+	mov	w0,#0xC600		// $C600-$C6FF floppy ROM
+	cmp	ADDR,w0
+	b.lt	nothing_to_read
+	mov	w0,#0xC700
+	cmp	ADDR,w0
+	b.lt	floppy_rom_h
+	mov	w0,#0xC800		// $C800-$CBFF 80 column ROM
+	cmp	addr,w0
+	b.lt	nothing_to_read
+	mov	w0,#0xCC00
+	cmp	addr,w0
+	b.lt	col80_rom_h
 	br	lr
 fetch_h_d:
-	tst	MEM_FLAGS,#LC_R
+	tst	MEM_FLAGS,#MEM_LC_R
 	b.ne	1f
 	ldrh	VALUE,[MEM,ADDR_64]	// normal ROM, unchanged
 	br	lr
-1:	tst	MEM_FLAGS,#LC_2
+1:	tst	MEM_FLAGS,#MEM_LC_2
 	b.ne	2f
 	add	ADDR,ADDR,#0x3000
 	ldrh	VALUE,[MEM,ADDR_64]	// card's RAM, $D000 -> $10000
@@ -173,7 +219,7 @@ fetch_h_d:
 	ldrh	VALUE,[MEM,ADDR_64]	// card's RAM 2, $D000 -> $13000
 	br	lr
 fetch_h_ef:
-	tst	MEM_FLAGS,#LC_R
+	tst	MEM_FLAGS,#MEM_LC_R
 	b.ne	1f
 	ldrh	VALUE,[MEM,ADDR_64]	// normal ROM, unchanged
 	br	lr
@@ -189,10 +235,10 @@ store_b_addr:
 	cmp	ADDR,#0xC000
 	b.ge	store_b_not_ram
 	strb	VALUE,[MEM,ADDR_64]	// Normal RAM or text
-	cmp	ADDR,#0x0400		// $0400-$07FF 40 columns text
+	cmp	ADDR,#0x0400		// $0400-$07FF 40 column text
 	b.lt	1f
 	cmp	ADDR,#0x0800
-	b.lt	text
+	b.lt	text40
 1:	br	lr
 store_b_not_ram:
 	cmp	ADDR,#0xD000		// I/O area
@@ -212,18 +258,30 @@ store_b_io:
 	mov	w0,#RAM_CTL_END
 	cmp	ADDR,w0
 	b.le	language_card
+	mov     w0,#V80_REGISTER	// $C0B0-$C0B1 80 column card control
+	cmp	ADDR,w0
+	b.eq	videx80_write_register
+	mov	w0,#V80_VALUE
+	cmp	ADDR,w0
+	b.eq	videx80_write_value
 	mov	w0,#IWM_PHASE0OFF	// $C0E0-$C0EF floppy disk
 	cmp	ADDR,w0
 	b.lt	nothing_to_write
 	mov	w0,#IWM_WRITEMODE
 	cmp	ADDR,w0
 	b.le	floppy_disk_write
+	mov	w0,#0xCC00		// $CC00-$CDFF 80 column text
+	cmp	ADDR,w0
+	b.lt	nothing_to_write
+	mov	w0,#0xCE00
+	cmp	ADDR,w0
+	b.lt	text80_write
 	br	lr
 store_b_d:
-	tst	MEM_FLAGS,#LC_W
+	tst	MEM_FLAGS,#MEM_LC_W
 	b.ne	1f
 	br	lr			// normal ROM or write-protected RAM
-1:	tst	MEM_FLAGS,#LC_2
+1:	tst	MEM_FLAGS,#MEM_LC_2
 	b.ne	2f
 	add	ADDR,ADDR,#0x3000	// card's RAM, $D000 -> $10000
 	strb	VALUE,[MEM,ADDR_64]
@@ -232,7 +290,7 @@ store_b_d:
 	strb	VALUE,[MEM,ADDR_64]
 	br	lr
 store_b_ef:
-	tst	MEM_FLAGS,#LC_W
+	tst	MEM_FLAGS,#MEM_LC_W
 	b.ne	1f
 	br	lr			// normal ROM or card's ROM or write-protected RAM
 1:	add	ADDR,ADDR,#0x3000	// card's RAM, $E000 -> $11000
@@ -241,16 +299,38 @@ store_b_ef:
 nothing_to_write:
 	br	lr
 
-// Language card control
-language_card:
-	ldr	x0,=conf_flags		// if language card is disabled...
-	ldrb	w1,[x0]
-	tst	w1,#CNF_LANGCARD_D
-	b.ne	1f			//   then do not change the memory flags
-	mov	w0,#RAM_CTL_BEGIN	//   otherwise load them from table
-	sub	w1,ADDR,w0
-	adr	x0,language_table
-	ldrb	MEM_FLAGS,[x0,x1]
+// Floppy disk ROM
+floppy_rom_b:
+	tst	MEM_FLAGS,#MEM_FL_E
+	b.eq	1f
+	mov	w0,#DISK2ROM
+	sub	ADDR,ADDR,w0
+	adr	x0,rom_c600
+	ldrb	VALUE,[x0,ADDR_64]
+1:	br	lr
+floppy_rom_h:
+	tst	MEM_FLAGS,#MEM_FL_E
+	b.eq	1f
+	mov	w0,#DISK2ROM
+	sub	ADDR,ADDR,w0
+	adr	x0,rom_c600
+	ldrh	VALUE,[x0,ADDR_64]
+1:	br	lr
+
+// 80 column ROM
+col80_rom_b:
+	tst	MEM_FLAGS,#MEM_80_E
+	b.eq	1f
+	and	ADDR,ADDR,0x3FF
+	adr	x0,rom_c800
+	ldrb	VALUE,[x0,ADDR_64]
+1:	br	lr
+col80_rom_h:
+	tst	MEM_FLAGS,#MEM_80_E
+	b.eq	1f
+	and	ADDR,ADDR,0x3FF
+	adr	x0,rom_c800
+	ldrh	VALUE,[x0,ADDR_64]
 1:	br	lr
 
 
@@ -262,23 +342,6 @@ msg_err_memory:
 	.ascii	"Failed to allocate memory\n"
 msg_err_load_rom:
 	.ascii	"Could not load ROM file APPLE2.ROM\n"
-language_table:
-	.byte	LC_R        | LC_2 | LC_Z // $C080
-	.byte	       LC_W | LC_2 | LC_Z
-	.byte	              LC_2 | LC_Z
-	.byte	LC_R | LC_W | LC_2 | LC_Z
-	.byte	LC_R        | LC_2 | LC_Z
-	.byte	       LC_W | LC_2 | LC_Z
-	.byte	              LC_2 | LC_Z
-	.byte	LC_R | LC_W | LC_2 | LC_Z
-	.byte	LC_R               | LC_Z // $C088
-	.byte	       LC_W        | LC_Z
-	.byte	                     LC_Z
-	.byte	LC_R | LC_W        | LC_Z
-	.byte	LC_R               | LC_Z
-	.byte	       LC_W        | LC_Z
-	.byte	                     LC_Z
-	.byte	LC_R | LC_W        | LC_Z
 
 
 // Variable data

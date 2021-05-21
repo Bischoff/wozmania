@@ -45,9 +45,14 @@ BREAKPOINT	.req	x29
 	.equ	KBDSTRB,0xC010
 	.equ	RAM_CTL_BEGIN,0xC080
 	.equ	RAM_CTL_END,0xC08F
+	.equ	V80_PAGE0,0xC0B0
+	.equ	V80_REGISTER,0xC0B0
+	.equ	V80_VALUE,0xC0B1
+	.equ	V80_PAGE3,0xC0BC
 	.equ	IWM_PHASE0OFF,0xC0E0
 	.equ	IWM_WRITEMODE,0xC0EF
 	.equ	DISK2ROM,0xC600		// ROMs
+	.equ	COL80ROM,0xC800
 	.equ	OLDRST,0xFF59		// vectors
 
 // 6502 opcodes
@@ -98,6 +103,11 @@ BREAKPOINT	.req	x29
 	.equ	KBD_WAIT,3
 	.equ	KBD_KEYSEQ,4
 	.equ	KBD_RESET,5
+	.equ	SCR_REGISTER,0		// screen
+	.equ	SCR_REFRESH,1
+	.equ	SCR_VALUES,2
+	.equ	SCR_BASE_HI,SCR_VALUES+12
+	.equ	SCR_BASE_LO,SCR_VALUES+13
 	.equ	DRV_NUMBER,0		// floppy drive
 	.equ	DRV_FLAGS,1
 	.equ	DRV_LASTNIB,2
@@ -110,11 +120,9 @@ BREAKPOINT	.req	x29
 
 // Internal constants
 	.equ	SIZEOF_BUFFER,4096	// enough for one track of 16 sectors
-	.equ	CNF_LANGCARD_D,0x01	// configuration flags
-	.equ	CNF_FLOPPY_I,0x02
-	.equ	CNF_FLOPPY_D,0x04
-	.equ	CNF_80COL_I,0x08
-	.equ	CNF_80COL_D,0x10
+	.equ	CNF_LANGCARD_E,0x01	// configuration flags
+	.equ	CNF_FLOPPY_E,0x02
+	.equ	CNF_80COL_E,0x04
 	.equ	FLG_LOADED,0x01		// floppy disk flags
 	.equ	FLG_WRITE,0x02
 	.equ	FLG_DIRTY,0x04
@@ -123,7 +131,11 @@ BREAKPOINT	.req	x29
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2
 	.equ	SEQ_ESC_O,3
-	.equ	LC_Z,0x0		// language card flags
-	.equ	LC_R,0x1
-	.equ	LC_W,0x2
-	.equ	LC_2,0x4
+	.equ	MEM_LC_E,0x01		// memory mapping flags
+	.equ	MEM_LC_R,0x02
+	.equ	MEM_LC_W,0x04
+	.equ	MEM_LC_2,0x08
+	.equ	MEM_FL_E,0x10
+	.equ	MEM_80_E,0x20
+	.equ	MEM_80_1,0x40
+	.equ	MEM_80_2,0x80

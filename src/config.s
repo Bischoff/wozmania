@@ -98,6 +98,12 @@ skip_space_2:
 2:	cmp	w9,#'#'
 	b.ne	syntax_error
 recognize_key:
+	adr	x4,key_rom		// TODO
+	strcmp	x3,x5,x4,end_of_line
+	adr	x4,key_drive1		// TODO
+	strcmp	x3,x5,x4,end_of_line
+	adr	x4,key_drive2		// TODO
+	strcmp	x3,x5,x4,end_of_line
 	adr	x4,key_langcard
 	strcmp	x3,x5,x4,r_langcard
 	adr	x4,key_floppy
@@ -106,41 +112,32 @@ recognize_key:
 	strcmp	x3,x5,x4,r_80col
 	b	syntax_error
 r_langcard:
-	adr	x4,value_enable
-	strcmp	x6,x7,x4,end_of_line
 	adr	x4,value_disable
-	strcmp	x6,x7,x4,r_langcard_disable
+	strcmp	x6,x7,x4,end_of_line
+	adr	x4,value_enable
+	strcmp	x6,x7,x4,r_langcard_enable
 	b	syntax_error
 r_floppy:
-	adr	x4,value_enable
-	strcmp	x6,x7,x4,end_of_line
 	adr	x4,value_disable
-	strcmp	x6,x7,x4,r_floppy_disable
-	adr	x4,value_install
-	strcmp	x6,x7,x4,r_floppy_install
+	strcmp	x6,x7,x4,end_of_line
+	adr	x4,value_enable
+	strcmp	x6,x7,x4,r_floppy_enable
 	b	syntax_error
 r_80col:
-	adr	x4,value_enable
-	strcmp	x6,x7,x4,end_of_line
 	adr	x4,value_disable
-	strcmp	x6,x7,x4,r_80col_disable
-	adr	x4,value_install
-	strcmp	x6,x7,x4,r_80col_install
+	strcmp	x6,x7,x4,end_of_line
+	adr	x4,value_enable
+	strcmp	x6,x7,x4,r_80col_enable
 	b	syntax_error
-r_langcard_disable:
-	option	CNF_LANGCARD_D
+r_langcard_enable:
+	option	CNF_LANGCARD_E
 	b	end_of_line
-r_floppy_disable:
-	option	CNF_FLOPPY_D
+r_floppy_enable:
+	option	CNF_FLOPPY_E
 	b	end_of_line
-r_floppy_install:
-	option	CNF_FLOPPY_I
+r_80col_enable:
+	option	CNF_80COL_E
 	b	end_of_line
-r_80col_disable:
-	option	CNF_80COL_D
-	b	end_of_line
-r_80col_install:
-	option	CNF_80COL_I
 end_of_line:
 	add	w2,w2,#1
 	cmp	x1,x0
@@ -157,6 +154,12 @@ syntax_error:
 
 conf_filename:
 	.asciz	"wozmania.conf"
+key_rom:
+	.asciz	"rom"
+key_drive1:
+	.asciz	"drive1"
+key_drive2:
+	.asciz	"drive2"
 key_langcard:
 	.asciz	"langcard"
 key_floppy:
@@ -167,8 +170,6 @@ value_enable:
 	.asciz	"enable"
 value_disable:
 	.asciz	"disable"
-value_install:
-	.asciz	"install"
 
 
 // Variable data

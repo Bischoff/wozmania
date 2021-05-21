@@ -1,6 +1,6 @@
 # WozMania: an Apple ]\[ emulator for ARM 64
 
-![DOS and Basic in wozmania](/docs/wozmania-basic.png)
+![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
 
 ## Motivation
 
@@ -12,18 +12,18 @@ the strict minimum.
 
 ## What is done
 
-As of 2021-05-20:
+As of 2021-05-24:
 
 * 6502 processor, no decimal mode;
 * keyboard;
-* 40 column text mode;
+* video output in text mode, 40 and 80 columns;
 * floppy disks 1 and 2, `.nib` format (read/write), `.dsk` format (read only);
 * language card.
 
 
 ## Usage
 
-See the [documentation](/docs/usage.md).
+See the [documentation](/docs/wozmania.md).
 
 
 ## Contributing

@@ -30,7 +30,7 @@ if [ "$F_WRITE" != "" ]; then
   echo "  enabling floppy write printout"
 fi
 
-files="emulator processor memory floppy keyboard screen config debug"
+files="emulator processor memory langcard floppy keyboard screen config debug"
 for file in $files; do
   as $AS_OPTS src/$file.s -o $file.o
 done

@@ -7,11 +7,12 @@
 .global load_drive1
 .global load_drive2
 .global disable_floppy
-.global install_floppy
+.global enable_floppy
 .global floppy_disk_read
 .global last_nibble
 .global floppy_disk_write
 .global flush_drive
+.global rom_c600
 .global drive1
 .global drive2
 
@@ -260,9 +261,11 @@ next_track:
 	b.lt	explode_track
 	br	lr
 
-// Optional: hide the disks by removing controller's signature
+// Disable the floppy disk controller
 disable_floppy:
-	mov	w0,#DISK2ROM
+					// deactivate $C600 ROM
+	and	MEM_FLAGS,MEM_FLAGS,#~MEM_FL_E
+	mov	w0,#DISK2ROM		// remove controller's signature that could be in memory from ROM file
 	mov	w1,#JMP
 	strb	w1,[MEM,x0]
 	mov	w0,#(DISK2ROM + 1)
@@ -270,16 +273,10 @@ disable_floppy:
 	strh	w1,[MEM,x0]
 	br	lr
 
-// Optional: enable the disks by loading controller's ROM
-install_floppy:
-	adr	x0,rom_c600
-	mov	x1,#DISK2ROM
-	add	x1,x1,MEM
-	add	x2,x0,#256
-1:	ldr	x3,[x0],#8
-	str	x3,[x1],#8
-	cmp	x0,x2
-	b.lt	1b
+// Enable the floppy disk controller
+enable_floppy:
+					// activate $C600 ROM
+	orr	MEM_FLAGS,MEM_FLAGS,#MEM_FL_E
 	br	lr
 
 // Floppy disk (read access to memory)
