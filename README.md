@@ -33,7 +33,7 @@ Help wanted:
 * ideas;
 * a nice logo;
 * test more Apple ]\[ programs;
-* test on more machines: Apple M1, smartphones;
+* port to other platforms: Apple M1, Android;
 * code.
 
 Contact: eric dot1 bischoff dot2 fr snail gmail dot3 com.

@@ -10,15 +10,11 @@
   - serial card
   - sound
   - game paddles
+* find a way to control speed (for games)
 * what about other Apple II models?
 
 Items at risk of becoming moot when we run in a window:
 
-* command-line options:
-  - to disable disks
-  - to load 16 sectors controller ROM
-  - to disable the language card
-  - to control speed
 * keyboard:
   - nano timer to receive ESC key
 * floppy disk support:

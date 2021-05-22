@@ -401,6 +401,30 @@
 	add	\counter,\counter,#1
 	.endm
 
+// Configuration options
+	.macro	strcmp begin,end,with,jump
+	mov	x8,\begin
+	mov	x9,\with
+1:	ldrb	w10,[x8],#1
+	ldrb	w11,[x9],#1
+	cmp	w10,w11
+	b.ne	2f
+	cmp	x8,\end
+	b.lt	1b
+	ldrb	w11,[x9]
+	tst	w11,#0xFF
+	b.ne	2f
+	b	\jump
+2:
+	.endm
+
+	.macro	option flag
+	ldr	x8,=conf_flags
+	ldrb	w9,[x8]
+	orr	w9,w9,#\flag
+	strb	w9,[x8]
+	.endm
+
 // Text output
 	.macro	char reg,where
 	strb	\reg,[x3,#\where]

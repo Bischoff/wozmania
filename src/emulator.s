@@ -8,6 +8,7 @@
 .global emulate
 .global exit
 .global final_exit
+.global buffer
 
 .include "src/defs.s"
 .include "src/macros.s"
@@ -25,26 +26,34 @@ reset:
 
 // Main loop
 _start:
-	mov	MEM_FLAGS,#LC_Z
+	mov	MEM_FLAGS,#LC_Z		// set main registers
 	adr	INSTR,instr_table
 	ldr	KEYBOARD,=kbd
 	ldr	DRIVE,=drive1
-	bl	allocate_memory
-	bl	load_rom
-	bl	load_drive1
-	bl	load_drive2
-	//bl	disable_drives		// uncomment this line to disconnect the floppy controller
-	//bl	enable_drives		// uncomment this line to connect the floppy controller
-	bl	prepare_terminal
-	bl	prepare_keyboard
 	.ifdef	BREAK
 	ldr	BREAKPOINT,=breakpoint
 	.endif
+	bl	allocate_memory		// call initialization routines
+	bl	load_conf
+	bl	load_rom
+	bl	load_drive1
+	bl	load_drive2
+	ldr	x0,=conf_flags		// apply options
+	ldrb	w1,[x0]
+	tst	w1,#CNF_FLOPPY_D
+	b.eq	1f
+	bl	disable_floppy
+	b	2f
+1:	tst	w1,#CNF_FLOPPY_I
+	b.eq	2f
+	bl	install_floppy
+2:	bl	prepare_terminal	// prepare terminal
+	bl	prepare_keyboard
 coldstart:
 	bl	intercept_ctl_c
 	bl	reset
 emulate:
-	.ifdef	TRACE
+	.ifdef	TRACE			// optional debug routines
 	bl	trace
 	.endif
 	.ifdef	BREAK
@@ -53,13 +62,13 @@ emulate:
 	.ifdef	CHECK
 	bl	check
 	.endif
-	ldrb	w0,[KEYBOARD,#KBD_RESET]
+	ldrb	w0,[KEYBOARD,#KBD_RESET] // check for Ctrl-Reset
 	tst	w0,#0xFF
 	b.ne	coldstart
-	v_imm	w0
-next:					// trace each instruction with "b next"
+	v_imm	w0			// load next instruction
+next:					//   (trace each instruction with "b next")
 	ldr	x1,[INSTR,x0,LSL 3]
-	br	x1
+	br	x1			// emulate the instruction
 
 // Exit
 exit:
@@ -72,3 +81,11 @@ final_exit:
 	mov	x0,#0			// exit program
 	mov	x8,#EXIT
 	svc	0
+
+
+// Variable data
+
+.data
+
+buffer:					// general use buffer
+	.fill	SIZEOF_BUFFER,1,0

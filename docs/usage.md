@@ -37,6 +37,10 @@ Apple ]\[+ ROM files covering memory from `$B000` to `$FFFF` are
 20,480 bytes long (5 x 4,096). That's larger than the ROM space
 (`$D000` to `$FFFF`, 3 * 4,096 bytes), but that's not a problem.
 
+A configuration file named `wozmania.conf`, also situated in the same
+directory as the emulator, allows to fine-tune the emulated hardware
+at run time.
+
 
 <a name="keyboard"/>
 
@@ -91,15 +95,20 @@ Writing on `.dsk` files is not supported yet.
 #### Enabling or Disabling the Controller
 
 Some ROM files do not contain the floppy disk controller's ROM at `$C600`.
-To enable it, uncomment this line:
+To install this ROM, specify in the configuration file:
 ```
-	//bl	enable_drives
+floppy install
 ```
 
-You may completly disable the floppy disk controller by uncommenting
-this line:
+You may completly disable the floppy disk controller by specifying:
 ```
-	//bl	disable_drives
+floppy disable
+```
+
+Last option does not install the ROM code, but leaves the controller
+enabled:
+```
+floppy enable
 ```
 
 
@@ -124,9 +133,15 @@ WozMania makes the following approximations:
 
 Those simplifications should have no effect in real-life scenarios.
 
-You may completly disable the language card by uncommenting this line:
+You may completly disable the language card by specifying in the
+configuration file:
 ```
-	//bl	disable_langcard
+langcard disable
+```
+
+The other option leaves the language card enabled:
+```
+langcard enable
 ```
 
 
@@ -247,12 +262,8 @@ To activate this routine, assemble with `F_WRITE=1`.
 ### Coding Style
 
 I tried to write code that was as fast as possible, even at the price of
-compactness, therefore it uses macros instead of subroutines. The ARM stack
-is intentionally not used at all.
-
-The nature of an emulator makes it difficult to use pre-incrementation and
-post-incrementation of registers as offered by the ARM 64 (there are almost
-no loops). This is why you will see very little use of those functionalities.
+compactness, therefore it uses macros instead of subroutines. The ARM
+return stack is intentionally not used at all.
 
 
 <a name="implemented"/>

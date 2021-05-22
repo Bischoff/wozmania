@@ -243,13 +243,15 @@ nothing_to_write:
 
 // Language card control
 language_card:
-	//br	disable_langcard	// Uncomment to deactivate the language card
-	mov	w0,#RAM_CTL_BEGIN
+	ldr	x0,=conf_flags		// if language card is disabled...
+	ldrb	w1,[x0]
+	tst	w1,#CNF_LANGCARD_D
+	b.ne	1f			//   then do not change the memory flags
+	mov	w0,#RAM_CTL_BEGIN	//   otherwise load them from table
 	sub	w1,ADDR,w0
 	adr	x0,language_table
 	ldrb	MEM_FLAGS,[x0,x1]
-disable_langcard:
-	br	lr
+1:	br	lr
 
 
 // Fixed data

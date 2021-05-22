@@ -6,8 +6,8 @@
 
 .global load_drive1
 .global load_drive2
-.global disable_drives
-.global enable_drives
+.global disable_floppy
+.global install_floppy
 .global floppy_disk_read
 .global last_nibble
 .global floppy_disk_write
@@ -159,7 +159,7 @@ no_disk:
 explode_disk:
 	mov	w3,#0			// w3 = track number
 explode_track:
-	ldr	x6,=track_buffer	// copy source track to buffer (to avoid
+	ldr	x6,=buffer		// copy source track to buffer (to avoid
 					//   overlapping between source and destination)
 	add	x7,x6,#(16*256)
 1:	ldr	x8,[x1],#8
@@ -168,7 +168,7 @@ explode_track:
 	b.lt	1b
 	mov	w4,#0			// w4 = sector number
 explode_sector:
-	ldr	x6,=track_buffer
+	ldr	x6,=buffer
 	adr	x9,sectors_order
 	ldrb	w8,[x9,x4]
 	lsl	w8,w8,#8
@@ -261,7 +261,7 @@ next_track:
 	br	lr
 
 // Optional: hide the disks by removing controller's signature
-disable_drives:
+disable_floppy:
 	mov	w0,#DISK2ROM
 	mov	w1,#JMP
 	strb	w1,[MEM,x0]
@@ -271,7 +271,7 @@ disable_drives:
 	br	lr
 
 // Optional: enable the disks by loading controller's ROM
-enable_drives:
+install_floppy:
 	adr	x0,rom_c600
 	mov	x1,#DISK2ROM
 	add	x1,x1,MEM
@@ -535,5 +535,3 @@ drive2:
 	.hword	0
 	.hword	0
 	.quad	0
-track_buffer:				// buffer for one track of a .dsk disk
-	.fill	16*256,1,0
