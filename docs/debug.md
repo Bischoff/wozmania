@@ -61,12 +61,12 @@ There are five routines to help debugging:
 By default, they are not assembled. To assemble them, use
 environment variables, e.g.:
 ```
-$ TRACE=1 ./assemble.sh
+$ TRACE=1 make
 ```
 
 You can redirect the output of these routines like this:
 ```
-$ ./wozmania 2> debug.txt
+$ wozmania 2> debug.txt
 ```
 and then follow the debugging in another terminal:
 ```

@@ -1,9 +1,4 @@
-APPLE2.ROM
-drive1.nib
-drive1.dsk
-drive2.nib
-drive2.dsk
 snippets
-wozmania
 debug.txt
 disks/*
+roms/*

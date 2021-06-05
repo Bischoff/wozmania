@@ -116,7 +116,8 @@ BREAKPOINT	.req	x29
 	.equ	DRV_HTRACK,5
 	.equ	DRV_HEAD,6
 	.equ	DRV_TSIZE,8
-	.equ	DRV_CONTENT,10
+	.equ	DRV_FNAME,10
+	.equ	DRV_CONTENT,18
 
 // Internal constants
 	.equ	SIZEOF_BUFFER,4096	// enough for one track of 16 sectors

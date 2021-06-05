@@ -11,6 +11,7 @@
 .global nothing_to_read
 .global store_b_addr
 .global nothing_to_write
+.global rom_filename
 .global stat
 
 .include "src/defs.s"
@@ -56,7 +57,7 @@ allocate_error:
 // Load ROM file
 load_rom:
 	mov	w0,#-100		// open ROM file
-	adr	x1,rom_filename
+	ldr	x1,=rom_filename
 	mov	w2,#O_RDONLY
 	mov	w8,#OPENAT
 	svc	0
@@ -83,7 +84,11 @@ load_rom:
 	br	lr
 load_failure_rom:
 	adr	x3,msg_err_load_rom
-	write	STDERR,36
+	write	STDERR,24
+	ldr	x3,=rom_filename
+	writez	STDERR
+	adr	x3,msg_err_load_rom_2
+	write	STDERR,1
 	b	final_exit
 
 // Fetch byte from memory, taking into account I/O
@@ -336,17 +341,18 @@ col80_rom_h:
 
 // Fixed data
 
-rom_filename:
-	.asciz	"APPLE2.ROM"
 msg_err_memory:
 	.ascii	"Failed to allocate memory\n"
 msg_err_load_rom:
-	.ascii	"Could not load ROM file APPLE2.ROM\n"
-
+	.ascii	"Could not load ROM file "
+msg_err_load_rom_2:
+	.ascii	"\n"
 
 // Variable data
 
 .data
 
+rom_filename:
+	.fill	128,1,0
 stat:
 	.fill	SIZEOF_STAT,1,0

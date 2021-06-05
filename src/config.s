@@ -98,12 +98,12 @@ skip_space_2:
 2:	cmp	w9,#'#'
 	b.ne	syntax_error
 recognize_key:
-	adr	x4,key_rom		// TODO
-	strcmp	x3,x5,x4,end_of_line
-	adr	x4,key_drive1		// TODO
-	strcmp	x3,x5,x4,end_of_line
-	adr	x4,key_drive2		// TODO
-	strcmp	x3,x5,x4,end_of_line
+	adr	x4,key_rom
+	strcmp	x3,x5,x4,r_rom
+	adr	x4,key_drive1
+	strcmp	x3,x5,x4,r_drive1
+	adr	x4,key_drive2
+	strcmp	x3,x5,x4,r_drive2
 	adr	x4,key_langcard
 	strcmp	x3,x5,x4,r_langcard
 	adr	x4,key_floppy
@@ -111,6 +111,15 @@ recognize_key:
 	adr	x4,key_80col
 	strcmp	x3,x5,x4,r_80col
 	b	syntax_error
+r_rom:
+	strcpy	x6,x7,rom_filename
+	b	end_of_line
+r_drive1:
+	strcpy	x6,x7,drive1_filename
+	b	end_of_line
+r_drive2:
+	strcpy	x6,x7,drive2_filename
+	b	end_of_line
 r_langcard:
 	adr	x4,value_disable
 	strcmp	x6,x7,x4,end_of_line
@@ -153,7 +162,7 @@ syntax_error:
 // Fixed data
 
 conf_filename:
-	.asciz	"wozmania.conf"
+	.asciz	"/etc/wozmania.conf"
 key_rom:
 	.asciz	"rom"
 key_drive1:

@@ -3,7 +3,6 @@
 * floppy disk support:
   - write to .dsk file
 * configuration:
-  - allow choosing file names from configuration file
   - find a way to control speed (for games)
 * screen modes:
   - low resolution graphic

@@ -13,6 +13,8 @@
 .global floppy_disk_write
 .global flush_drive
 .global rom_c600
+.global drive1_filename
+.global drive2_filename
 .global drive1
 .global drive2
 
@@ -24,39 +26,53 @@ load_drive1:
 	ldr	DRIVE,=drive1
 	mov	w5,#'1'
 	strb	w5,[DRIVE,#DRV_NUMBER]
-	b	load_nib_drive
+	ldr	x1,=drive1_filename
+	str	x1,[DRIVE,#DRV_FNAME]
+	ldrb	w0,[x1]			// no disk?
+	tst	w0,#0xFF
+	b.ne	1f
+	br	lr
+1:	filext	x1,x6,x7		// nib or dsk?
+	adr	x4,ext_nib
+	strcmp	x6,x7,x4,load_nib_drive
+	adr	x4,ext_dsk
+	strcmp	x6,x7,x4,load_dsk_drive
+	b	load_failure_drive
 
 // Try to load drive 2
 load_drive2:
 	ldr	DRIVE,=drive2
 	mov	w5,#'2'
 	strb	w5,[DRIVE,#DRV_NUMBER]
-	b	load_nib_drive
+	ldr	x1,=drive2_filename
+	str	x1,[DRIVE,#DRV_FNAME]
+	ldrb	w0,[x1]			// no disk?
+	tst	w0,#0xFF
+	b.ne	1f
+	br	lr
+1:	filext	x1,x6,x7		// nib or dsk?
+	adr	x4,ext_nib
+	strcmp	x6,x7,x4,load_nib_drive
+	adr	x4,ext_dsk
+	strcmp	x6,x7,x4,load_dsk_drive
+	b	load_failure_drive
 
-// Try to load nib drive file
+// Load nib drive file
 load_nib_drive:
 	mov	w4,#0			// initialize flags
 	strb	w4,[DRIVE,#DRV_FLAGS]
-	ldr	x1,=drive_filename	// open disk file
-	strb	w5,[x1,#5]
-	mov	w6,#'n'
-	strb	w6,[x1,#7]
-	mov	w6,#'i'
-	strb	w6,[x1,#8]
-	mov	w6,#'b'
-	strb	w6,[x1,#9]
-	mov	w0,#-100
+	mov	w0,#-100		// open disk file
 	mov	w2,#O_RDONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	load_dsk_drive
+	b.lt	load_failure_drive
 	mov	w9,w0			// test file protection
 	ldr	x1,=stat
 	mov	w8,#FSTAT
 	svc	0
 	cmp	x0,#0
-	b.lt	load_failure_nib_drive
+	b.lt	load_failure_drive
 	ldr	x1,=stat
 	ldr	x0,[x1,#ST_MODE]
 	tst	w0,#S_IWUSR
@@ -69,49 +85,29 @@ load_nib_drive:
 	mov	w8,#READ
 	svc	0
 	cmp	x0,x2
-	b.ne	load_failure_nib_drive
+	b.ne	load_failure_drive
 	orr	w4,w4,#FLG_LOADED	// disk is loaded
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	mov	w4,#6656
 	strh	w4,[DRIVE,#DRV_TSIZE]
 	br	lr
-load_failure_nib_drive:
-	ldr	x3,=msg_err_drive
-	char_i	'l',10
-	char_i	'o',11
-	char_i	'a',12
-	char_i	'd',13
-	char	w5,31
-	char_i	'n',33
-	char_i	'i',34
-	char_i	'b',35
-	write	STDERR,37
-	b	final_exit
 
-// Try to load dsk drive file
+// Load dsk drive file
 load_dsk_drive:
 	mov	w4,#0			// initialize flags
 	strb	w4,[DRIVE,#DRV_FLAGS]
-	ldr	x1,=drive_filename	// open disk file
-	strb	w5,[x1,#5]
-	mov	w6,#'d'
-	strb	w6,[x1,#7]
-	mov	w6,#'s'
-	strb	w6,[x1,#8]
-	mov	w6,#'k'
-	strb	w6,[x1,#9]
-	mov	w0,#-100
+	mov	w0,#-100		// open disk file
 	mov	w2,#O_RDONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	no_disk
+	b.lt	load_failure_drive
 	mov	w9,w0			// test file protection
 	ldr	x1,=stat
 	mov	w8,#FSTAT
 	svc	0
 	cmp	x0,#0
-	b.lt	load_failure_dsk_drive
+	b.lt	load_failure_drive
 	ldr	x1,=stat
 	ldr	x0,[x1,#ST_MODE]
 	tst	w0,#S_IWUSR
@@ -127,31 +123,25 @@ load_dsk_drive:
 	mov	w8,#READ
 	svc	0
 	cmp	x0,x2
-	b.ne	load_failure_dsk_drive
+	b.ne	load_failure_drive
 	orr	w4,w4,#FLG_LOADED	// disk is loaded
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	mov	w4,#8192
 	strh	w4,[DRIVE,#DRV_TSIZE]
-	mov	x0,x9
+	mov	x0,x9			// convert its format
 	mov	x1,x10
 	mov	w2,#254
 	b	explode_disk
-load_failure_dsk_drive:
-	ldr	x3,=msg_err_drive
-	char_i	'l',10
-	char_i	'o',11
-	char_i	'a',12
-	char_i	'd',13
-	char	w5,31
-	char_i	'd',33
-	char_i	's',34
-	char_i	'k',35
-	write	STDERR,37
-	b	final_exit
 
-// No disk found at all
-no_disk:
-	br	lr
+// Failure loading drive file
+load_failure_drive:
+	ldr	x3,=msg_err_load_drive
+	write	STDERR,26
+	ldr	x3,[DRIVE,#DRV_FNAME]
+	writez	STDERR
+	ldr	x3,=msg_err_drive_2
+	write	STDERR,1
+	b	final_exit
 
 // Convert dsk format to nib format
 // input: x0 = destination (at start of content)
@@ -392,49 +382,49 @@ flush_drive:
 	b.ne	save_nib_drive
 	br	lr
 
-// Attempt to save nib drive
+// Save nib drive file
 save_nib_drive:
-	ldrb	w5,[DRIVE,#DRV_NUMBER]	// open disk file
-	ldr	x1,=drive_filename
-	strb	w5,[x1,#5]
-	mov	w6,#'n'
-	strb	w6,[x1,#7]
-	mov	w6,#'i'
-	strb	w6,[x1,#8]
-	mov	w6,#'b'
-	strb	w6,[x1,#9]
+	ldr	x1,[DRIVE,#DRV_FNAME]	// open disk file
 	mov	w0,#-100
 	mov	w2,#O_WRONLY
 	mov	w8,#OPENAT
 	svc	0
 	cmp	x0,#0
-	b.lt	save_failure_nib_drive
+	b.lt	save_failure_drive
 	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#WRITE
 	svc	0
 	cmp	x0,x2
-	b.ne	save_failure_nib_drive
+	b.ne	save_failure_drive
 	and	w4,w4,#~FLG_DIRTY	// clean dirty flag
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	br	lr
-save_failure_nib_drive:
-	ldr	x3,=msg_err_drive
-	char_i	's',10
-	char_i	'a',11
-	char_i	'v',12
-	char_i	'e',13
-	char	w5,31
-	char_i	'n',33
-	char_i	'i',34
-	char_i	'b',35
-	write	STDERR,37
+
+// Failure saving drive file
+save_failure_drive:
+	ldr	x3,=msg_err_save_drive
+	write	STDERR,26
+	ldr	x3,[DRIVE,#DRV_FNAME]
+	writez	STDERR
+	ldr	x3,=msg_err_drive_2
+	write	STDERR,1
 	br	lr
 
 
 // Fixed data
 
+ext_nib:
+	.asciz	".nib"
+ext_dsk:
+	.asciz	".dsk"
+msg_err_load_drive:
+	.ascii	"Could not load drive file "
+msg_err_save_drive:
+	.ascii	"Could not save drive file "
+msg_err_drive_2:
+	.ascii	"\n"
 sectors_order:
 	.byte	0x0,0x7,0xe,0x6,0xd,0x5,0xc,0x4
 	.byte	0xb,0x3,0xa,0x2,0x9,0x1,0x8,0xf
@@ -508,10 +498,10 @@ htrack_delta:
 
 .data
 
-drive_filename:
-	.asciz	"drive....."
-msg_err_drive:
-	.ascii	"Could not .... drive file drive.....\n"
+drive1_filename:
+	.fill	128,1,0
+drive2_filename:
+	.fill	128,1,0
 drive1:					// 35 tracks, 13 or 16 sectors, 512 nibbles each (for 256 bytes)
 	.byte	0			// drive '1' or '2'
 	.byte	0			// flags: loaded, write, dirty, read-only
@@ -521,6 +511,7 @@ drive1:					// 35 tracks, 13 or 16 sectors, 512 nibbles each (for 256 bytes)
 	.byte	0			// half-track 0-69
 	.hword	0			// head 0-6655 or 0-8191
 	.hword	0			// track size 6656 or 8192
+	.quad	0			// pointer to filename
 	.quad	0			// pointer to content
 drive2:
 	.byte	0
@@ -531,4 +522,5 @@ drive2:
 	.byte	0
 	.hword	0
 	.hword	0
+	.quad	0
 	.quad	0

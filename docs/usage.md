@@ -12,26 +12,32 @@
 
 ### Running WozMania
 
-1. Assemble WozMania by running the command `./assemble.sh`.
-2. Download to the same directory a file that contains the
-   ROM of the Apple ]\[ and that must be named `APPLE2.ROM`.
-3. Run the emulator with the command `./wozmania`.
+1. Assemble and install WozMania by running the commands `make`
+   and `sudo make install`.
+2. Download to the directory `/var/lib/wozmania/roms` a file
+   named `APPLE2.ROM` that contains the ROM of the Apple ]\[.
+3. Run the emulator with the command `wozmania`.
 4. To exit the emulator, press F4.
 
 ![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
+
+#### The ROM file
 
 The ROM file must contain the last part of the memory. For example,
 Apple ]\[+ ROM files covering memory from `$B000` to `$FFFF` are
 20,480 bytes long (5 x 4,096). That's larger than the ROM space
 (`$D000` to `$FFFF`, 3 x 4,096 bytes), but that's not a problem.
 
-A configuration file named `wozmania.conf`, also situated in the same
-directory as the emulator, allows to fine-tune the emulated hardware
-at run time.
+A configuration file named `/etc/wozmania.conf` allows to fine-tune
+the emulated hardware at run time, as well as the paths to various
+files. For example, tu use a different ROM file, declare:
+```
+rom /path/to/some/other/rom/file
+```
 
-WozMania essentially tries to emulate an Apple ][+. While other
-models, like the Apple //e, are out of focus, it is likely they
-will at least partially work.
+WozMania essentially tries to emulate an Apple ]\[+. While other models,
+like the Apple //e, are out of focus, it is likely they will at least
+partially work if you use the ROM corresponding to those models.
 
 
 <a name="keyboard"/>
@@ -53,33 +59,45 @@ The following keys are defined:
 
 #### Supported formats
 
-In the same directory as the emulator, there are two files, `drive1.nib`
-and `drive2.nib`. They represent the contents of the two floppy drives
-and contain 232,960 nibbles each (35 tracks of 13 sectors of 512 nibbles).
+The file `/var/lib/wozmania/disks/blank.nib` represents the low level
+contents of a blank disk inserted in a floppy drive. It contains
+232,960 nibbles (35 tracks of 13 sectors of 512 nibbles).
 Two nibbles are needed to represent one useful byte, therefore that's
 only a capacity of 35 track of 13 sectors of 256 bytes.
 
-You can also use files in `.dsk` format, `drive1.dsk` and `drive2.dsk`
-They contain 143,360 bytes each (35 tracks of 16 sectors of 256 bytes).
-WozMania first tries to load `drive1.nib`, and if it is absent,
-it takes `drive1.dsk`, and the same goes for the second drive.
+You can also use files in `.dsk` format.
+`/var/lib/wozmania/disks/blank.dsk` also represents the contents
+of a blank disk. It contains 143,360 bytes
+(35 tracks of 16 sectors of 256 bytes) in a slightly higher level
+representation.
 
-If you have no file at all for the first drive, the emulator still starts,
+#### Using other disks
+
+![The master disk files in WozMania](floppy.png)
+
+WozMania emulate two floppy drives. You can use other disks than
+the two blank disks shipped with WozMania, for example you can use
+the DOS master disk. To do that, download a file representing a
+floppy disk somewhere and specify the path to this file in
+`/etc/wozmania.conf`:
+```
+drive1 /path/to/some/other/disk
+drive2 /path/to/yet/another/disk
+```
+
+If `drive1` or `drive2` is not specified in the configuration file,
+the corresponding drive is considered as empty (no disk).
+If the first drive is empty, the emulator still starts,
 but the DOS hangs trying to read the floppy. In such a case, press Ctrl-C,
 this will emulate a Ctrl-Reset and bring you to BASIC.
 
 #### Saving Data
 
-The files shipped with WozMania are initially blank. If you saved new data
-on them but want to revert them to blank, replace them with the file
-`disks/blank.nib`. You can also replace them with any other disk file,
-for example with the DOS master disk.
-
-![The master disk files in WozMania](floppy.png)
-
-To prevent accidental writing on a disk, use a command like:
+The blank disks shipped with WozMania are write-protected.
+To write-protect any other disk in order to prevent accidental writing
+to it, use a command like:
 ```
-$ chmod -w drive1.nib
+$ chmod -w mydisk.nib
 ```
 This is equivalent to closing the write protection punch with black
 tape on an original floppy disk.
@@ -149,7 +167,7 @@ WozMania emulates a Videoterm 80 column card from
 
 You can switch to 80 column mode from the BASIC by typing `PR#3`.
 Some applications like [Visicalc](http://www.bricklin.com/history/saiidea.htm)
-can also take advantage of the Videoterm card.
+also take advantage of the Videoterm card.
 
 ![Visicalc in WozMania](visicalc.png)
 

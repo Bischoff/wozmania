@@ -418,11 +418,40 @@
 2:
 	.endm
 
+	.macro	strcpy begin,end,dest
+	mov	x8,\begin
+	ldr	x9,=\dest
+	add	x11,x9,#127
+1:	ldrb	w10,[x8],#1
+	strb	w10,[x9],#1
+	cmp	x8,\end
+	b.eq	2f
+	cmp	x9,x11
+	b.lt	1b
+2:	mov	w10,#0
+	strb	w10,[x9]
+	.endm
+
 	.macro	option flag
 	ldr	x8,=conf_flags
 	ldrb	w9,[x8]
 	orr	w9,w9,#\flag
 	strb	w9,[x8]
+	.endm
+
+	.macro	filext filename,begin,end
+	mov	\begin,\filename
+1:	ldrb	w10,[\begin],#1
+	cmp	w10,#0
+	b.ne	1b
+	sub	\begin,\begin,#1
+	mov	\end,\begin
+2:	ldrb    w10,[\begin],#-1
+	cmp	w10,#'.'
+	b.eq	3f
+	cmp	\begin,\filename
+	b.ge	2b
+3:	add	\begin,\begin,#1
 	.endm
 
 // Text output
@@ -487,6 +516,19 @@
 	mov	w0,#\where
 	mov	x1,x3
 	mov	w2,#\length
+	mov	w8,#WRITE
+	svc	0
+	.endm
+
+	.macro	writez where
+	mov	w0,#\where
+	mov	w2,#0
+1:	ldrb	w8,[x3,x2]
+	tst	w8,#0xFF
+	b.eq	2f
+	add	w2,w2,#1
+	b	1b
+2:	mov	x1,x3
 	mov	w8,#WRITE
 	svc	0
 	.endm
