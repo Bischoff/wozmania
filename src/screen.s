@@ -98,16 +98,17 @@ text80_offset:
 
 // 80 columns - compute screen address
 //   input: w10 = offset in buffer ($000-$7FF)
-//   output: x0 = screen address
+//   output: x4 = screen address
 text80_address:
 	mov	w0,#0x4000		// $10000 (RAM) + $4000 (language card)
 	movk	w0,#1,LSL #16
 	add	x0,MEM,x0
-	add	x0,x0,x10
+	add	x4,x0,x10
 	br	lr
 
 // 80 columns - output character
 //   input:   w10 = offset in buffer ($000-$7FF)
+//             x4 = screen address
 //          VALUE = character to print
 text80_out:
 	ldr	x0,=screen		// substract base address
@@ -117,18 +118,21 @@ text80_out:
 	orr	w2,w2,w3
 	sub	w1,w10,w2
 	and	w1,w1,#0x7FF
-	cmp	w1,#(24*80)
-	b.ge	3f
-	mov	w3,#80			// w5 = X coordinate, w2 = Y coordinate
+	cmp	w1,#(24*80)		// clean characters that are out of screen
+	b.lt	1f
+	mov	w0,#' '
+	strb	w0,[x4]
+	br	lr
+1:	mov	w3,#80			// w5 = X coordinate, w2 = Y coordinate
 	udiv	x2,x1,x3
 	msub	x5,x2,x3,x1
 	tst	VALUE,#0x80		// w6 = effect
-	b.eq	1f
+	b.eq	2f
 	and	VALUE,VALUE,#0x7F
 	mov	w6,#'7'
-	b	2f
-1:	mov	w6,#'0'
-2:	ldr	x3,=msg_text		// write character on screen
+	b	3f
+2:	mov	w6,#'0'
+3:	ldr	x3,=msg_text		// write character on screen
 	add	w2,w2,#1
 	dec_8	w2,2
 	add	w5,w5,#1
@@ -136,14 +140,14 @@ text80_out:
 	char	w6,10
 	char	VALUE,12
 	write	STDOUT,13
-3:	br	lr
+	br	lr
 
 // 80 column text
 text80_write:
 	mov	x9,lr			// store byte in buffer
 	bl	text80_offset
 	bl	text80_address
-	strb	VALUE,[x0]
+	strb	VALUE,[x4]
 	ldr	x0,=screen
 	ldrb	w1,[x0,#SCR_REFRESH]	// output character, or...
 	tst	w1,#0xFF
@@ -154,7 +158,7 @@ text80_write:
 	strb	w1,[x0,#SCR_REFRESH]
 	mov	w10,#0
 2:	bl	text80_address
-	ldrb	VALUE,[x0]
+	ldrb	VALUE,[x4]
 	bl	text80_out
 	add	w10,w10,#1
 	cmp	w10,#0x800
