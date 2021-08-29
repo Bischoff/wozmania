@@ -22,7 +22,8 @@ return stack is intentionally not used at all.
 
 Access to zero page is priviledged in the emulator, with less memory mappings.
 
-Keyboard is polled for real only one time out of 256. This has a huge
+Keyboard is polled for real only one time out of 256 (this value
+can be changed in the configuration file). This has a huge
 performance impact, as the Apple's ROM keeps polling the keyboard a lot,
 even when running non-interative BASIC programs.
 

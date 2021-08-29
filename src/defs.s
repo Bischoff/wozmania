@@ -100,9 +100,10 @@ BREAKPOINT	.req	x29
 	.equ	KBD_BUFFER,0		// keyboard
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2
-	.equ	KBD_WAIT,3
-	.equ	KBD_KEYSEQ,4
-	.equ	KBD_RESET,5
+	.equ	KBD_POLL_RATIO,3
+	.equ	KBD_WAIT,4
+	.equ	KBD_KEYSEQ,6
+	.equ	KBD_RESET,7
 	.equ	SCR_REGISTER,0		// screen
 	.equ	SCR_REFRESH,1
 	.equ	SCR_VALUES,2

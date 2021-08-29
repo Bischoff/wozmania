@@ -83,11 +83,15 @@ read_key:
 	mov	w0,#KBD_LASTKEY
 	b	analyze_key
 slow_polling:
-	ldrb	w0,[KEYBOARD,#KBD_WAIT]
+	ldrh	w0,[KEYBOARD,#KBD_WAIT]
 	add	w0,w0,#1
-	strb	w0,[KEYBOARD,#KBD_WAIT]
+	strh	w0,[KEYBOARD,#KBD_WAIT]
+	ldrb	w1,[KEYBOARD,#KBD_POLL_RATIO]
+	lsr	w0,w0,w1
 	tst	w0,#0xFF
-	b.ne	no_key
+	b.eq	no_key
+	mov	w0,#0
+	strh	w0,[KEYBOARD,#KBD_WAIT]
 get_key:
 	mov	w0,#STDIN
 	mov	x1,KEYBOARD
@@ -211,6 +215,7 @@ kbd:
 	.byte	0			// buffer
 	.byte	0			// strobe
 	.byte	0			// last key
-	.byte	0			// wait counter to slow down polling
+	.byte	8			// poll ratio
+	.hword	0			// wait counter to slow down polling
 	.byte	0			// key sequence
 	.byte	0			// reset

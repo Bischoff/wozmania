@@ -432,6 +432,24 @@
 	strb	w10,[x9]
 	.endm
 
+	.macro	atoi begin,end,reg,err
+	mov	x8,\begin
+	mov	x9,#10
+	mov	\reg,#0
+1:	ldrb	w10,[x8],#1
+	cmp	w10,#'0'
+	b.lt	\err
+	cmp	w10,#'9'
+	b.gt	\err
+	sub	w10,w10,#'0'
+	add	\reg,\reg,x10
+	cmp	x8,\end
+	b.eq	2f
+	mul	\reg,\reg,x9
+	b	1b
+2:
+	.endm
+
 	.macro	option flag
 	ldr	x8,=conf_flags
 	ldrb	w9,[x8]

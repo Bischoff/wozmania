@@ -1,4 +1,6 @@
 snippets
 debug.txt
+*.o
+wozmania
 disks/*
 roms/*

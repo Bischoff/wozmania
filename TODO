@@ -4,6 +4,7 @@
   - write to .dsk file
 * configuration:
   - find a way to control speed (for games)
+    in addition to the `keyboard_poll_ratio` setting
 * screen modes:
   - low resolution graphic
   - mixed low resolution graphic/text

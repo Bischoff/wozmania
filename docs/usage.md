@@ -30,7 +30,7 @@ Apple ]\[+ ROM files covering memory from `$B000` to `$FFFF` are
 
 A configuration file named `/etc/wozmania.conf` allows to fine-tune
 the emulated hardware at run time, as well as the paths to various
-files. For example, tu use a different ROM file, declare:
+files. For example, to use a different ROM file, declare:
 ```
 rom /path/to/some/other/rom/file
 ```
@@ -51,6 +51,17 @@ The following keys are defined:
 | Ctrl-C | Ctrl-Reset |
 | F3     | Ctrl-C     |
 | F4     | Power off  |
+
+You can set the ratio at which the keyboard is polled for real.
+For example, if you set in `/etc/wozmania.conf`:
+```
+keyboard_poll_ratio 7
+```
+it means that keyboard is polled for real only one time
+out of 128 (2^7 = 128). The idea is to accelerate the emulator
+by not spending more time in system calls than necessary.
+The default value is 8, meaning the keyboard is polled only
+one time out of 256.
 
 
 <a name="floppy"/>
@@ -113,7 +124,7 @@ floppy enable
 ```
 
 If the ROM file already contains ROM code for the floppy disk controller,
-it will ignored, and the firmware will be provided by WozMania.
+it will be ignored, and the firmware will be provided by WozMania.
 
 You may completly disable the floppy disk controller by specifying:
 ```
