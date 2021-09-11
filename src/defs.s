@@ -128,7 +128,8 @@ BREAKPOINT	.req	x29
 	.equ	FLG_LOADED,0x01		// floppy disk flags
 	.equ	FLG_WRITE,0x02
 	.equ	FLG_DIRTY,0x04
-	.equ	FLG_READONLY,0x80
+	.equ	FLG_DSK,0x08
+	.equ	FLG_READONLY,0x10
 	.equ	SEQ,0			// keyboard sequence
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2

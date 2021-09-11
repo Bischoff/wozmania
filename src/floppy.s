@@ -28,16 +28,7 @@ load_drive1:
 	strb	w5,[DRIVE,#DRV_NUMBER]
 	ldr	x1,=drive1_filename
 	str	x1,[DRIVE,#DRV_FNAME]
-	ldrb	w0,[x1]			// no disk?
-	tst	w0,#0xFF
-	b.ne	1f
-	br	lr
-1:	filext	x1,x6,x7		// nib or dsk?
-	adr	x4,ext_nib
-	strcmp	x6,x7,x4,load_nib_drive
-	adr	x4,ext_dsk
-	strcmp	x6,x7,x4,load_dsk_drive
-	b	load_failure_drive
+	b	load_drive
 
 // Try to load drive 2
 load_drive2:
@@ -46,6 +37,11 @@ load_drive2:
 	strb	w5,[DRIVE,#DRV_NUMBER]
 	ldr	x1,=drive2_filename
 	str	x1,[DRIVE,#DRV_FNAME]
+	b	load_drive
+
+// Try to load a drive
+// File name is pointed at by x1
+load_drive:
 	ldrb	w0,[x1]			// no disk?
 	tst	w0,#0xFF
 	b.ne	1f
@@ -94,7 +90,7 @@ load_nib_drive:
 
 // Load dsk drive file
 load_dsk_drive:
-	mov	w4,#0			// initialize flags
+	mov	w4,#FLG_DSK		// initialize flags
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	mov	w0,#-100		// open disk file
 	mov	w2,#O_RDONLY
@@ -113,7 +109,7 @@ load_dsk_drive:
 	tst	w0,#S_IWUSR
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
-	mov	w0,w9			// read disk file
+1:	mov	w0,w9			// read disk file
 	ldr	x1,[DRIVE,#DRV_CONTENT]
 	mov	x9,x1
 	mov	w2,#0x3000
@@ -289,9 +285,9 @@ change_track:
 	b.pl	1f
 	mov	w5,#0
 	b	2f
-1:	cmp	w5,#80
+1:	cmp	w5,#70
 	b.lt	2f
-	mov	w5,#79
+	mov	w5,#69
 2:	strb	w5,[DRIVE,#DRV_HTRACK]
 	br	lr
 select_drive1:
@@ -313,9 +309,9 @@ transfer_nibble:
 	tst	w2,#FLG_WRITE
 	b.ne	write_nibble
 read_nibble:
-	and	w2,w2,#~FLG_DIRTY	// only read when loaded + read mode
-	and	w2,w2,#~FLG_READONLY
-	cmp	w2,#FLG_LOADED
+	mov	w0,#(FLG_LOADED|FLG_WRITE) // only read when loaded + read mode
+	and	w0,w0,w2
+	cmp	w0,#FLG_LOADED
 	b.ne	2f
 	ldrb	VALUE,[x1,x7]		// read nibble at (track * tsize + head position)
 	add	w0,w5,#1		// move head forward
@@ -330,8 +326,9 @@ read_nibble:
 	b	last_nibble
 	.endif
 write_nibble:
-	and	w2,w2,#~FLG_DIRTY	// only write when loaded + write mode + not read-only
-	cmp	w2,#(FLG_LOADED|FLG_WRITE)
+	mov	w0,#(FLG_LOADED|FLG_WRITE|FLG_READONLY) // only write when loaded + write mode + not read-only
+	and	w0,w0,w2
+	cmp	w0,#(FLG_LOADED|FLG_WRITE)
 	b.ne	2f
 	ldrb	VALUE,[DRIVE,#DRV_NEXTNIB] // write nibble to (track * tsize + head position)
 	strb	VALUE,[x1,x7]
@@ -377,10 +374,12 @@ load_next_nibble:
 
 // Flush drive on exit
 flush_drive:
-	ldrb	w4,[DRIVE,#DRV_FLAGS]
+	ldrb	w4,[DRIVE,#DRV_FLAGS]	// something to save?
 	tst	w4,#FLG_DIRTY
-	b.ne	save_nib_drive
+	b.ne	1f
 	br	lr
+1:	tst	w4,#FLG_DSK		// nib or dsk?
+	b.ne	save_dsk_drive
 
 // Save nib drive file
 save_nib_drive:
@@ -401,6 +400,10 @@ save_nib_drive:
 	and	w4,w4,#~FLG_DIRTY	// clean dirty flag
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	br	lr
+
+// Save dsk drive file
+save_dsk_drive:
+					// TBD
 
 // Failure saving drive file
 save_failure_drive:
