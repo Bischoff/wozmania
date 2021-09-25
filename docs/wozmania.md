@@ -16,6 +16,7 @@
     * [Helper Routines](debug.md#helpers)
  * [Performance Considerations](performance.md)
     * [Coding Style](performance.md#style)
-    * [Implemented Accelerations](performance.md#implemented)
+    * [Processor Accelerations](performance.md#processor)
+    * [Input-output Accelerations](performance.md#input-output)
     * [Not Implemented Accelerations](#not-implemented)
  * [Bibliography](bibliography.md#biblio)

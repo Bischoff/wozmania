@@ -401,6 +401,25 @@
 	add	\counter,\counter,#1
 	.endm
 
+	.macro	de6n2 what,where2,shift,where6,counter
+	mov	\what,#0
+	ldrb	w7,[\where2],#1
+	lsr	w8,w7,#(\shift+1)
+	and	w8,w8,#0x01
+	orr	\what,\what,w8
+	.if	\shift > 1
+	lsr	w8,w7,#(\shift-1)
+	.else
+	lsl	w8,w7,#(1-\shift)
+	.endif
+	and	w8,w8,#0x02
+	orr	\what,\what,w8
+	ldrb	w7,[\where6],#1
+	lsl	w8,w7,#2
+	orr	\what,\what,w8
+	add	\counter,\counter,#1
+	.endm
+
 // Configuration options
 	.macro	strcmp begin,end,with,jump
 	mov	x8,\begin

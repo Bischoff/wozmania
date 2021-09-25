@@ -1,7 +1,14 @@
+             TO DO
+
+* keyboard:
+  - nano timer to receive ESC key
 * 80 column support:
   - display cursor
 * floppy disk support:
-  - write to .dsk file
+  - check values while writing to .dsk file
+  - function key to flush the disk immediately
+  - function key to hot-load a floppy into a drive
+  - more disk formats (ProDOS, etc.)
 * configuration:
   - find a way to control speed (for games)
     in addition to the `keyboard_poll_ratio` setting
@@ -16,10 +23,3 @@
   - game paddles
 * what about other Apple II models?
 
-Items at risk of becoming moot when we run in a window:
-
-* keyboard:
-  - nano timer to receive ESC key
-* floppy disk support:
-  - function key to flush the disk immediately
-  - function key to hot-load a floppy into a drive

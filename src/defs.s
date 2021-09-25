@@ -121,7 +121,7 @@ BREAKPOINT	.req	x29
 	.equ	DRV_CONTENT,18
 
 // Internal constants
-	.equ	SIZEOF_BUFFER,4096	// enough for one track of 16 sectors
+	.equ	SIZEOF_BUFFER,8192	// enough for one track of 16 sectors in nibble format
 	.equ	CNF_LANGCARD_E,0x01	// configuration flags
 	.equ	CNF_FLOPPY_E,0x02
 	.equ	CNF_80COL_E,0x04

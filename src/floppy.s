@@ -187,7 +187,7 @@ address_field:
 	en4n4	w6,x0,w5		// checksum
 	nibble	#0xde,x0,w5		// $DE
 	nibble	#0xaa,x0,w5		// $AA
-	nibble	#0xeb,x0,w5		// $EB
+					// according to Beneath Apple DOS, there is $EB here...
 gap_2:
 	add	w6,w5,#5		// $FF x 5
 1:	nibble	#0xff,x0,w5
@@ -217,18 +217,19 @@ data_field:
 	en6n2	w9,x10,4,x0,w5
 	cmp	w5,w6
 	b.lt	3b
-	sub	x10,x0,#342		// conversion to nibbles
-	adr	x11,map_6n2
+convert_to_nibbles:
+	sub	x10,x0,#342
+	adr	x9,map_6n2
 	mov	w6,#0
-4:	ldrb	w9,[x10]
-	eor	w7,w9,w6
-	mov	w6,w9
-	ldrb	w9,[x11,x7]
-	strb	w9,[x10],#1
+1:	ldrb	w8,[x10]
+	eor	w7,w8,w6
+	mov	w6,w8
+	ldrb	w8,[x9,x7]
+	strb	w8,[x10],#1
 	cmp	x10,x0
-	b.lt	4b
-	ldrb	w9,[x11,x6]		// checksum
-	strb	w9,[x0],#1
+	b.lt	1b
+	ldrb	w8,[x9,x6]		// checksum
+	strb	w8,[x0],#1
 	add	w5,w5,#1
 	nibble	#0xde,x0,w5		// $DE
 	nibble	#0xaa,x0,w5		// $AA
@@ -237,11 +238,11 @@ gap_3:
 	nibble	#0xff,x0,w5		// $FF -> end
 	cmp	w5,#512
 	b.lt	gap_3
-next_sector:
+explode_next_sector:
 	add	w4,w4,#1
 	cmp	w4,#16
 	b.lt	explode_sector
-next_track:
+explode_next_track:
 	add	w3,w3,#1
 	cmp	w3,#35
 	b.lt	explode_track
@@ -379,7 +380,7 @@ flush_drive:
 	b.ne	1f
 	br	lr
 1:	tst	w4,#FLG_DSK		// nib or dsk?
-	b.ne	save_dsk_drive
+	b.ne	implode_disk
 
 // Save nib drive file
 save_nib_drive:
@@ -397,13 +398,106 @@ save_nib_drive:
 	svc	0
 	cmp	x0,x2
 	b.ne	save_failure_drive
-	and	w4,w4,#~FLG_DIRTY	// clean dirty flag
+	ldrb	w4,[DRIVE,#DRV_FLAGS]	// clean dirty flag
+	and	w4,w4,#~FLG_DIRTY
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	br	lr
 
+// Convert nib format to dsk format
+implode_disk:
+	ldr	x1,[DRIVE,#DRV_CONTENT]	// x1 = source (35 tracks of 16 x 512 nibbles)
+	mov	x11,x1			// x11 = destination (35 tracks of 16 * 256 bytes)
+	mov	w3,#0			// w3 = track number
+implode_track:
+	ldr	x6,=buffer		// copy source track to buffer (to avoid
+					//   overlapping between source and destination)
+	add	x7,x6,#(16*512)
+1:	ldr	x8,[x1],#8
+	str	x8,[x6],#8
+	cmp	x6,x7
+	b.lt	1b
+	mov	w4,#0			// w4 = sector number
+implode_sector:
+	ldr	x6,=buffer
+	adr	x9,sectors_order_inv
+	ldrb	w8,[x9,x4]
+	lsl	w8,w8,#9
+	add	x10,x6,x8
+skip_to_data:				// TODO: instead of skipping everything, check the values
+	cmp	w4,#0			// skip (128, 40, or 38) + 21 bytes
+					// (22 according to Beneath Apple DOS)
+	b.ne	1f
+	mov	w6,#149
+	b	3f
+1:	cmp	w3,#0
+	b.ne	2f
+	mov	w6,#61
+	b	3f
+2:	mov	w6,#59
+3:	add	x10,x10,x6
+convert_from_nibbles:
+	add	x0,x10,#342
+	adr	x9,map_6n2_inv
+	mov	w6,#0
+1:	ldrb	w7,[x10]
+	ldrb	w8,[x9,x7]
+	eor	w7,w8,w6
+	mov	w6,w7
+	tst	w7,#0xC0
+	b.ne	save_failure_drive
+	strb	w7,[x10],#1
+	cmp	x10,x0
+	b.lt	1b
+store_data_bytes:
+	sub	x10,x0,#342		// x10 = source, x11 = destination
+	add	x0,x10,#86		// 86 extra nibbles in 2-buffer
+	mov	w5,#0
+	mov	w6,#86			// 86 source bytes
+1:	de6n2	w9,x10,0,x0,w5
+	strb	w9,[x11],#1
+	cmp	w5,w6
+	b.lt	1b
+	sub	x10,x10,#86		// 86 source bytes
+	add	w6,w5,#86
+2:	de6n2	w9,x10,2,x0,w5
+	strb	w9,[x11],#1
+	cmp	w5,w6
+	b.lt	2b
+	sub	x10,x10,#86		// 84 source bytes
+	add	w6,w5,#84
+3:	de6n2	w9,x10,4,x0,w5
+	strb	w9,[x11],#1
+	cmp	w5,w6
+	b.lt	3b
+implode_next_sector:
+	add	w4,w4,#1
+	cmp	w4,#16
+	b.lt	implode_sector
+implode_next_track:
+	add	w3,w3,#1
+	cmp	w3,#35
+	b.lt	implode_track
+
 // Save dsk drive file
 save_dsk_drive:
-					// TBD
+	ldr	x1,[DRIVE,#DRV_FNAME]	// open disk file
+	mov	w0,#-100
+	mov	w2,#O_WRONLY
+	mov	w8,#OPENAT
+	svc	0
+	cmp	x0,#0
+	b.lt	save_failure_drive
+	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file
+	mov	w2,#0x3000
+	movk	w2,#2,lsl #16
+	mov	w8,#WRITE
+	svc	0
+	cmp	x0,x2
+	b.ne	save_failure_drive
+	ldrb	w4,[DRIVE,#DRV_FLAGS]	// clean dirty flag
+	and	w4,w4,#~FLG_DIRTY
+	strb	w4,[DRIVE,#DRV_FLAGS]
+	br	lr
 
 // Failure saving drive file
 save_failure_drive:
@@ -431,6 +525,9 @@ msg_err_drive_2:
 sectors_order:
 	.byte	0x0,0x7,0xe,0x6,0xd,0x5,0xc,0x4
 	.byte	0xb,0x3,0xa,0x2,0x9,0x1,0x8,0xf
+sectors_order_inv:
+	.byte	0x0,0xd,0xb,0x9,0x7,0x5,0x3,0x1
+	.byte	0xe,0xc,0xa,0x8,0x6,0x4,0x2,0xf
 map_6n2:
 	.byte	0x96,0x97,0x9a,0x9b,0x9d,0x9e,0x9f,0xa6
 	.byte	0xa7,0xab,0xac,0xad,0xae,0xaf,0xb2,0xb3
@@ -440,6 +537,23 @@ map_6n2:
 	.byte	0xdf,0xe5,0xe6,0xe7,0xe9,0xea,0xeb,0xec
 	.byte	0xed,0xee,0xef,0xf2,0xf3,0xf4,0xf5,0xf6
 	.byte	0xf7,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
+map_6n2_inv:   // 00   01   02   03   04   05   06   07   08   09   0a   0b   0c   0d   0e   0f
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 00
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 10
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 20
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 30
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 40
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 50
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 60
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 70
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1  // 80
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 ,0x00,0x01, -1 , -1 ,0x02,0x03, -1 ,0x04,0x05,0x06 // 90
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 ,0x07,0x08, -1 , -1 , -1 ,0x09,0x0a,0x0b,0x0c,0x0d // a0
+	.byte	 -1 , -1 ,0x0e,0x0f,0x10,0x11,0x12,0x13, -1 ,0x14,0x15,0x16,0x17,0x18,0x19,0x1a // b0
+	.byte	 -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 ,0x1b, -1 ,0x1c,0x1d,0x1e // c0
+	.byte	 -1 , -1 , -1 ,0x1f, -1 , -1 ,0x20,0x21, -1 ,0x22,0x23,0x24,0x25,0x26,0x27,0x28 // d0
+	.byte	 -1 , -1 , -1 , -1 , -1 ,0x29,0x2a,0x2b, -1 ,0x2c,0x2d,0x2e,0x2f,0x30,0x31,0x32 // e0
+	.byte	 -1 , -1 ,0x33,0x34,0x35,0x36,0x37,0x38, -1 ,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f // f0
 rom_c600:
 	.byte	0xa2,0x20,0xa0,0x00,0xa2,0x03,0x86,0x3c
 	.byte	0x8a,0x0a,0x24,0x3c,0xf0,0x10,0x05,0x3c

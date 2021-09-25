@@ -68,6 +68,8 @@ one time out of 256.
 
 ### Using the Floppy Disks
 
+WozMania emulates a floppy disk controller in slot 6.
+
 #### Supported formats
 
 The file `/var/lib/wozmania/disks/blank.nib` represents the low level
@@ -96,6 +98,9 @@ drive1 /path/to/some/other/disk
 drive2 /path/to/yet/another/disk
 ```
 
+The disk's format is recognized from the file name ending,
+either '.nib' or '.dsk'.
+
 If `drive1` or `drive2` is not specified in the configuration file,
 the corresponding drive is considered as empty (no disk).
 If the first drive is empty, the emulator still starts,
@@ -112,8 +117,6 @@ $ chmod -w mydisk.nib
 ```
 This is equivalent to closing the write protection punch with black
 tape on an original floppy disk.
-
-Writing on `.dsk` files is not supported yet.
 
 #### Enabling or Disabling the Controller
 
@@ -139,9 +142,9 @@ it will be overwritten with a jump to the monitor.
 
 ### Using the Language Card
 
-Apple's language card offers additional 16 KiB of RAM and 2 KiB of ROM.
-It is designed to host a language other than Applesoft BASIC,
-like Integer BASIC or Pascal.
+Apple's language card offers additional 16 KiB of RAM and 2 KiB of ROM,
+and is inserted in slot 0. It is designed to host a language other than
+Applesoft BASIC, like Integer BASIC or Pascal.
 
 If you boot on the DOS system master disk, it loads the Integer BASIC
 into the language card. You can then switch to this BASIC with the
@@ -173,7 +176,7 @@ langcard disable
 
 ### Using the 80 Column Card
 
-WozMania emulates a Videoterm 80 column card from
+WozMania emulates a Videoterm 80 column card in slot 3 from
 [Videx](https://videx.com/contact-us/about-videx/).
 
 You can switch to 80 column mode from the BASIC by typing `PR#3`.

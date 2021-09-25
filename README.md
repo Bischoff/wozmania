@@ -12,12 +12,12 @@ the strict minimum.
 
 ## What is done
 
-As of 2021-09-11:
+As of 2021-09-28:
 
 * 6502 processor, no decimal mode;
 * keyboard;
 * video output in text mode, 40 and 80 columns;
-* floppy disks 1 and 2, `.nib` format (read/write), `.dsk` format (read only);
+* floppy disks 1 and 2, `.nib` and `.dsk` formats;
 * language card.
 
 

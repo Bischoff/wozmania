@@ -16,16 +16,11 @@ compactness, therefore it uses macros instead of subroutines. The ARM
 return stack is intentionally not used at all.
 
 
-<a name="implemented"/>
+<a name="processor"/>
 
-### Implemented Accelerations
+### Processor Accelerations
 
 Access to zero page is priviledged in the emulator, with less memory mappings.
-
-Keyboard is polled for real only one time out of 256 (this value
-can be changed in the configuration file). This has a huge
-performance impact, as the Apple's ROM keeps polling the keyboard a lot,
-even when running non-interative BASIC programs.
 
 16-bit addresses are loaded in one ARM instruction (`ldrh`).
 This will lead to emulation inaccuracies for the second byte:
@@ -40,6 +35,20 @@ This will lead to emulation inaccuracies for the second byte:
    address will not cycle inside page 1 for that byte.
 
 All those cases are very marginal and should not impact real-life scenarios.
+
+
+<a name="input-output"/>
+
+### Input-output Accelerations
+
+The keyboard is polled for real only one time out of 256 (this value
+can be changed in the configuration file). This has a huge
+performance impact, as the Apple's ROM keeps polling the keyboard a lot,
+even when running non-interative BASIC programs.
+
+The floppy disks are read for real only at the startup of the emulator,
+and written for real only at the end of the emulator (assuming its contents
+was modified). All input-output in the meantime only happens in memory.
 
 
 <a name="not-implemented"/>
