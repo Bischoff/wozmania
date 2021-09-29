@@ -359,9 +359,16 @@
 	.endm
 
 // Floppy disk encoding
-	.macro	nibble what,where,counter
+	.macro	ennib what,where,counter
 	mov	w7,\what
 	strb	w7,[\where],#1
+	add	\counter,\counter,#1
+	.endm
+
+	.macro	denib what,where,counter,err
+	ldrb	w7,[\where],#1
+	cmp	w7,\what
+	b.ne	\err
 	add	\counter,\counter,#1
 	.endm
 
@@ -376,6 +383,19 @@
 	mov	w7,#0xaa		// 1010 1010
 	orr	w8,w8,w7		// 1B1D 1F1H
 	strb	w8,[\where],#1
+	add	\counter,\counter,#2
+	.endm
+
+	.macro	de4n4 reg,where,counter,err
+	mov	w7,#0x55		// 0101 0101
+	ldrb	w8,[\where],#1		// 1A1C 1E1G
+	and	w8,w8,w7		// 0A0C 0E0G
+	lsl	w8,w8,#1		// A0C0 E0G0
+	ldrb	w9,[\where],#1		// 1B1D 1F1H
+	and	w9,w9,w7		// 0B0D 0F0H
+	orr	w9,w9,w8		// ABCD EFGH
+	cmp	w9,\reg
+	b.ne	\err
 	add	\counter,\counter,#2
 	.endm
 

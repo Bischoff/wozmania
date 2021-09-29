@@ -61,5 +61,8 @@ WozMania is a pure interpreter, there is no just-in-time compilation of
 There is no interception of calls to well-known routines. Performance is
 good enough without using such tricks.
 
+Floppy disk is marked as "dirty" as a whole when its contents are changed.
+We could refine by marking tracks or sectors individually as "dirty".
+Not sure it would be worth the effort though.
 
 [Top](wozmania.md): Table of Contents - [Previous](debug.md): How to Debug - [Next](bibliography.md): Bibliography

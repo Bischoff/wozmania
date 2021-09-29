@@ -161,7 +161,7 @@ explode_sector:
 	lsl	w8,w8,#8
 	add	x11,x6,x8
 	mov	w5,#0			// w5 = destination byte count
-gap_1:
+load_gap_1:
 	cmp	w4,#0			// $FF x 128, 40, or 38
 	b.ne	1f
 	mov	w6,#128
@@ -171,13 +171,13 @@ gap_1:
 	mov	w6,#40
 	b	3f
 2:	mov	w6,#38
-3:	nibble	#0xff,x0,w5
+3:	ennib	#0xff,x0,w5
 	cmp	w5,w6
 	b.lt	3b
-address_field:
-	nibble	#0xd5,x0,w5		// $D5
-	nibble	#0xaa,x0,w5		// $AA
-	nibble	#0x96,x0,w5		// $96
+load_address_field:
+	ennib	#0xd5,x0,w5		// $D5
+	ennib	#0xaa,x0,w5		// $AA
+	ennib	#0x96,x0,w5		// $96
 	en4n4	w2,x0,w5		// volume
 	mov	w6,w2
 	en4n4	w3,x0,w5		// track
@@ -185,19 +185,20 @@ address_field:
 	en4n4	w4,x0,w5		// sector
 	eor	w6,w6,w4
 	en4n4	w6,x0,w5		// checksum
-	nibble	#0xde,x0,w5		// $DE
-	nibble	#0xaa,x0,w5		// $AA
+	ennib	#0xde,x0,w5		// $DE
+	ennib	#0xaa,x0,w5		// $AA
 					// according to Beneath Apple DOS, there is $EB here...
-gap_2:
+load_gap_2:
 	add	w6,w5,#5		// $FF x 5
-1:	nibble	#0xff,x0,w5
+1:	ennib	#0xff,x0,w5
 	cmp	w5,w6
 	b.lt	1b
-data_field:
-	nibble	#0xd5,x0,w5		// $D5
-	nibble	#0xaa,x0,w5		// $AA
-	nibble	#0xad,x0,w5		// $AD
-	mov	x10,x0			// 86 extra nibbles in 2-buffer
+load_data_field:
+	ennib	#0xd5,x0,w5		// $D5
+	ennib	#0xaa,x0,w5		// $AA
+	ennib	#0xad,x0,w5		// $AD
+	mov	x10,x0			// 86 extra bytes in 2-buffer
+load_data_bytes:
 	add	x0,x0,#86
 	add	w5,w5,#86
 	add	w6,w5,#86		// 86 source bytes
@@ -231,13 +232,13 @@ convert_to_nibbles:
 	ldrb	w8,[x9,x6]		// checksum
 	strb	w8,[x0],#1
 	add	w5,w5,#1
-	nibble	#0xde,x0,w5		// $DE
-	nibble	#0xaa,x0,w5		// $AA
-	nibble	#0xeb,x0,w5		// $EB
-gap_3:
-	nibble	#0xff,x0,w5		// $FF -> end
+	ennib	#0xde,x0,w5		// $DE
+	ennib	#0xaa,x0,w5		// $AA
+	ennib	#0xeb,x0,w5		// $EB
+load_gap_3:
+	ennib	#0xff,x0,w5		// $FF -> end
 	cmp	w5,#512
-	b.lt	gap_3
+	b.lt	load_gap_3
 explode_next_sector:
 	add	w4,w4,#1
 	cmp	w4,#16
@@ -406,7 +407,7 @@ save_nib_drive:
 // Convert nib format to dsk format
 implode_disk:
 	ldr	x1,[DRIVE,#DRV_CONTENT]	// x1 = source (35 tracks of 16 x 512 nibbles)
-	mov	x11,x1			// x11 = destination (35 tracks of 16 * 256 bytes)
+	mov	w2,#254			// w2 = volume number
 	mov	w3,#0			// w3 = track number
 implode_track:
 	ldr	x6,=buffer		// copy source track to buffer (to avoid
@@ -419,24 +420,48 @@ implode_track:
 	mov	w4,#0			// w4 = sector number
 implode_sector:
 	ldr	x6,=buffer
-	adr	x9,sectors_order_inv
-	ldrb	w8,[x9,x4]
-	lsl	w8,w8,#9
-	add	x10,x6,x8
-skip_to_data:				// TODO: instead of skipping everything, check the values
-	cmp	w4,#0			// skip (128, 40, or 38) + 21 bytes
-					// (22 according to Beneath Apple DOS)
+	lsl	x8,x4,#9
+	add	x0,x6,x8
+	mov	w5,#0			// w5 = destination byte count
+skip_gap_1:
+	cmp	w4,#0			// $FF x 128, 40, or 38
 	b.ne	1f
-	mov	w6,#149
+	mov	w6,#128
 	b	3f
 1:	cmp	w3,#0
 	b.ne	2f
-	mov	w6,#61
+	mov	w6,#40
 	b	3f
-2:	mov	w6,#59
-3:	add	x10,x10,x6
+2:	mov	w6,#38
+3:	denib	#0xff,x0,w5,save_failure_drive
+	cmp	w5,w6
+	b.lt	3b
+skip_address_field:
+	denib	#0xd5,x0,w5,save_failure_drive // $D5
+	denib	#0xaa,x0,w5,save_failure_drive // $AA
+	denib	#0x96,x0,w5,save_failure_drive // $96
+	de4n4	w2,x0,w5,save_failure_drive // volume
+	mov	w6,w2
+	de4n4	w3,x0,w5,save_failure_drive // track
+	eor	w6,w6,w3
+	de4n4	w4,x0,w5,save_failure_drive // sector
+	eor	w6,w6,w4
+	de4n4	w6,x0,w5,save_failure_drive // checksum
+	denib	#0xde,x0,w5,save_failure_drive // $DE
+	denib	#0xaa,x0,w5,save_failure_drive // $AA
+					// according to Beneath Apple DOS, there is $EB here...
+skip_gap_2:
+	add	w6,w5,#5		// $FF x 5
+1:	denib	#0xff,x0,w5,save_failure_drive
+	cmp	w5,w6
+	b.lt	1b
+store_data_field:
+	denib	#0xd5,x0,w5,save_failure_drive // $D5
+	denib	#0xaa,x0,w5,save_failure_drive // $AA
+	denib	#0xad,x0,w5,save_failure_drive // $AD
+	mov	x10,x0
 convert_from_nibbles:
-	add	x0,x10,#342
+	add	x0,x0,#343
 	adr	x9,map_6n2_inv
 	mov	w6,#0
 1:	ldrb	w7,[x10]
@@ -449,10 +474,18 @@ convert_from_nibbles:
 	cmp	x10,x0
 	b.lt	1b
 store_data_bytes:
-	sub	x10,x0,#342		// x10 = source, x11 = destination
-	add	x0,x10,#86		// 86 extra nibbles in 2-buffer
-	mov	w5,#0
-	mov	w6,#86			// 86 source bytes
+	sub	x10,x0,#343		// x10 = source
+	mov	w7,w3			// x11 = destination (35 tracks of 16 * 256 bytes)
+	lsl	w7,w3,#4
+	adr	x9,sectors_order
+	ldrb	w8,[x9,x4]
+	orr	w8,w8,w7
+	lsl	w8,w8,#8
+	ldr	x11,[DRIVE,#DRV_CONTENT]
+	add	x11,x11,x8
+	add	x0,x10,#86		// 86 extra bytes in 2-buffer
+	add	w5,w5,#86
+	add	w6,w5,#86		// 86 source bytes
 1:	de6n2	w9,x10,0,x0,w5
 	strb	w9,[x11],#1
 	cmp	w5,w6
@@ -469,6 +502,14 @@ store_data_bytes:
 	strb	w9,[x11],#1
 	cmp	w5,w6
 	b.lt	3b
+	denib	#0x00,x0,w5,save_failure_drive // checksum
+	denib	#0xde,x0,w5,save_failure_drive // $DE
+	denib	#0xaa,x0,w5,save_failure_drive // $AA
+	denib	#0xeb,x0,w5,save_failure_drive // $EB
+skip_gap_3:
+	denib	#0xff,x0,w5,save_failure_drive // $FF -> end
+	cmp	w5,#512
+	b.lt	skip_gap_3
 implode_next_sector:
 	add	w4,w4,#1
 	cmp	w4,#16
@@ -525,9 +566,6 @@ msg_err_drive_2:
 sectors_order:
 	.byte	0x0,0x7,0xe,0x6,0xd,0x5,0xc,0x4
 	.byte	0xb,0x3,0xa,0x2,0x9,0x1,0x8,0xf
-sectors_order_inv:
-	.byte	0x0,0xd,0xb,0x9,0x7,0x5,0x3,0x1
-	.byte	0xe,0xc,0xa,0x8,0x6,0x4,0x2,0xf
 map_6n2:
 	.byte	0x96,0x97,0x9a,0x9b,0x9d,0x9e,0x9f,0xa6
 	.byte	0xa7,0xab,0xac,0xad,0xae,0xaf,0xb2,0xb3
