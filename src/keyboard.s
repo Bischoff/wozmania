@@ -8,6 +8,7 @@
 .global intercept_ctl_c
 .global keyboard_read
 .global keyboard_write
+.global no_key
 .global restore_keyboard
 .global kbd
 
@@ -157,17 +158,22 @@ escape_bracket:
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 escape_o:
-	cmp	VALUE,#'R'		// Ctrl-C
+	cmp	VALUE,#'P'		// F1 = flush floppy disks
 	b.ne	1f
-	mov	VALUE,#0x83
-	b	3f
-1:	cmp	VALUE,#'S'		// power off
+	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	flush_disks
+1:	cmp	VALUE,#'R'		// F3 = Ctrl-C
 	b.ne	2f
+	mov	VALUE,#0x83
+	b	4f
+2:	cmp	VALUE,#'S'		// F4 = power off
+	b.ne	3f
 	b	clean_exit
-2:	mov	w0,#SEQ
+3:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
-3:	mov	w0,#SEQ
+4:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
 found_key:
@@ -183,6 +189,18 @@ no_key:
 
 // Clear strobe to prepare for next read
 clear_strobe:
+	b	no_key
+
+// Flush all disks on demand
+flush_disks:
+	mov	x14,lr
+	mov	x13,DRIVE
+	ldr	DRIVE,=drive1
+	bl	flush_drive
+	ldr	DRIVE,=drive2
+	bl	flush_drive
+	mov	DRIVE,x13
+	mov	lr,x14
 	b	no_key
 
 // Restore keyboard on exit

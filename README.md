@@ -12,7 +12,7 @@ the strict minimum.
 
 ## What is done
 
-As of 2021-10-03:
+As of 2021-10-13:
 
 * 6502 processor, no decimal mode;
 * keyboard;

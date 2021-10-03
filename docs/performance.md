@@ -49,6 +49,8 @@ even when running non-interative BASIC programs.
 The floppy disks are read for real only at the startup of the emulator,
 and written for real only at the end of the emulator (assuming its contents
 was modified). All input-output in the meantime only happens in memory.
+You can force an earlier flushing by pressing F1.
+(F1 does not work yet)
 
 
 <a name="not-implemented"/>

@@ -197,5 +197,5 @@ value_disable:
 
 msg_err_conf:
 	.ascii	"Syntax error in file wozmania.conf line ..\n"
-conf_flags:
-	.byte	0			// configuration flags
+conf_flags:				// configuration flags
+	.byte	0

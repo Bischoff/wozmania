@@ -74,7 +74,7 @@ load_nib_drive:
 	tst	w0,#S_IWUSR
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
-1:	mov	w0,w9			// read disk file
+1:	mov	w0,w9			// read disk file directly to content
 	ldr	x1,[DRIVE,#DRV_CONTENT]
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
@@ -109,13 +109,10 @@ load_dsk_drive:
 	tst	w0,#S_IWUSR
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
-1:	mov	w0,w9			// read disk file
-	ldr	x1,[DRIVE,#DRV_CONTENT]
-	mov	x9,x1
+1:	mov	w0,w9			// read disk file to conversion buffer
+	ldr	x1,=dsk_buffer
 	mov	w2,#0x3000
 	movk	w2,#2,lsl #16
-	add	x1,x1,x2
-	mov	x10,x1
 	mov	w8,#READ
 	svc	0
 	cmp	x0,x2
@@ -124,42 +121,33 @@ load_dsk_drive:
 	strb	w4,[DRIVE,#DRV_FLAGS]
 	mov	w4,#8192
 	strh	w4,[DRIVE,#DRV_TSIZE]
-	mov	x0,x9			// convert its format
-	mov	x1,x10
-	mov	w2,#254
-	b	explode_disk
+	b	explode_disk		// convert its format
 
 // Failure loading drive file
 load_failure_drive:
-	ldr	x3,=msg_err_load_drive
-	write	STDERR,26
+	adr	x3,msg_err_load_drive
+	write	STDERR,33
 	ldr	x3,[DRIVE,#DRV_FNAME]
 	writez	STDERR
-	ldr	x3,=msg_err_drive_2
+	adr	x3,msg_err_drive_end
 	write	STDERR,1
 	b	final_exit
 
 // Convert dsk format to nib format
-// input: x0 = destination (at start of content)
-//        x1 = source      (0x23000 bytes ahead)
-//        w2 = volume number
 explode_disk:
+	ldr	x0,[DRIVE,#DRV_CONTENT]	// x0 = destination (35 tacks of 16 x 512 nibbles)
+	mov	w2,#254			// w2 = volume number
 	mov	w3,#0			// w3 = track number
 explode_track:
-	ldr	x6,=buffer		// copy source track to buffer (to avoid
-					//   overlapping between source and destination)
-	add	x7,x6,#(16*256)
-1:	ldr	x8,[x1],#8
-	str	x8,[x6],#8
-	cmp	x6,x7
-	b.lt	1b
 	mov	w4,#0			// w4 = sector number
 explode_sector:
-	ldr	x6,=buffer
+	ldr	x1,=dsk_buffer		// x1 = source (35 tracks of 16 x 256 bytes)
+	lsl	w7,w3,#4		// let x11 point to beginning of sector
 	adr	x9,sectors_order
 	ldrb	w8,[x9,x4]
+	orr	w8,w8,w7
 	lsl	w8,w8,#8
-	add	x11,x6,x8
+	add	x11,x1,x8
 	mov	w5,#0			// w5 = destination byte count
 load_gap_1:
 	cmp	w4,#0			// $FF x 128, 40, or 38
@@ -197,38 +185,40 @@ load_data_field:
 	ennib	#0xd5,x0,w5		// $D5
 	ennib	#0xaa,x0,w5		// $AA
 	ennib	#0xad,x0,w5		// $AD
-	mov	x10,x0			// 86 extra bytes in 2-buffer
 load_data_bytes:
-	add	x0,x0,#86
+	ldr	x10,=buffer		// 86 extra bytes in 2-buffer
+	add	x12,x10,#86
 	add	w5,w5,#86
 	add	w6,w5,#86		// 86 source bytes
 1:	ldrb	w9,[x11],#1
-	en6n2	w9,x10,0,x0,w5
+	en6n2	w9,x10,0,x12,w5
 	cmp	w5,w6
 	b.lt	1b
 	sub	x10,x10,#86		// 86 source bytes
 	add	w6,w5,#86
 2:	ldrb	w9,[x11],#1
-	en6n2	w9,x10,2,x0,w5
+	en6n2	w9,x10,2,x12,w5
 	cmp	w5,w6
 	b.lt	2b
 	sub	x10,x10,#86		// 84 source bytes
 	add	w6,w5,#84
 3:	ldrb	w9,[x11],#1
-	en6n2	w9,x10,4,x0,w5
+	en6n2	w9,x10,4,x12,w5
 	cmp	w5,w6
 	b.lt	3b
 convert_to_nibbles:
-	sub	x10,x0,#342
+	add	x10,x0,#342
+	ldr	x1,=buffer
 	adr	x9,map_6n2
 	mov	w6,#0
-1:	ldrb	w8,[x10]
+1:	ldrb	w8,[x1],#1
 	eor	w7,w8,w6
 	mov	w6,w8
 	ldrb	w8,[x9,x7]
-	strb	w8,[x10],#1
-	cmp	x10,x0
+	strb	w8,[x0],#1
+	cmp	x0,x10
 	b.lt	1b
+load_end_data_filed:
 	ldrb	w8,[x9,x6]		// checksum
 	strb	w8,[x0],#1
 	add	w5,w5,#1
@@ -278,7 +268,7 @@ change_track:
 	lsr	w0,w1,#1		// w0 = new phase, w3 = old phase
 	ldrb	w3,[DRIVE,#DRV_PHASE]
 	strb	w0,[DRIVE,#DRV_PHASE]
-	ldr	x2,=htrack_delta	// w4 = half-track delta
+	adr	x2,htrack_delta		// w4 = half-track delta
 	lsl	w3,w3,#2
 	add	w3,w3,w0
 	ldrsb	w4,[x2,x3]
@@ -314,14 +304,14 @@ read_nibble:
 	mov	w0,#(FLG_LOADED|FLG_WRITE) // only read when loaded + read mode
 	and	w0,w0,w2
 	cmp	w0,#FLG_LOADED
-	b.ne	2f
+	b.ne	last_nibble
 	ldrb	VALUE,[x1,x7]		// read nibble at (track * tsize + head position)
 	add	w0,w5,#1		// move head forward
 	cmp	w0,w4
 	b.lt	1f
 	mov	w0,#0
 1:	strh	w0,[DRIVE,#DRV_HEAD]
-2:	strb	VALUE,[DRIVE,#DRV_LASTNIB]
+	strb	VALUE,[DRIVE,#DRV_LASTNIB]
 	.ifdef	F_READ
 	b	f_read
 	.else
@@ -331,7 +321,7 @@ write_nibble:
 	mov	w0,#(FLG_LOADED|FLG_WRITE|FLG_READONLY) // only write when loaded + write mode + not read-only
 	and	w0,w0,w2
 	cmp	w0,#(FLG_LOADED|FLG_WRITE)
-	b.ne	2f
+	b.ne	last_nibble
 	ldrb	VALUE,[DRIVE,#DRV_NEXTNIB] // write nibble to (track * tsize + head position)
 	strb	VALUE,[x1,x7]
 	add	w0,w5,#1		// move head forward
@@ -339,9 +329,18 @@ write_nibble:
 	b.lt	1f
 	mov	w0,#0
 1:	strh	w0,[DRIVE,#DRV_HEAD]
+	tst	w2,#FLG_DIRTY		// make drive dirty
+	b.ne	4f
 	orr	w2,w2,#FLG_DIRTY
 	strb	w2,[DRIVE,#DRV_FLAGS]
-2:
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	2f
+	adr	x3,msg_dirty_drive_1
+	b	3f
+2:	adr	x3,msg_dirty_drive_2
+3:	write	STDOUT,11
+4:
 	.ifdef	F_WRITE
 	b	f_write
 	.else
@@ -392,7 +391,7 @@ save_nib_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	save_failure_drive
-	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file
+	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file directly from content
 	mov	w2,#0x8e00
 	movk	w2,#3,lsl #16
 	mov	w8,#WRITE
@@ -402,26 +401,23 @@ save_nib_drive:
 	ldrb	w4,[DRIVE,#DRV_FLAGS]	// clean dirty flag
 	and	w4,w4,#~FLG_DIRTY
 	strb	w4,[DRIVE,#DRV_FLAGS]
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	1f
+	adr	x3,msg_clean_drive_1
+	b	2f
+1:	adr	x3,msg_clean_drive_2
+2:	write	STDOUT,16
 	br	lr
 
 // Convert nib format to dsk format
 implode_disk:
-	ldr	x1,[DRIVE,#DRV_CONTENT]	// x1 = source (35 tracks of 16 x 512 nibbles)
+	ldr	x0,[DRIVE,#DRV_CONTENT]	// x0 = source (35 tracks of 16 x 512 nibbles)
 	mov	w2,#254			// w2 = volume number
 	mov	w3,#0			// w3 = track number
 implode_track:
-	ldr	x6,=buffer		// copy source track to buffer (to avoid
-					//   overlapping between source and destination)
-	add	x7,x6,#(16*512)
-1:	ldr	x8,[x1],#8
-	str	x8,[x6],#8
-	cmp	x6,x7
-	b.lt	1b
 	mov	w4,#0			// w4 = sector number
 implode_sector:
-	ldr	x6,=buffer
-	lsl	x8,x4,#9
-	add	x0,x6,x8
 	mov	w5,#0			// w5 = destination byte count
 skip_gap_1:
 	cmp	w4,#0			// $FF x 128, 40, or 38
@@ -455,54 +451,28 @@ skip_gap_2:
 1:	denib	#0xff,x0,w5,save_failure_drive
 	cmp	w5,w6
 	b.lt	1b
-store_data_field:
+skip_data_field:
 	denib	#0xd5,x0,w5,save_failure_drive // $D5
 	denib	#0xaa,x0,w5,save_failure_drive // $AA
 	denib	#0xad,x0,w5,save_failure_drive // $AD
-	mov	x10,x0
 convert_from_nibbles:
-	add	x0,x0,#343
+	add	x10,x0,#343
+	ldr	x1,=buffer
 	adr	x9,map_6n2_inv
 	mov	w6,#0
-1:	ldrb	w7,[x10]
+1:	ldrb	w7,[x0],#1
 	ldrb	w8,[x9,x7]
 	eor	w7,w8,w6
 	mov	w6,w7
 	tst	w7,#0xC0
 	b.ne	save_failure_drive
-	strb	w7,[x10],#1
-	cmp	x10,x0
+	strb	w7,[x1],#1
+	cmp	x0,x10
 	b.lt	1b
-store_data_bytes:
-	sub	x10,x0,#343		// x10 = source
-	mov	w7,w3			// x11 = destination (35 tracks of 16 * 256 bytes)
-	lsl	w7,w3,#4
-	adr	x9,sectors_order
-	ldrb	w8,[x9,x4]
-	orr	w8,w8,w7
-	lsl	w8,w8,#8
-	ldr	x11,[DRIVE,#DRV_CONTENT]
-	add	x11,x11,x8
-	add	x0,x10,#86		// 86 extra bytes in 2-buffer
-	add	w5,w5,#86
-	add	w6,w5,#86		// 86 source bytes
-1:	de6n2	w9,x10,0,x0,w5
-	strb	w9,[x11],#1
-	cmp	w5,w6
-	b.lt	1b
-	sub	x10,x10,#86		// 86 source bytes
-	add	w6,w5,#86
-2:	de6n2	w9,x10,2,x0,w5
-	strb	w9,[x11],#1
-	cmp	w5,w6
-	b.lt	2b
-	sub	x10,x10,#86		// 84 source bytes
-	add	w6,w5,#84
-3:	de6n2	w9,x10,4,x0,w5
-	strb	w9,[x11],#1
-	cmp	w5,w6
-	b.lt	3b
-	denib	#0x00,x0,w5,save_failure_drive // checksum
+skip_end_data_field:
+	cmp	w6,#0x00		// checksum
+	b.ne	save_failure_drive
+	add	w5,w5,#343
 	denib	#0xde,x0,w5,save_failure_drive // $DE
 	denib	#0xaa,x0,w5,save_failure_drive // $AA
 	denib	#0xeb,x0,w5,save_failure_drive // $EB
@@ -510,6 +480,34 @@ skip_gap_3:
 	denib	#0xff,x0,w5,save_failure_drive // $FF -> end
 	cmp	w5,#512
 	b.lt	skip_gap_3
+store_data_bytes:
+	ldr	x1,=dsk_buffer		// x1 = destination (35 tracks of 16 x 256 bytes)
+	lsl	w7,w3,#4		// let x11 point to beginning of sector
+	adr	x9,sectors_order
+	ldrb	w8,[x9,x4]
+	orr	w8,w8,w7
+	lsl	w8,w8,#8
+	add	x11,x1,x8
+	ldr	x10,=buffer		// 86 extra bytes in 2-buffer
+	mov	w5,#0
+	add	x12,x10,#86
+	mov	w6,#86			// 86 source bytes
+1:	de6n2	w9,x10,0,x12,w5
+	strb	w9,[x11],#1
+	cmp	w5,w6
+	b.lt	1b
+	sub	x10,x10,#86		// 86 source bytes
+	add	w6,w5,#86
+2:	de6n2	w9,x10,2,x12,w5
+	strb	w9,[x11],#1
+	cmp	w5,w6
+	b.lt	2b
+	sub	x10,x10,#86		// 84 source bytes
+	add	w6,w5,#84
+3:	de6n2	w9,x10,4,x12,w5
+	strb	w9,[x11],#1
+	cmp	w5,w6
+	b.lt	3b
 implode_next_sector:
 	add	w4,w4,#1
 	cmp	w4,#16
@@ -528,7 +526,7 @@ save_dsk_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	save_failure_drive
-	ldr	x1,[DRIVE,#DRV_CONTENT] // write disk file
+	ldr	x1,=dsk_buffer		// write disk file from conversion buffer
 	mov	w2,#0x3000
 	movk	w2,#2,lsl #16
 	mov	w8,#WRITE
@@ -538,15 +536,22 @@ save_dsk_drive:
 	ldrb	w4,[DRIVE,#DRV_FLAGS]	// clean dirty flag
 	and	w4,w4,#~FLG_DIRTY
 	strb	w4,[DRIVE,#DRV_FLAGS]
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	1f
+	adr	x3,msg_clean_drive_1
+	b	2f
+1:	adr	x3,msg_clean_drive_2
+2:	write	STDOUT,16
 	br	lr
 
 // Failure saving drive file
 save_failure_drive:
-	ldr	x3,=msg_err_save_drive
-	write	STDERR,26
+	adr	x3,msg_err_save_drive
+	write	STDERR,33
 	ldr	x3,[DRIVE,#DRV_FNAME]
 	writez	STDERR
-	ldr	x3,=msg_err_drive_2
+	adr	x3,msg_err_drive_end
 	write	STDERR,1
 	br	lr
 
@@ -558,11 +563,19 @@ ext_nib:
 ext_dsk:
 	.asciz	".dsk"
 msg_err_load_drive:
-	.ascii	"Could not load drive file "
+	.ascii	"\x1B[26;1HCould not load drive file "
 msg_err_save_drive:
-	.ascii	"Could not save drive file "
-msg_err_drive_2:
+	.ascii	"\x1B[26;1HCould not save drive file "
+msg_err_drive_end:
 	.ascii	"\n"
+msg_dirty_drive_1:
+	.ascii	"\x1B[25;24HD1"
+msg_clean_drive_1:
+	.ascii	"\x1B[25;24H\x1B[27m  "
+msg_dirty_drive_2:
+	.ascii	"\x1B[25;32HD2"
+msg_clean_drive_2:
+	.ascii	"\x1B[25;32H\x1B[27m  "
 sectors_order:
 	.byte	0x0,0x7,0xe,0x6,0xd,0x5,0xc,0x4
 	.byte	0xb,0x3,0xa,0x2,0x9,0x1,0x8,0xf
@@ -679,3 +692,6 @@ drive2:
 	.hword	0
 	.quad	0
 	.quad	0
+// TODO: move this to malloc'ed memory
+dsk_buffer:				// buffer for dsk-encoded floppy
+	.fill	0x23000,1,0		// enough for 35 tracks of 16 sectors of 256 bytes

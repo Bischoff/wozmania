@@ -46,11 +46,14 @@ partially work if you use the ROM corresponding to those models.
 
 The following keys are defined:
 
-| Linux  | Apple ]\[  |
-| ------ | ---------- |
-| Ctrl-C | Ctrl-Reset |
-| F3     | Ctrl-C     |
-| F4     | Power off  |
+| Linux  | Apple ]\[         |
+| ------ | ----------------- |
+| Ctrl-C | Ctrl-Reset        |
+| F1     | Flush floppy disk |
+| F3     | Ctrl-C            |
+| F4     | Power off         |
+
+(F1 does not work yet)
 
 You can set the ratio at which the keyboard is polled for real.
 For example, if you set in `/etc/wozmania.conf`:
@@ -117,6 +120,12 @@ $ chmod -w mydisk.nib
 ```
 This is equivalent to closing the write protection punch with black
 tape on an original floppy disk.
+
+All changes to the disk are written to a cache in memory. This cache
+is flushed to disk when you exit the emulator. You can force flushing
+the current disk at any time by pressing F1. An unsaved cache is
+shown as `D1` or `D2` below the emulated screen.
+(F1 does not work yet)
 
 #### Enabling or Disabling the Controller
 

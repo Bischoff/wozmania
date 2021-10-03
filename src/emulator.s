@@ -101,5 +101,5 @@ final_exit:
 
 .data
 
-buffer:					// general use buffer
+buffer:					// general purpose buffer
 	.fill	SIZEOF_BUFFER,1,0
