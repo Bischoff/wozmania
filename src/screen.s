@@ -13,7 +13,7 @@
 .global videx80_read
 .global videx80_write_register
 .global videx80_write_value
-.global clean_exit
+.global clean_terminal
 .global rom_c800
 
 .include "src/defs.s"
@@ -22,7 +22,7 @@
 // Prepare text terminal
 prepare_terminal:
 	adr	x3,msg_begin		// clear screen and hide cursor
-	write	STDOUT,10
+	write	STDOUT,35
 	br	lr
 
 // Disable the 80 column card
@@ -237,10 +237,10 @@ videx80_write_value:
 2:	br	lr
 
 // Cleanup terminal on exit
-clean_exit:
-	adr	x3,msg_end		// go to line 25 and restore cursor
-	write	STDOUT,14
-	b	exit
+clean_terminal:
+	adr	x3,msg_end		// go to line 26 and restore cursor
+	write	STDOUT,13
+	br	lr
 
 
 // Fixed data
@@ -269,9 +269,9 @@ col80_table:
 	.quad	nothing_to_read
 	.quad	videx80_page3
 msg_begin:
-	.ascii	"\x1B[2J\x1B[?25l"
+	.ascii	"\x1B[2J\x1B[?25l\x1B[25;1H-- WozMania 0.1 --"
 msg_end:
-	.ascii	"\x1B[25;01H\x1B[?25h"
+	.ascii	"\x1B[26;1H\x1B[?25h"
 rom_c800:
 	.byte	0xad,0x7b,0x07,0x29,0xf8,0xc9,0x30,0xf0
 	.byte	0x21,0xa9,0x30,0x8d,0x7b,0x07,0x8d,0xfb

@@ -12,6 +12,18 @@
 
 ### Running WozMania
 
+#### Requirements
+
+To run WozMania, you need:
+
+- a Linux system
+- a 64 bits ARM processor
+- at least 1 MB RAM
+- at least 2 MB disk space
+- an ANSI terminal with at least 26 rows and 80 columns.
+
+#### Instructions
+
 1. Assemble and install WozMania by running the commands `make`
    and `sudo make install`.
 2. Download to the directory `/var/lib/wozmania/roms` a file
@@ -52,8 +64,6 @@ The following keys are defined:
 | F1     | Flush floppy disk |
 | F3     | Ctrl-C            |
 | F4     | Power off         |
-
-(F1 does not work yet)
 
 You can set the ratio at which the keyboard is polled for real.
 For example, if you set in `/etc/wozmania.conf`:
@@ -125,7 +135,6 @@ All changes to the disk are written to a cache in memory. This cache
 is flushed to disk when you exit the emulator. You can force flushing
 the current disk at any time by pressing F1. An unsaved cache is
 shown as `D1` or `D2` below the emulated screen.
-(F1 does not work yet)
 
 #### Enabling or Disabling the Controller
 

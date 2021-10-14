@@ -110,7 +110,7 @@ load_dsk_drive:
 	b.ne	1f
 	orr	w4,w4,#FLG_READONLY
 1:	mov	w0,w9			// read disk file to conversion buffer
-	ldr	x1,=dsk_buffer
+	ldr	x1,[DRIVE,#DRV_DSK_CONTENT]
 	mov	w2,#0x3000
 	movk	w2,#2,lsl #16
 	mov	w8,#READ
@@ -141,7 +141,7 @@ explode_disk:
 explode_track:
 	mov	w4,#0			// w4 = sector number
 explode_sector:
-	ldr	x1,=dsk_buffer		// x1 = source (35 tracks of 16 x 256 bytes)
+	ldr	x1,[DRIVE,#DRV_DSK_CONTENT] // x1 = source (35 tracks of 16 x 256 bytes)
 	lsl	w7,w3,#4		// let x11 point to beginning of sector
 	adr	x9,sectors_order
 	ldrb	w8,[x9,x4]
@@ -481,7 +481,7 @@ skip_gap_3:
 	cmp	w5,#512
 	b.lt	skip_gap_3
 store_data_bytes:
-	ldr	x1,=dsk_buffer		// x1 = destination (35 tracks of 16 x 256 bytes)
+	ldr	x1,[DRIVE,#DRV_DSK_CONTENT] // x1 = destination (35 tracks of 16 x 256 bytes)
 	lsl	w7,w3,#4		// let x11 point to beginning of sector
 	adr	x9,sectors_order
 	ldrb	w8,[x9,x4]
@@ -526,7 +526,7 @@ save_dsk_drive:
 	svc	0
 	cmp	x0,#0
 	b.lt	save_failure_drive
-	ldr	x1,=dsk_buffer		// write disk file from conversion buffer
+	ldr	x1,[DRIVE,#DRV_DSK_CONTENT] // write disk file from conversion buffer
 	mov	w2,#0x3000
 	movk	w2,#2,lsl #16
 	mov	w8,#WRITE
@@ -681,6 +681,7 @@ drive1:					// 35 tracks, 13 or 16 sectors, 512 nibbles each (for 256 bytes)
 	.hword	0			// track size 6656 or 8192
 	.quad	0			// pointer to filename
 	.quad	0			// pointer to content
+	.quad	0			// pointer to DSK content
 drive2:
 	.byte	0
 	.byte	0
@@ -692,6 +693,4 @@ drive2:
 	.hword	0
 	.quad	0
 	.quad	0
-// TODO: move this to malloc'ed memory
-dsk_buffer:				// buffer for dsk-encoded floppy
-	.fill	0x23000,1,0		// enough for 35 tracks of 16 sectors of 256 bytes
+	.quad	0

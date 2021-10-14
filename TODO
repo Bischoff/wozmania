@@ -1,7 +1,5 @@
              TO DO
 
-* memory:
-  - move general-purpose buffer to malloc'ed area
 * keyboard:
   - nano timer to receive ESC key
 * 80 column support:

@@ -12,13 +12,13 @@ the strict minimum.
 
 ## What is done
 
-As of 2021-10-13:
+WozMania 0.1, as of 2021-10-16, emulates:
 
-* 6502 processor, no decimal mode;
-* keyboard;
+* a 6502 processor, no decimal mode;
+* a keyboard;
 * video output in text mode, 40 and 80 columns;
 * floppy disks 1 and 2, `.nib` and `.dsk` formats;
-* language card.
+* a language card.
 
 
 ## Usage

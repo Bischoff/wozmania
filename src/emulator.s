@@ -90,6 +90,7 @@ exit:
 	bl	flush_drive
 	ldr	DRIVE,=drive2
 	bl	flush_drive
+	bl	clean_terminal		// cleanup terminal
 	bl	restore_keyboard	// restore normal keyboard
 final_exit:
 	mov	x0,#0			// exit program

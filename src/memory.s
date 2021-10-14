@@ -23,12 +23,13 @@
 // - 80 column card    0x800
 // - drive1          0x46000  (38e00 for 13 sectors,
 // - drive2          0x46000   46000 for 16 sectors)
+// - dsk drive       0x23000
 //                   -------
-//                   0xa0800
+//                   0xc3800
 allocate_memory:
 	mov	w0,#0			// ask memory to system
-	mov	w1,#0x0800
-	movk	w1,#0xa,LSL #16
+	mov	w1,#0x3800
+	movk	w1,#0xc,LSL #16
 	mov	w2,#(PROT_READ|PROT_WRITE)
 	mov	w3,#(MAP_PRIVATE|MAP_ANONYMOUS)
 	mov	x4,#-1
@@ -48,6 +49,13 @@ allocate_memory:
 	add	x0,x0,x1
 	ldr	x1,=drive2
 	str	x0,[x1,#DRV_CONTENT]
+	mov	w1,#0x3000
+	movk	w1,#2,LSL #16
+	add	x0,x0,x1
+	ldr	x1,=drive1
+	str	x0,[x1,#DRV_DSK_CONTENT]
+	ldr	x1,=drive2
+	str	x0,[x1,#DRV_DSK_CONTENT]
 	br	lr
 allocate_error:
 	adr	x3,msg_err_memory

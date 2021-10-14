@@ -119,6 +119,7 @@ BREAKPOINT	.req	x29
 	.equ	DRV_TSIZE,8
 	.equ	DRV_FNAME,10
 	.equ	DRV_CONTENT,18
+	.equ	DRV_DSK_CONTENT,26
 
 // Internal constants
 	.equ	SIZEOF_BUFFER,2048      // size of general purpose buffer
@@ -129,7 +130,7 @@ BREAKPOINT	.req	x29
 	.equ	FLG_WRITE,0x02
 	.equ	FLG_DIRTY,0x04
 	.equ	FLG_DSK,0x08
-	.equ	FLG_READONLY,0x10
+	.equ	FLG_READONLY,0x80
 	.equ	SEQ,0			// keyboard sequence
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2

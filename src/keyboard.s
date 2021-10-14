@@ -169,7 +169,7 @@ escape_o:
 	b	4f
 2:	cmp	VALUE,#'S'		// F4 = power off
 	b.ne	3f
-	b	clean_exit
+	b	exit
 3:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
