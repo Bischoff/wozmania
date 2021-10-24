@@ -1,5 +1,9 @@
              TO DO
 
+* bugs:
+  - floppy: DOS 3.3 INIT command hangs
+    (verification at VTRACK routine fails)
+  - 80 column: some characters replaces by space
 * keyboard:
   - nano timer to receive ESC key
 * 80 column support:
