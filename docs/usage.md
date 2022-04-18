@@ -166,9 +166,13 @@ Applesoft BASIC, like Integer BASIC or Pascal.
 
 If you boot on the DOS system master disk, it loads the Integer BASIC
 into the language card. You can then switch to this BASIC with the
-command `INT`, and back to AppleSoft BASIC with the command `FP`.
+command `INT`, and back to Applesoft BASIC with the command `FP`.
 
 ![Integer BASIC in WozMania](integer.png)
+
+The Integer BASIC code also contains the mini-assembler. To
+access the mini-assembler from the Integer BASIC, use the command
+`CALL -2458`.
 
 WozMania makes the following approximations:
 

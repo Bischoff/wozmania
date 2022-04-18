@@ -44,7 +44,7 @@ All those cases are very marginal and should not impact real-life scenarios.
 The keyboard is polled for real only one time out of 256 (this value
 can be changed in the configuration file). This has a huge
 performance impact, as the Apple's ROM keeps polling the keyboard a lot,
-even when running non-interative BASIC programs.
+even when running non-interactive BASIC programs.
 
 The floppy disks are read for real only at the startup of the emulator,
 and written for real only at the end of the emulator (assuming its contents
@@ -64,6 +64,6 @@ good enough without using such tricks.
 
 Floppy disk is marked as "dirty" as a whole when its contents are changed.
 We could refine by marking tracks or sectors individually as "dirty".
-Not sure it would be worth the effort though.
+I am not sure it would be worth the effort though.
 
 [Top](wozmania.md): Table of Contents - [Previous](debug.md): How to Debug - [Next](bibliography.md): Bibliography
