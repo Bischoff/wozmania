@@ -3,12 +3,10 @@
 
 [Top](wozmania.md): Table of Contents - [Next](debug.md): How to Debug
 
-<a name="use"/>
 
 ## How to Use
 
 
-<a name="run"/>
 
 ### Running WozMania
 
@@ -20,7 +18,9 @@ To run WozMania, you need:
 - a 64 bits ARM processor
 - at least 1 MB RAM
 - at least 2 MB disk space
-- an ANSI terminal with at least 26 rows and 80 columns.
+- an ANSI terminal with at least 26 rows and 80 columns
+- if you want to use the GUI, a X-Window display.
+
 
 #### Instructions
 
@@ -32,6 +32,18 @@ To run WozMania, you need:
 4. To exit the emulator, press F4.
 
 ![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
+
+If you plan to run Wozmania in a Graphical User interface:
+1. Compile and install the GUI:
+  * install the Qt5 development libraries
+  * go to `src/gui` subdirectory
+  * run `qmake wozmania-gui.pro`
+  * run `make`
+  * run `sudo make install`
+2. Start the emulator by typing `wozmania`
+3. Start the GUI by typing `wozmania-gui`
+4. To exit the emulator, press Ctrl-C.
+
 
 #### The ROM file
 
@@ -52,7 +64,6 @@ like the Apple //e, are out of focus, it is likely they will at least
 partially work if you use the ROM corresponding to those models.
 
 
-<a name="keyboard"/>
 
 ### Using the Keyboard
 
@@ -77,7 +88,6 @@ The default value is 8, meaning the keyboard is polled only
 one time out of 256.
 
 
-<a name="floppy"/>
 
 ### Using the Floppy Disks
 
@@ -156,7 +166,6 @@ If the ROM file already contains ROM code for the floppy disk controller,
 it will be overwritten with a jump to the monitor.
 
 
-<a name="language"/>
 
 ### Using the Language Card
 
@@ -194,7 +203,6 @@ langcard disable
 ```
 
 
-<a name="v80"/>
 
 ### Using the 80 Column Card
 
@@ -223,6 +231,29 @@ You may completly disable the 80 column card by specifying:
 ```
 80col disable
 ```
+
+
+
+### The Graphical User Interface
+
+The WozMania GUI is provided as a technical preview
+and is not finished yet.
+
+![The Graphical User Interface](gui.png)
+
+The emulator communicates with the GUI via the Unix domain socket
+`/tmp/wozmania.sock`.
+
+To run WozMania with the GUI, specify in the configuration file:
+```
+gui enable
+```
+
+Current limitations:
+* no graphical menus
+* no support for blinking characters in text mode
+* no support yet for the low and high resolution
+  graphics of the Apple ]\[.
 
 
 [Top](wozmania.md): Table of Contents - [Next](debug.md): How to Debug

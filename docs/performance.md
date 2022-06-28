@@ -3,11 +3,9 @@
 
 [Top](wozmania.md): Table of Contents - [Previous](debug.md): How to Debug - [Next](bibliography.md): Bibliography
 
-<a name="performance"/>
 
 ## Performance Considerations
 
-<a name="style"/>
 
 ### Coding Style
 
@@ -16,7 +14,6 @@ compactness, therefore it uses macros instead of subroutines. The ARM
 return stack is intentionally not used at all.
 
 
-<a name="processor"/>
 
 ### Processor Accelerations
 
@@ -37,7 +34,6 @@ This will lead to emulation inaccuracies for the second byte:
 All those cases are very marginal and should not impact real-life scenarios.
 
 
-<a name="input-output"/>
 
 ### Input-output Accelerations
 
@@ -52,7 +48,6 @@ was modified). All input-output in the meantime only happens in memory.
 You can force an earlier flushing by pressing F1.
 
 
-<a name="not-implemented"/>
 
 ### Not Implemented Accelerations
 

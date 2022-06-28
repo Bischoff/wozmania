@@ -1,5 +1,5 @@
 // WozMania Apple ][ emulator for ARM processor
-// (c) Eric Bischoff 2021
+// (c) Eric Bischoff 2021-2022
 // Released under GPLv2 license
 //
 // Configuration options
@@ -110,6 +110,8 @@ recognize_key:
 	strcmp	x3,x5,x4,r_floppy
 	adr	x4,key_80col
 	strcmp	x3,x5,x4,r_80col
+	adr	x4,key_gui
+	strcmp	x3,x5,x4,r_gui
 	adr	x4,key_keyboard
 	strcmp	x3,x5,x4,r_keyboard
 	b	syntax_error
@@ -140,6 +142,12 @@ r_80col:
 	adr	x4,value_enable
 	strcmp	x6,x7,x4,r_80col_enable
 	b	syntax_error
+r_gui:
+	adr	x4,value_disable
+	strcmp	x6,x7,x4,end_of_line
+	adr	x4,value_enable
+	strcmp	x6,x7,x4,r_gui_enable
+	b	syntax_error
 r_keyboard:
 	atoi	x6,x7,x4,syntax_error
 	cmp	x4,#16
@@ -154,6 +162,9 @@ r_floppy_enable:
 	b	end_of_line
 r_80col_enable:
 	option	CNF_80COL_E
+	b	end_of_line
+r_gui_enable:
+	option	CNF_GUI_E
 	b	end_of_line
 end_of_line:
 	add	w2,w2,#1
@@ -183,6 +194,8 @@ key_floppy:
 	.asciz	"floppy"
 key_80col:
 	.asciz	"80col"
+key_gui:
+	.asciz	"gui"
 key_keyboard:
 	.asciz	"keyboard_poll_ratio"
 value_enable:

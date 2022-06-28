@@ -1,5 +1,5 @@
 // WozMania Apple ][ emulator for ARM processor
-// (c) Eric Bischoff 2021
+// (c) Eric Bischoff 2021-2022
 // Released under GPLv2 license
 //
 // Definitions
@@ -60,12 +60,18 @@ BREAKPOINT	.req	x29
 
 // Linux system calls
 	.equ	IOCTL,29
+	.equ	UNLINKAT,35
 	.equ	OPENAT,56
+	.equ	CLOSE,57
 	.equ	READ,63
 	.equ	WRITE,64
 	.equ	FSTAT,80
 	.equ	EXIT,93
 	.equ	RT_SIGACTION,134
+	.equ	SOCKET,198
+	.equ	BIND,200
+	.equ	LISTEN,201
+	.equ	ACCEPT,202
 	.equ	MMAP,222
 
 // Linux structures
@@ -91,6 +97,8 @@ BREAKPOINT	.req	x29
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
 	.equ	S_IWUSR,0x80		// file stat
+	.equ	AF_UNIX,1		// socket
+	.equ	SOCK_STREAM,1
 	.equ	PROT_READ,0x1		// memory map
 	.equ	PROT_WRITE,0x2
 	.equ	MAP_PRIVATE,0x2
@@ -126,6 +134,7 @@ BREAKPOINT	.req	x29
 	.equ	CNF_LANGCARD_E,0x01	// configuration flags
 	.equ	CNF_FLOPPY_E,0x02
 	.equ	CNF_80COL_E,0x04
+	.equ	CNF_GUI_E,0x08
 	.equ	FLG_LOADED,0x01		// floppy disk flags
 	.equ	FLG_WRITE,0x02
 	.equ	FLG_DIRTY,0x04

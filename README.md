@@ -12,13 +12,17 @@ the strict minimum.
 
 ## What is done
 
-WozMania 0.1, as of 2021-10-24, emulates:
+WozMania 0.2, as of 2022-07-01, emulates:
 
 * a 6502 processor, no decimal mode;
 * an Apple ]\[ keyboard;
 * video output in text mode, 40 and 80 columns;
 * floppy disks 1 and 2, `.nib` and `.dsk` formats;
 * a language card.
+
+WozMania works in an ANSI terminal. There's also a first sketch of a GUI
+interface; the idea is to support low and high resolution graphics in that
+interface, although that does not work yet.
 
 
 ## Usage
@@ -41,7 +45,7 @@ Contact: eric dot1 bischoff dot2 fr snail gmail dot3 com.
 
 ## Copyright and License
 
-WozMania is (c) 2021 Eric Bischoff.
+WozMania is (c) 2021-2022 Eric Bischoff.
 
 WozMania is released under GNU GENERAL PUBLIC LICENSE, Version 2.
 See [LICENSE](LICENSE) file for details.

@@ -1,5 +1,5 @@
 // WozMania Apple ][ emulator for ARM processor
-// (c) Eric Bischoff 2021
+// (c) Eric Bischoff 2021-2022
 // Released under GPLv2 license
 //
 // Memory management
@@ -251,7 +251,7 @@ store_b_addr:
 	cmp	ADDR,#0x0400		// $0400-$07FF 40 column text
 	b.lt	1f
 	cmp	ADDR,#0x0800
-	b.lt	text40
+	b.lt	text40_write
 1:	br	lr
 store_b_not_ram:
 	cmp	ADDR,#0xD000		// I/O area

@@ -3,12 +3,10 @@
 
 [Top](wozmania.md): Table of Contents - [Previous](usage.md): How to Use - [Next](performance.md): Performance Considerations
 
-<a name="debug"/>
 
 ## How to Debug
 
 
-<a name="gdb"/>
 
 ### Debugging with gdb
 
@@ -46,7 +44,6 @@ To single-step one 6502 instruction, use:
 ```
 
 
-<a name="helpers"/>
 
 ### Helper Routines
 

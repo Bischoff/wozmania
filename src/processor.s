@@ -1,5 +1,5 @@
 // WozMania Apple ][ emulator for ARM processor
-// (c) Eric Bischoff 2021
+// (c) Eric Bischoff 2021-2022
 // Released under GPLv2 license
 //
 // 6502 processor instructions

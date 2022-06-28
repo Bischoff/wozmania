@@ -3,7 +3,7 @@
 * bugs:
   - floppy: DOS 3.3 INIT command hangs
     (verification at VTRACK routine fails)
-  - 80 column: some characters replaces by space
+  - 80 column: some characters replaced by space
 * keyboard:
   - nano timer to receive ESC key
 * 80 column support:
@@ -18,6 +18,9 @@
   - low resolution graphic
   - mixed low resolution graphic/text
   - high resolution graphic
+* Graphical User Interface:
+  - blinking characters
+  - menus
 * more hardware emulation:
   - printer
   - serial card

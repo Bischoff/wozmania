@@ -1,5 +1,5 @@
 // WozMania Apple ][ emulator for ARM processor
-// (c) Eric Bischoff 2021
+// (c) Eric Bischoff 2021-2022
 // Released under GPLv2 license
 //
 // Text output
@@ -7,7 +7,7 @@
 .global prepare_terminal
 .global disable_80col
 .global enable_80col
-.global text40
+.global text40_write
 .global text80_write
 .global text80_read
 .global videx80_read
@@ -15,15 +15,63 @@
 .global videx80_write_value
 .global clean_terminal
 .global rom_c800
+.global data_handle
 
 .include "src/defs.s"
 .include "src/macros.s"
 
 // Prepare text terminal
 prepare_terminal:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	prepare_ansi_terminal
+	b	prepare_gui_terminal
+
+prepare_ansi_terminal:
 	adr	x3,msg_begin		// clear screen and hide cursor
 	write	STDOUT,35
 	br	lr
+
+prepare_gui_terminal:
+	mov	w0,0			// remove preceding socket file
+	adr	x1,unix_domain_socket+2
+	mov	w2,0
+	mov	w8,#UNLINKAT
+	svc	0
+	mov	w0,#AF_UNIX		// create Unix domain socket
+	mov	w1,#SOCK_STREAM
+	mov	w2,#0
+	mov	w8,#SOCKET
+	svc	0
+	cmp	x0,#-1
+	b.eq	1f
+	ldr	x1,=cnx_handle		// store connexion handle
+	str	w0,[x1]
+	adr	x1,unix_domain_socket	// bind it to filename
+	mov	w2,#unix_domain_len
+	mov	w8,#BIND
+	svc	0
+	cmp	x0,#-1
+	b.eq	1f
+	ldr	x1,=cnx_handle		// listen on it
+	ldr	w0,[x1]
+	mov	w1,#20
+	mov	w8,#LISTEN
+	svc	0
+	cmp	x0,#-1
+	b.eq	1f
+	ldr	x1,=cnx_handle		// start accepting connexions
+	ldr	w0,[x1]
+	mov	x1,#0
+	mov	x2,#0
+	mov	w8,#ACCEPT
+	svc	0
+	cmp	x0,#-1
+	b.eq	1f
+	ldr	x1,=data_handle		// store data handle
+	str	w0,[x1]
+1:	br	lr
 
 // Disable the 80 column card
 disable_80col:
@@ -39,9 +87,8 @@ enable_80col:
 	br	lr
 
 // 40 column text
-text40:
-	ldr	x3,=msg_text
-	mov	w2,ADDR			// line and column
+text40_write:
+	mov	w2,ADDR			// w2 = line, w5 = column
 	sub	w2,w2,#LINE1
 	and	w0,w2,#0x7F
 	lsr	w2,w2,#7
@@ -52,36 +99,69 @@ text40:
 	b.ge	screen_hole
 	lsl	w1,w1,#3
 	orr	w2,w2,w1
-	add	w2,w2,#1
-	dec_8	w2,2
-	add	w5,w5,#1
-	dec_8	w5,5
-	mov	w1,VALUE		// text effect and text
-	lsr	w0,w1,#2
+	mov	w1,VALUE		// w1 = character
+	lsr	w0,w1,#2		// w4 = text effect
 	and	w0,w0,#0xF8
 	adr	x4,video_table
-	ldr	x2,[x4,x0]
-	br	x2
+	ldr	x3,[x4,x0]
+	br	x3
+screen_hole:
+	br	lr
 inverse:
 	add	w1,w1,#0x40
 inverse1:
-	mov	w2,#'7'
-	b	effect
+	mov	w6,#'7'
+	b	text40_out
 flash:
 	sub	w1,w1,#0x40
 	cmp	w1,#' '
 	b.eq	inverse1		// normally, blinking inverse space
 flash1:
-	mov	w2,#'5'
-	b	effect
+	mov	w6,#'5'
+	b	text40_out
 normal:
 	and	w1,w1,#0x7F
-	mov	w2,#'0'
-effect:
-	char	w2,10
+	mov	w6,#'0'
+text40_out:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	text_ansi_out
+	b	text_gui_out
+
+// Output character on ANSI terminal
+//   input: w2 = line
+//          w5 = column
+//          w6 = effect
+//          w1 = character
+text_ansi_out:
+	ldr	x3,=msg_text
 	char	w1,12
+	char	w6,10
+	add	w2,w2,#1
+	dec_8	w2,2
+	add	w5,w5,#1
+	dec_8	w5,5
 	write	STDOUT,13
-screen_hole:
+	br	lr
+
+// Output character on GUI terminal
+//   input: w2 = line
+//          w5 = column
+//          w6 = effect
+//          w1 = character
+text_gui_out:
+	ldr	x3,=msg_gui
+	char	w5,0
+	char	w2,1
+	char	w6,2
+	char	w1,3
+	ldr	x1,=data_handle
+	ldr	w0,[x1]
+	mov	x1,x3
+	mov	w2,#4
+	mov	w8,#WRITE
+	svc	0
 	br	lr
 
 // 80 columns - compute offset in buffer
@@ -132,15 +212,12 @@ text80_out:
 	mov	w6,#'7'
 	b	3f
 2:	mov	w6,#'0'
-3:	ldr	x3,=msg_text		// write character on screen
-	add	w2,w2,#1
-	dec_8	w2,2
-	add	w5,w5,#1
-	dec_8	w5,5
-	char	w6,10
-	char	VALUE,12
-	write	STDOUT,13
-	br	lr
+3:	mov	w1,VALUE		// write character on screen
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	text_ansi_out
+	b	text_gui_out
 
 // 80 column text
 text80_write:
@@ -238,8 +315,26 @@ videx80_write_value:
 
 // Cleanup terminal on exit
 clean_terminal:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	clean_ansi_terminal
+	b	clean_gui_terminal
+
+clean_ansi_terminal:
 	adr	x3,msg_end		// go to line 26 and restore cursor
 	write	STDOUT,13
+	br	lr
+
+clean_gui_terminal:
+	ldr	x1,=data_handle		// close the socket
+	ldr	w0,[x1]
+	mov	w8,#CLOSE
+	svc	0
+	ldr	x1,=cnx_handle
+	ldr	w0,[x1]
+	mov	w8,#CLOSE
+	svc	0
 	br	lr
 
 
@@ -268,8 +363,12 @@ col80_table:
 	.quad	nothing_to_read
 	.quad	nothing_to_read
 	.quad	videx80_page3
+unix_domain_socket:
+	.short	AF_UNIX
+	.asciz	"/tmp/wozmania.sock"
+unix_domain_len = . - unix_domain_socket
 msg_begin:
-	.ascii	"\x1B[2J\x1B[?25l\x1B[25;1H-- WozMania 0.1 --"
+	.ascii	"\x1B[2J\x1B[?25l\x1B[25;1H-- WozMania 0.2 --"
 msg_end:
 	.ascii	"\x1B[26;1H\x1B[?25h"
 rom_c800:
@@ -407,6 +506,15 @@ rom_c800:
 
 .data
 
+cnx_handle:
+	.word	0
+data_handle:
+	.word	0
+msg_gui:
+	.byte	0			// x
+	.byte	0			// y
+	.byte	'0'			// effects
+	.byte	' '			// character
 msg_text:
 	.ascii	"\x1B[..;..H\x1B[.m."
 screen:

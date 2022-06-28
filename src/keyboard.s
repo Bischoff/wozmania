@@ -1,5 +1,5 @@
 // WozMania Apple ][ emulator for ARM processor
-// (c) Eric Bischoff 2021
+// (c) Eric Bischoff 2021-2022
 // Released under GPLv2 license
 //
 // Apple keyboard
@@ -17,6 +17,12 @@
 
 // Set non-blocking keyboard
 prepare_keyboard:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	prepare_ansi_keyboard
+	br	lr
+prepare_ansi_keyboard:
 	mov	w0,#STDIN		// get previous terminal definition
 	mov	w1,#TCGETS
 	ldr	x2,=termios
@@ -40,6 +46,12 @@ prepare_keyboard:
 
 // Intercept Ctrl-C
 intercept_ctl_c:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	intercept_ansi_ctl_c
+	b	clear_reset
+intercept_ansi_ctl_c:
 	ldr	x1,=sigaction		// SA_MASK and SA_FLAGS entries are already zero
 	adr	x0,ctl_reset
 	str	x0,[x1,#SA_HANDLER]
@@ -48,6 +60,7 @@ intercept_ctl_c:
 	mov	w3,#8
 	mov	w8,#RT_SIGACTION
 	svc	0
+clear_reset:
 	mov	w0,#0			// clear previous reset
 	strb	w0,[KEYBOARD,#KBD_RESET]
 	br	lr
@@ -74,14 +87,15 @@ keyboard_write:
 	b.eq	clear_strobe
 	b	nothing_to_read
 
+clear_strobe:
+	b	no_key
+
 // Read a key and set key strobe if successful
-// Part of this code is extra complicated due to the fact we use an ANSI terminal
-// That will go away when we switch to a real graphical window of our own
 read_key:
 	ldrb	w0,[KEYBOARD,#KBD_STROBE]
 	tst	w0,#0xFF
 	b.eq	slow_polling
-	mov	w0,#KBD_LASTKEY
+	ldrb	VALUE,[KEYBOARD,#KBD_LASTKEY]
 	b	analyze_key
 slow_polling:
 	ldrh	w0,[KEYBOARD,#KBD_WAIT]
@@ -94,6 +108,12 @@ slow_polling:
 	mov	w0,#0
 	strh	w0,[KEYBOARD,#KBD_WAIT]
 get_key:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	get_ansi_key
+	b	get_gui_key
+get_ansi_key:
 	mov	w0,#STDIN
 	mov	x1,KEYBOARD
 	mov	w2,#1
@@ -101,9 +121,40 @@ get_key:
 	svc	0
 	cmp	w0,#1
 	b.lt	no_key
-	mov	w0,#KBD_BUFFER
+	ldrb	VALUE,[KEYBOARD,#KBD_BUFFER]
+	b	analyze_ansi_key
+get_gui_key:
+	ldr	x1,=data_handle
+	ldr	w0,[x1]
+	mov	x1,KEYBOARD
+	mov	w2,#1
+	mov	w8,#READ
+	svc	0
+	cmp	w0,#1
+	b.lt	no_key
+	ldrb	VALUE,[KEYBOARD,#KBD_BUFFER]
+	b	analyze_gui_key
+found_key:
+	strb	VALUE,[KEYBOARD,#KBD_LASTKEY]
+	mov	w0,#1
+	strb	w0,[KEYBOARD,#KBD_STROBE]
+	br	lr
+no_key:
+	mov	VALUE,#0x00
+	mov	w0,#0
+	strb	w0,[KEYBOARD,#KBD_STROBE]
+	br	lr
+
+// Analyze key
 analyze_key:
-	ldrb	VALUE,[KEYBOARD,x0]
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	analyze_ansi_key
+	b	analyze_gui_key
+
+// Analyze key from ANSI terminal
+analyze_ansi_key:
 	ldrb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	cmp	w0,#SEQ
 	b.ne	escape
@@ -176,20 +227,11 @@ escape_o:
 4:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
-found_key:
-	strb	VALUE,[KEYBOARD,#KBD_LASTKEY]
-	mov	w0,#1
-	strb	w0,[KEYBOARD,#KBD_STROBE]
-	br	lr
-no_key:
-	mov	VALUE,#0x00
-	mov	w0,#0
-	strb	w0,[KEYBOARD,#KBD_STROBE]
-	br	lr
 
-// Clear strobe to prepare for next read
-clear_strobe:
-	b	no_key
+// Analyze key from GUI window
+analyze_gui_key:
+	orr	VALUE,VALUE,#0x80
+	b	found_key
 
 // Flush all disks on demand
 flush_disks:

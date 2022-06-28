@@ -1,6 +1,8 @@
 snippets
 debug.txt
 *.o
+moc_*
 wozmania
+wozmania-gui
 disks/*
 roms/*
