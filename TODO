@@ -9,22 +9,22 @@
 * 80 column support:
   - display cursor
 * floppy disk support:
-  - function key to hot-load a floppy into a drive
+  - function key and menu item to hot-load a floppy
+    into a drive
   - more disk formats (ProDOS, etc.)
 * configuration:
   - find a way to control speed (for games)
     in addition to the `keyboard_poll_ratio` setting
 * screen modes:
-  - low resolution graphic
-  - mixed low resolution graphic/text
-  - high resolution graphic
+  - low resolution graphics
+  - mixed low resolution graphics/text
+  - high resolution graphics
 * Graphical User Interface:
   - blinking characters
-  - menus
+  - status bar
 * more hardware emulation:
   - printer
   - serial card
   - sound
   - game paddles
 * what about other Apple II models?
-

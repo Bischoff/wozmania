@@ -6,31 +6,44 @@
 
 #include "emulatorwindow.h"
 
-#include <QTimerEvent>
-#include <QLabel>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
 #include <QPainter>
 #include <QPaintEvent>
 
-#define FN "courier new" // font name
-#define FS 13            // font size
-#define BL 15            // font baseline
-#define X0 10            // left margin
-#define Y0 16            // top margin
-#define DX 10            // column spacing
-#define DY 18            // line spacing
-
 // Constructor
 EmulatorWindow::EmulatorWindow() :
+  QMainWindow(),
   socket(this),
   data(&socket)
 {
+  QAction *action;
+  QMenu *menu;
+
   setGeometry(100, 100,
-              X0 + DX * 80 + 8, Y0 + DY * 24 + 8);
+              X0 + DX * 80 + 8, Y0 + DY * 24 + 12);
   setWindowTitle("WozMania 0.2");
 
-  connect(&socket, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
-  connect(&socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+  menu = menuBar()->addMenu("&Power");
+  action = new QAction("&Off", this);
+  action->setStatusTip("Turn computer off");
+  connect(action, &QAction::triggered, this, &EmulatorWindow::powerOff);
+  menu->addAction(action);
 
+  menu = menuBar()->addMenu("&Floppy");
+  action = new QAction("F&lush", this);
+  action->setStatusTip("Flush current disk");
+  connect(action, &QAction::triggered, this, &EmulatorWindow::flushDrive);
+  menu->addAction(action);
+
+  menu = menuBar()->addMenu("&Keyboard");
+  action = new QAction("&Ctrl-Reset", this);
+  action->setStatusTip("Press Ctrl-Reset");
+  connect(action, &QAction::triggered, this, &EmulatorWindow::ctrlReset);
+  menu->addAction(action);
+
+  connect(&socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
   printf("Connecting to emulator...\n");
   socket.connectToServer("/tmp/wozmania.sock");
   if (!socket.waitForConnected(-1))
@@ -85,6 +98,24 @@ void EmulatorWindow::readyRead()
   delete output;
 }
 
+// Power off
+void EmulatorWindow::powerOff()
+{
+  close();
+}
+
+// Flush current disk
+void EmulatorWindow::flushDrive()
+{
+  data.writeRawData("\eF", 2);
+}
+
+// Press Ctrl-Reset
+void EmulatorWindow::ctrlReset()
+{
+  data.writeRawData("\eR", 2);
+}
+
 // Refresh window contents
 void EmulatorWindow::paintEvent(QPaintEvent *event)
 {
@@ -128,7 +159,22 @@ void EmulatorWindow::paintEvent(QPaintEvent *event)
 // Send pressed key to emulator
 void EmulatorWindow::keyPressEvent(QKeyEvent *event)
 {
-  QByteArray input(event->text().toLatin1());
 
-  data.writeRawData(input.constData(), input.length());
+  if (event->key() == Qt::Key_Escape)
+  {
+    data.writeRawData("\e\e", 2);
+  }
+  else
+  {
+    QByteArray input(event->text().toLatin1());
+
+    data.writeRawData(input.constData(), input.length());
+  }
+}
+
+// Application quits
+void EmulatorWindow::closeEvent(QCloseEvent *event)
+{
+Q_UNUSED(event);
+  data.writeRawData("\eO", 2);
 }

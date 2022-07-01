@@ -12,7 +12,7 @@ the strict minimum.
 
 ## What is done
 
-WozMania 0.2, as of 2022-07-01, emulates:
+WozMania 0.2, as of 2022-07-03, emulates:
 
 * a 6502 processor, no decimal mode;
 * an Apple ]\[ keyboard;
@@ -20,9 +20,7 @@ WozMania 0.2, as of 2022-07-01, emulates:
 * floppy disks 1 and 2, `.nib` and `.dsk` formats;
 * a language card.
 
-WozMania works in an ANSI terminal. There's also a first sketch of a GUI
-interface; the idea is to support low and high resolution graphics in that
-interface, although that does not work yet.
+WozMania runs either with an ANSI terminal or with a GUI interface.
 
 
 ## Usage

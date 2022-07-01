@@ -7,7 +7,6 @@
 ## How to Use
 
 
-
 ### Running WozMania
 
 #### Requirements
@@ -20,7 +19,6 @@ To run WozMania, you need:
 - at least 2 MB disk space
 - an ANSI terminal with at least 26 rows and 80 columns
 - if you want to use the GUI, a X-Window display.
-
 
 #### Instructions
 
@@ -42,8 +40,7 @@ If you plan to run Wozmania in a Graphical User interface:
   * run `sudo make install`
 2. Start the emulator by typing `wozmania`
 3. Start the GUI by typing `wozmania-gui`
-4. To exit the emulator, press Ctrl-C.
-
+4. To exit the emulator, select `Power` => `off` in the menus.
 
 #### The ROM file
 
@@ -63,18 +60,16 @@ WozMania essentially tries to emulate an Apple ]\[+. While other models,
 like the Apple //e, are out of focus, it is likely they will at least
 partially work if you use the ROM corresponding to those models.
 
-
-
 ### Using the Keyboard
 
-The following keys are defined:
+In text mode, the following keys are defined:
 
-| Linux  | Apple ]\[         |
-| ------ | ----------------- |
-| Ctrl-C | Ctrl-Reset        |
-| F1     | Flush floppy disk |
-| F3     | Ctrl-C            |
-| F4     | Power off         |
+| Linux keys | Apple ]\[         |
+| ---------- | ----------------- |
+| Ctrl-C     | Ctrl-Reset        |
+| F1         | Flush floppy disk |
+| F3         | Ctrl-C            |
+| F4         | Power off         |
 
 You can set the ratio at which the keyboard is polled for real.
 For example, if you set in `/etc/wozmania.conf`:
@@ -86,7 +81,6 @@ out of 128 (2^7 = 128). The idea is to accelerate the emulator
 by not spending more time in system calls than necessary.
 The default value is 8, meaning the keyboard is polled only
 one time out of 256.
-
 
 
 ### Using the Floppy Disks
@@ -143,7 +137,8 @@ tape on an original floppy disk.
 
 All changes to the disk are written to a cache in memory. This cache
 is flushed to disk when you exit the emulator. You can force flushing
-the current disk at any time by pressing F1. An unsaved cache is
+the current disk at any time by pressing F1 (in text mode) or by selecting
+`Floppy` => `Flush` menu (in graphical mode). An unsaved cache is
 shown as `D1` or `D2` below the emulated screen.
 
 #### Enabling or Disabling the Controller
@@ -164,7 +159,6 @@ floppy disable
 
 If the ROM file already contains ROM code for the floppy disk controller,
 it will be overwritten with a jump to the monitor.
-
 
 
 ### Using the Language Card
@@ -203,7 +197,6 @@ langcard disable
 ```
 
 
-
 ### Using the 80 Column Card
 
 WozMania emulates a Videoterm 80 column card in slot 3 from
@@ -233,27 +226,32 @@ You may completly disable the 80 column card by specifying:
 ```
 
 
-
 ### The Graphical User Interface
 
-The WozMania GUI is provided as a technical preview
-and is not finished yet.
-
-![The Graphical User Interface](gui.png)
+The WozMania GUI and the emulator are two separate programs.
 
 The emulator communicates with the GUI via the Unix domain socket
 `/tmp/wozmania.sock`.
+
+![The Graphical User Interface](gui.png)
+
+In graphical mode, the following menus are defined:
+
+| Linux menus                | Apple ]\[         |
+| -------------------------- | ----------------- |
+| `Power` => `Off`           | Power off         |
+| `Floppy` => `Flush`        | Flush floppy disk |
+| `Keyboard` => `Ctrl-Reset` | Ctrl-Reset        |
 
 To run WozMania with the GUI, specify in the configuration file:
 ```
 gui enable
 ```
 
-Current limitations:
-* no graphical menus
-* no support for blinking characters in text mode
-* no support yet for the low and high resolution
-  graphics of the Apple ]\[.
+You may return to the text mode by specifying:
+```
+gui disable
+```
 
 
 [Top](wozmania.md): Table of Contents - [Next](debug.md): How to Debug

@@ -157,7 +157,7 @@ analyze_key:
 analyze_ansi_key:
 	ldrb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	cmp	w0,#SEQ
-	b.ne	escape
+	b.ne	escape_ansi
 	cmp	VALUE,#0x0A		// carriage return
 	b.ne	1f
 	mov	VALUE,#0x8D
@@ -169,7 +169,7 @@ analyze_ansi_key:
 	b	no_key
 2:	orr	VALUE,VALUE,#0x80
 	b	found_key
-escape:
+escape_ansi:
 	cmp	w0,#SEQ_ESC
 	b.ne	escape_bracket
 	cmp	VALUE,#'['
@@ -230,8 +230,41 @@ escape_o:
 
 // Analyze key from GUI window
 analyze_gui_key:
-	orr	VALUE,VALUE,#0x80
+	ldrb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	cmp	w0,#SEQ
+	b.ne	escape_gui
+	cmp	VALUE,#0x1B
+	b.ne	1f
+	mov	w0,#SEQ_ESC
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	no_key
+1:	orr	VALUE,VALUE,#0x80
 	b	found_key
+escape_gui:
+	cmp	VALUE,#0x1B
+	b.ne	1f
+	mov	VALUE,#0x9B		// ESC ESC = Escape
+	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	found_key
+1:	cmp	VALUE,#'F'
+	b.ne	2f
+	mov	w0,#SEQ			// ESC F = flush floppy disks
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	flush_disks
+2:	cmp	VALUE,#'O'
+	b.ne	3f
+	mov	w0,#SEQ			// ESC O = power off
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	exit
+3:	cmp	VALUE,#'R'
+	b.ne	4f
+	mov	w0,#1			// ESC R = ctrl-reset
+	strb	w0,[KEYBOARD,#KBD_RESET]
+4:	mov	w0,#SEQ
+	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
+	b	no_key
+
 
 // Flush all disks on demand
 flush_disks:
@@ -247,6 +280,12 @@ flush_disks:
 
 // Restore keyboard on exit
 restore_keyboard:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	restore_ansi_keyboard
+	br	lr
+restore_ansi_keyboard:
 	ldr	x2,=termios		// restore normal keyboard
 	ldr	w0,[x2,#C_LFLAG]
 	orr	w0,w0,#ICANON
