@@ -7,6 +7,8 @@
 #ifndef EmulatorWindow_H
 #define EmulatorWindow_H
 
+#include "emulationstatus.h"
+
 #include <QMainWindow>
 #include <QtNetwork/QLocalSocket>
 #include <QDataStream>
@@ -24,10 +26,20 @@ class EmulatorWindow : public QMainWindow
   Q_OBJECT
 
   private:
+    EmulationStatus emulationStatus;
     QLocalSocket socket;
     QDataStream data;
     char effect[24][80],
          text[24][80];
+    enum
+    { state_begin,
+      state_x, state_y, state_fx, state_txt,
+      state_drive, state_dirty
+    } state;
+    short column, line,
+	  drive;
+
+    void parseOutput(char c);
 
   private slots:
     void readyRead();

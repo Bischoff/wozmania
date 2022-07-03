@@ -589,3 +589,12 @@
 	mov	w8,#WRITE
 	svc	0
 	.endm
+
+	.macro	tosocket length
+	ldr	x1,=data_handle
+	ldr	w0,[x1]
+	mov	x1,x3
+	mov	w2,\length
+	mov	w8,#WRITE
+	svc	0
+	.endm

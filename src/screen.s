@@ -152,16 +152,11 @@ text_ansi_out:
 //          w1 = character
 text_gui_out:
 	ldr	x3,=msg_gui
-	char	w5,0
-	char	w2,1
-	char	w6,2
-	char	w1,3
-	ldr	x1,=data_handle
-	ldr	w0,[x1]
-	mov	x1,x3
-	mov	w2,#4
-	mov	w8,#WRITE
-	svc	0
+	char	w5,1
+	char	w2,2
+	char	w6,3
+	char	w1,4
+	tosocket 5
 	br	lr
 
 // 80 columns - compute offset in buffer
@@ -511,10 +506,7 @@ cnx_handle:
 data_handle:
 	.word	0
 msg_gui:
-	.byte	0			// x
-	.byte	0			// y
-	.byte	'0'			// effects
-	.byte	' '			// character
+	.byte	'T',0,0,'0',' '		// "text", x, y, effects, character
 msg_text:
 	.ascii	"\x1B[..;..H\x1B[.m."
 screen:

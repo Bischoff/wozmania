@@ -329,18 +329,8 @@ write_nibble:
 	b.lt	1f
 	mov	w0,#0
 1:	strh	w0,[DRIVE,#DRV_HEAD]
-	tst	w2,#FLG_DIRTY		// make drive dirty
-	b.ne	4f
-	orr	w2,w2,#FLG_DIRTY
-	strb	w2,[DRIVE,#DRV_FLAGS]
-	ldrb	w3,[DRIVE,#DRV_NUMBER]
-	cmp	w3,#'1'
-	b.ne	2f
-	adr	x3,msg_dirty_drive_1
-	b	3f
-2:	adr	x3,msg_dirty_drive_2
-3:	write	STDOUT,11
-4:
+	tst	w2,#FLG_DIRTY
+	b.eq	set_dirty
 	.ifdef	F_WRITE
 	b	f_write
 	.else
@@ -359,6 +349,42 @@ read_mode:
 last_nibble:
 	ldrb	VALUE,[DRIVE,#DRV_LASTNIB]
 	br	lr
+
+// Set drive dirty
+set_dirty:
+	orr	w2,w2,#FLG_DIRTY
+	strb	w2,[DRIVE,#DRV_FLAGS]
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	set_dirty_ansi
+	b	set_dirty_gui
+set_dirty_ansi:
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	1f
+	adr	x3,msg_ansi_dirty_drive_1
+	b	2f
+1:	adr	x3,msg_ansi_dirty_drive_2
+2:	write	STDOUT,11
+	.ifdef	F_WRITE
+	b	f_write
+	.else
+	b	last_nibble
+	.endif
+set_dirty_gui:
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	1f
+	adr	x3,msg_gui_dirty_drive_1
+	b	2f
+1:	adr	x3,msg_gui_dirty_drive_2
+2:	tosocket 3
+	.ifdef	F_WRITE
+	b	f_write
+	.else
+	b	last_nibble
+	.endif
 
 // Floppy disk (write access to memory)
 floppy_disk_write:
@@ -398,17 +424,7 @@ save_nib_drive:
 	svc	0
 	cmp	x0,x2
 	b.ne	save_failure_drive
-	ldrb	w4,[DRIVE,#DRV_FLAGS]	// clean dirty flag
-	and	w4,w4,#~FLG_DIRTY
-	strb	w4,[DRIVE,#DRV_FLAGS]
-	ldrb	w3,[DRIVE,#DRV_NUMBER]
-	cmp	w3,#'1'
-	b.ne	1f
-	adr	x3,msg_clean_drive_1
-	b	2f
-1:	adr	x3,msg_clean_drive_2
-2:	write	STDOUT,16
-	br	lr
+	b	clean_dirty
 
 // Convert nib format to dsk format
 implode_disk:
@@ -533,17 +549,7 @@ save_dsk_drive:
 	svc	0
 	cmp	x0,x2
 	b.ne	save_failure_drive
-	ldrb	w4,[DRIVE,#DRV_FLAGS]	// clean dirty flag
-	and	w4,w4,#~FLG_DIRTY
-	strb	w4,[DRIVE,#DRV_FLAGS]
-	ldrb	w3,[DRIVE,#DRV_NUMBER]
-	cmp	w3,#'1'
-	b.ne	1f
-	adr	x3,msg_clean_drive_1
-	b	2f
-1:	adr	x3,msg_clean_drive_2
-2:	write	STDOUT,16
-	br	lr
+	b	clean_dirty
 
 // Failure saving drive file
 save_failure_drive:
@@ -553,6 +559,35 @@ save_failure_drive:
 	writez	STDERR
 	adr	x3,msg_err_drive_end
 	write	STDERR,1
+	br	lr
+
+// Clean dirty flag
+clean_dirty:
+	ldrb	w4,[DRIVE,#DRV_FLAGS]
+	and	w4,w4,#~FLG_DIRTY
+	strb	w4,[DRIVE,#DRV_FLAGS]
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	clean_dirty_ansi
+	b	clean_dirty_gui
+clean_dirty_ansi:
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	1f
+	adr	x3,msg_ansi_clean_drive_1
+	b	2f
+1:	adr	x3,msg_ansi_clean_drive_2
+2:	write	STDOUT,16
+	br	lr
+clean_dirty_gui:
+	ldrb	w3,[DRIVE,#DRV_NUMBER]
+	cmp	w3,#'1'
+	b.ne	1f
+	adr	x3,msg_gui_clean_drive_1
+	b	2f
+1:	adr	x3,msg_gui_clean_drive_2
+2:	tosocket 3
 	br	lr
 
 
@@ -568,14 +603,22 @@ msg_err_save_drive:
 	.ascii	"\x1B[26;1HCould not save drive file "
 msg_err_drive_end:
 	.ascii	"\n"
-msg_dirty_drive_1:
+msg_ansi_dirty_drive_1:
 	.ascii	"\x1B[25;24HD1"
-msg_clean_drive_1:
+msg_ansi_clean_drive_1:
 	.ascii	"\x1B[25;24H\x1B[27m  "
-msg_dirty_drive_2:
+msg_ansi_dirty_drive_2:
 	.ascii	"\x1B[25;32HD2"
-msg_clean_drive_2:
+msg_ansi_clean_drive_2:
 	.ascii	"\x1B[25;32H\x1B[27m  "
+msg_gui_dirty_drive_1:
+	.ascii	"S11"
+msg_gui_clean_drive_1:
+	.ascii	"S10"
+msg_gui_dirty_drive_2:
+	.ascii	"S21"
+msg_gui_clean_drive_2:
+	.ascii	"S20"
 sectors_order:
 	.byte	0x0,0x7,0xe,0x6,0xd,0x5,0xc,0x4
 	.byte	0xb,0x3,0xa,0x2,0x9,0x1,0x8,0xf

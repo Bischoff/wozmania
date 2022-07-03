@@ -302,6 +302,7 @@ restore_ansi_keyboard:
 	svc	0
 	br	lr
 
+
 // Variable data
 
 .data

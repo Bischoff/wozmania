@@ -15,13 +15,11 @@
 * configuration:
   - find a way to control speed (for games)
     in addition to the `keyboard_poll_ratio` setting
-* screen modes:
+* Graphical User Interface:
+  - blinking characters
   - low resolution graphics
   - mixed low resolution graphics/text
   - high resolution graphics
-* Graphical User Interface:
-  - blinking characters
-  - status bar
 * more hardware emulation:
   - printer
   - serial card

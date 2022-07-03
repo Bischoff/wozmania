@@ -12,17 +12,56 @@
 #include <QPainter>
 #include <QPaintEvent>
 
+// Parse output from emulator
+void EmulatorWindow::parseOutput(char out)
+{
+  switch (state)
+  {
+    case state_begin:
+      if (out == 'T') state = state_x;
+      else if (out == 'S') state = state_drive;
+      break;
+    case state_x:
+      column = out % 80;
+      state = state_y;
+      break;
+    case state_y:
+      line = out % 24;
+      state = state_fx;
+      break;
+    case state_fx:
+      effect[line][column] = out;
+      state = state_txt;
+      break;
+    case state_txt:
+      text[line][column] = out;
+      update(X0 + column * DX, Y0 + line * DY, DX, DY);
+      state = state_begin;
+      break;
+    case state_drive:
+      drive = out;
+      state = state_dirty;
+      break;
+    case state_dirty:
+      emulationStatus.leds(drive, out);
+      state = state_begin;
+      break;
+  }
+}
+
 // Constructor
 EmulatorWindow::EmulatorWindow() :
   QMainWindow(),
+  emulationStatus(this),
   socket(this),
-  data(&socket)
+  data(&socket),
+  state(state_begin)
 {
   QAction *action;
   QMenu *menu;
 
   setGeometry(100, 100,
-              X0 + DX * 80 + 8, Y0 + DY * 24 + 12);
+              X0 + DX * 80 + 8, Y0 + DY * 24 + 24);
   setWindowTitle("WozMania 0.2");
 
   menu = menuBar()->addMenu("&Power");
@@ -76,24 +115,13 @@ void EmulatorWindow::readyRead()
   const char *p;
 
   n = socket.bytesAvailable();
-  n = n - (n % 4);
   if (n == 0) return;
 
   output = new char[n];
   data.readRawData(output, n);
 
-  for (p = output;
-       p + 4 <= output + n;
-       p += 4)
-  {
-    short column = p[0] % 80, line = p[1] % 24;
-    char fx = p[2], txt = p[3];
-
-    effect[line][column] = fx;
-    text[line][column] = txt;
-
-    update(X0 + column * DX, Y0 + line * DY, DX, DY);
-  }
+  for (p = output; p < output + n; p++)
+    parseOutput(*p);
 
   delete output;
 }

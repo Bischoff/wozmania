@@ -38,7 +38,7 @@ If you plan to run Wozmania in a Graphical User interface:
   * run `qmake wozmania-gui.pro`
   * run `make`
   * run `sudo make install`
-2. Start the emulator by typing `wozmania`
+2. Start the emulator by typing `wozmania &`
 3. Start the GUI by typing `wozmania-gui`
 4. To exit the emulator, select `Power` => `off` in the menus.
 
@@ -136,10 +136,15 @@ This is equivalent to closing the write protection punch with black
 tape on an original floppy disk.
 
 All changes to the disk are written to a cache in memory. This cache
-is flushed to disk when you exit the emulator. You can force flushing
-the current disk at any time by pressing F1 (in text mode) or by selecting
-`Floppy` => `Flush` menu (in graphical mode). An unsaved cache is
-shown as `D1` or `D2` below the emulated screen.
+is flushed to disk when you exit the emulator.
+
+You can force flushing the current disk at any time:
+* by pressing F1 in text mode
+* by selecting `Floppy` => `Flush` menu in graphical mode.
+
+An unsaved cache is shown below the emulated screen:
+* as `D1` or `D2` in text mode
+* as a red light next to `D1` or `D2` in graphical mode.
 
 #### Enabling or Disabling the Controller
 
