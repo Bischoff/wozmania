@@ -7,8 +7,8 @@
 .global load_conf
 .global conf_flags
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 // Load configuration settings
 load_conf:

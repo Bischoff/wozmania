@@ -16,10 +16,12 @@
   - find a way to control speed (for games)
     in addition to the `keyboard_poll_ratio` setting
 * Graphical User Interface:
+  - graphical error messages
   - blinking characters
   - low resolution graphics
   - mixed low resolution graphics/text
   - high resolution graphics
+  - mixed high resolution graphics/text
 * more hardware emulation:
   - printer
   - serial card

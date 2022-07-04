@@ -8,7 +8,7 @@
 .global enable_langcard
 .global language_card
 
-.include "src/defs.s"
+.include "defs.s"
 
 // Disable the language card
 disable_langcard:

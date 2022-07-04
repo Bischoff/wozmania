@@ -23,8 +23,8 @@
 .global breakpoint
 	.endif
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 // Trace each instruction
 	.ifdef	TRACE

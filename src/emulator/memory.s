@@ -14,8 +14,8 @@
 .global rom_filename
 .global stat
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 // Allocate:
 // - memory          0x10000

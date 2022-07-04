@@ -17,8 +17,8 @@
 .global rom_c800
 .global data_handle
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 // Prepare text terminal
 prepare_terminal:

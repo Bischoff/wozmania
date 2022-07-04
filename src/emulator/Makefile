@@ -44,17 +44,17 @@ objects := $(sources:.s=.o)
 wozmania: $(objects)
 	ld $(objects) -o $@
 
-%.o: src/%.s src/defs.s src/macros.s
+%.o: %.s defs.s macros.s
 	as $(ASFLAGS) $< -o $@
 
 .PHONY: install
-install: wozmania wozmania.conf disks/blank.nib disks/blank.dsk
+install: wozmania wozmania.conf ../../disks/blank.nib ../../disks/blank.dsk
 	cp wozmania /usr/bin
 	cp wozmania.conf /etc
 	mkdir -p /var/lib/wozmania/disks
-	cp disks/blank.* /var/lib/wozmania/disks/
+	cp ../../disks/blank.* /var/lib/wozmania/disks/
 	mkdir -p /var/lib/wozmania/roms
-	cp roms/* /var/lib/wozmania/roms
+	cp ../../roms/* /var/lib/wozmania/roms
 
 .PHONY: clean
 clean:

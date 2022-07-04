@@ -22,8 +22,10 @@ To run WozMania, you need:
 
 #### Instructions
 
-1. Assemble and install WozMania by running the commands `make`
-   and `sudo make install`.
+1. Assemble and install WozMania:
+  * go to src/emulator subdirectory
+  * run `make`
+  * run `sudo make install`.
 2. Download to the directory `/var/lib/wozmania/roms` a file
    named `APPLE2.ROM` that contains the ROM of the Apple ]\[.
 3. Run the emulator with the command `wozmania`.
@@ -32,6 +34,7 @@ To run WozMania, you need:
 ![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
 
 If you plan to run Wozmania in a Graphical User interface:
+
 1. Compile and install the GUI:
   * install the Qt5 development libraries
   * go to `src/gui` subdirectory

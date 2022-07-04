@@ -1,7 +1,9 @@
 snippets
 debug.txt
 *.o
+.qmake.stash
 moc_*
+src/gui/Makefile
 wozmania
 wozmania-gui
 disks/*

@@ -6,8 +6,8 @@
 
 .global instr_table
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 ins_brk:			// 00
 	add	PC_REG,PC_REG,#1

@@ -10,8 +10,8 @@
 .global final_exit
 .global buffer
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 // Adjust optional hardware
 adjust_hardware:

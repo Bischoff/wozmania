@@ -18,8 +18,8 @@
 .global drive1
 .global drive2
 
-.include "src/defs.s"
-.include "src/macros.s"
+.include "defs.s"
+.include "macros.s"
 
 // Try to load drive 1
 load_drive1:
