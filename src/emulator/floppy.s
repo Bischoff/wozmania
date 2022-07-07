@@ -125,13 +125,44 @@ load_dsk_drive:
 
 // Failure loading drive file
 load_failure_drive:
-	adr	x3,msg_err_load_drive
-	write	STDERR,33
-	ldr	x3,[DRIVE,#DRV_FNAME]
+	ldr	x4,=buffer
+	add	x5,x4,#(SIZEOF_BUFFER-1)
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	load_failure_ansi_drive
+	b	load_failure_gui_drive
+load_failure_ansi_drive:
+	adr	x6,msg_ansi_err_drive_begin
+	add	x7,x6,#7
+	strcpy	x6,x7,x4,x5
+	adr	x6,msg_err_load_drive
+	add	x7,x6,#26
+	strcpy	x6,x7,x4,x5
+	ldr	x6,[DRIVE,#DRV_FNAME]
+	strcpyz	x6,x4,x5
+	adr	x6,msg_ansi_err_drive_end
+	add	x7,x6,#1
+	strcpy	x6,x7,x4,x5
+	mov	w10,#0
+	strb	w10,[x4]
+	ldr	x3,=buffer
 	writez	STDERR
-	adr	x3,msg_err_drive_end
-	write	STDERR,1
 	b	final_exit
+load_failure_gui_drive:
+	adr	x6,msg_gui_err_drive_begin
+	add	x7,x6,#1
+	strcpy	x6,x7,x4,x5
+	adr	x6,msg_err_load_drive
+	add	x7,x6,#26
+	strcpy	x6,x7,x4,x5
+	ldr	x6,[DRIVE,#DRV_FNAME]
+	strcpyz	x6,x4,x5
+	mov	w10,#0
+	strb	w10,[x4],#1
+	ldr	x3,=buffer
+	tosocketz x3,x4
+	br	lr
 
 // Convert dsk format to nib format
 explode_disk:
@@ -553,12 +584,43 @@ save_dsk_drive:
 
 // Failure saving drive file
 save_failure_drive:
-	adr	x3,msg_err_save_drive
-	write	STDERR,33
-	ldr	x3,[DRIVE,#DRV_FNAME]
+	ldr	x4,=buffer
+	add	x5,x4,#(SIZEOF_BUFFER-1)
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	save_failure_ansi_drive
+	b	save_failure_gui_drive
+save_failure_ansi_drive:
+	adr	x6,msg_ansi_err_drive_begin
+	add	x7,x6,#7
+	strcpy	x6,x7,x4,x5
+	adr	x6,msg_err_save_drive
+	add	x7,x6,#26
+	strcpy	x6,x7,x4,x5
+	ldr	x6,[DRIVE,#DRV_FNAME]
+	strcpyz	x6,x4,x5
+	adr	x6,msg_ansi_err_drive_end
+	add	x7,x6,#1
+	strcpy	x6,x7,x4,x5
+	mov	w10,#0
+	strb	w10,[x4]
+	ldr	x3,=buffer
 	writez	STDERR
-	adr	x3,msg_err_drive_end
-	write	STDERR,1
+	br	lr
+save_failure_gui_drive:
+	adr	x6,msg_gui_err_drive_begin
+	add	x7,x6,#1
+	strcpy	x6,x7,x4,x5
+	adr	x6,msg_err_save_drive
+	add	x7,x6,#26
+	strcpy	x6,x7,x4,x5
+	ldr	x6,[DRIVE,#DRV_FNAME]
+	strcpyz	x6,x4,x5
+	mov	w10,#0
+	strb	w10,[x4],#1
+	ldr	x3,=buffer
+	tosocketz x3,x4
 	br	lr
 
 // Clean dirty flag
@@ -598,10 +660,12 @@ ext_nib:
 ext_dsk:
 	.asciz	".dsk"
 msg_err_load_drive:
-	.ascii	"\x1B[26;1HCould not load drive file "
+	.ascii	"Could not load drive file "
 msg_err_save_drive:
-	.ascii	"\x1B[26;1HCould not save drive file "
-msg_err_drive_end:
+	.ascii	"Could not save drive file "
+msg_ansi_err_drive_begin:
+	.ascii	"\x1B[26;1H"
+msg_ansi_err_drive_end:
 	.ascii	"\n"
 msg_ansi_dirty_drive_1:
 	.ascii	"\x1B[25;24HD1"
@@ -611,6 +675,8 @@ msg_ansi_dirty_drive_2:
 	.ascii	"\x1B[25;32HD2"
 msg_ansi_clean_drive_2:
 	.ascii	"\x1B[25;32H\x1B[27m  "
+msg_gui_err_drive_begin:
+	.ascii	"A"
 msg_gui_dirty_drive_1:
 	.ascii	"S11"
 msg_gui_clean_drive_1:

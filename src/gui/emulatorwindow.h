@@ -29,15 +29,17 @@ class EmulatorWindow : public QMainWindow
     EmulationStatus emulationStatus;
     QLocalSocket socket;
     QDataStream data;
-    char effect[24][80],
-         text[24][80];
     enum
     { state_begin,
-      state_x, state_y, state_fx, state_txt,
-      state_drive, state_dirty
+      state_message,
+      state_drive, state_dirty,
+      state_x, state_y, state_fx, state_txt
     } state;
-    short column, line,
-	  drive;
+    char message[128], *message_p;
+    short drive,
+	  column, line;
+    char effect[24][80],
+         text[24][80];
 
     void parseOutput(char c);
 

@@ -442,6 +442,8 @@
 
 // Configuration options
 	.macro	strcmp begin,end,with,jump
+	// \with is zero-terminated
+	// \begin, \end, and \with are unchanged
 	mov	x8,\begin
 	mov	x9,\with
 1:	ldrb	w10,[x8],#1
@@ -457,18 +459,28 @@
 2:
 	.endm
 
-	.macro	strcpy begin,end,dest
-	mov	x8,\begin
-	ldr	x9,=\dest
-	add	x11,x9,#127
-1:	ldrb	w10,[x8],#1
-	strb	w10,[x9],#1
-	cmp	x8,\end
+	.macro	strcpy source,end1,dest,end2
+	// \end1 and \end2 are unchanged
+1:	ldrb	w10,[\source],#1
+	strb	w10,[\dest],#1
+	cmp	\source,\end1
 	b.eq	2f
-	cmp	x9,x11
+	cmp	\dest,\end2
 	b.lt	1b
-2:	mov	w10,#0
-	strb	w10,[x9]
+2:
+	.endm
+
+	.macro	strcpyz source,dest,end2
+	// \source is zero-terminated
+	// \end2 is unchanged
+1:	ldrb	w10,[\source]
+	tst	w10,#0xFF
+	b.eq	2f
+	add	\source,\source,#1
+	strb	w10,[\dest],#1
+	cmp	\dest,\end2
+	b.lt	1b
+2:
 	.endm
 
 	.macro	atoi begin,end,reg,err
@@ -595,6 +607,15 @@
 	ldr	w0,[x1]
 	mov	x1,x3
 	mov	w2,\length
+	mov	w8,#WRITE
+	svc	0
+	.endm
+
+	.macro	tosocketz begin,end
+	ldr	x1,=data_handle
+	ldr	w0,[x1]
+	mov	x1,x3
+	sub	x2,\end,\begin
 	mov	w8,#WRITE
 	svc	0
 	.endm

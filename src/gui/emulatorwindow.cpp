@@ -6,6 +6,7 @@
 
 #include "emulatorwindow.h"
 
+#include <QMessageBox>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
@@ -18,10 +19,37 @@ void EmulatorWindow::parseOutput(char out)
   switch (state)
   {
     case state_begin:
-      if (out == 'T') state = state_x;
-      else if (out == 'S') state = state_drive;
+      switch (out)
+      {
+        case 'A': state = state_message;   // alert box
+		  message_p = message;
+		  break;
+        case 'S': state = state_drive;     // status line
+    break;
+        case 'T': state = state_x;         // text
+      }
       break;
-    case state_x:
+    case state_message:                    // alert box
+      if (out)
+      {
+        if (message_p < message + 128)
+	  *message_p++ = out;
+      }
+      else
+      {
+	QMessageBox::critical(this, "WozMania 0.2", message);
+        state = state_begin;
+      }
+      break;
+    case state_drive:                      // status line
+      drive = out;
+      state = state_dirty;
+      break;
+    case state_dirty:
+      emulationStatus.leds(drive, out);
+      state = state_begin;
+      break;
+    case state_x:                          // text
       column = out % 80;
       state = state_y;
       break;
@@ -36,14 +64,6 @@ void EmulatorWindow::parseOutput(char out)
     case state_txt:
       text[line][column] = out;
       update(X0 + column * DX, Y0 + line * DY, DX, DY);
-      state = state_begin;
-      break;
-    case state_drive:
-      drive = out;
-      state = state_dirty;
-      break;
-    case state_dirty:
-      emulationStatus.leds(drive, out);
       state = state_begin;
       break;
   }
@@ -151,9 +171,9 @@ void EmulatorWindow::paintEvent(QPaintEvent *event)
   QFont fixed(FN, FS);
   QRect refreshed(event->rect());
   short cmin = (refreshed.left() - X0) / DX,
-	cmax = (refreshed.right() - X0 + DX - 1) / DX,
-	lmin = (refreshed.top() - Y0) / DY,
-	lmax = (refreshed.bottom() - Y0 + DY - 1) / DY;
+        cmax = (refreshed.right() - X0 + DX - 1) / DX,
+        lmin = (refreshed.top() - Y0) / DY,
+        lmax = (refreshed.bottom() - Y0 + DY - 1) / DY;
 
   if (cmin < 0) cmin = 0;
   if (cmax > 80) cmax = 80;
@@ -169,12 +189,12 @@ void EmulatorWindow::paintEvent(QPaintEvent *event)
       if (effect[line][column] == '0')
       {
         painter.setBackground(Qt::black);
-	painter.setPen(Qt::white);
+        painter.setPen(Qt::white);
       }
       else
       {
-	painter.setBackground(Qt::white);
-	painter.setPen(Qt::black);
+        painter.setBackground(Qt::white);
+        painter.setPen(Qt::black);
       }
       painter.drawText
         (X0 + column * DX, Y0 + BL + line * DY,

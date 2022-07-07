@@ -116,13 +116,25 @@ recognize_key:
 	strcmp	x3,x5,x4,r_keyboard
 	b	syntax_error
 r_rom:
-	strcpy	x6,x7,rom_filename
+	ldr	x4,=rom_filename
+	add	x5,x4,#127
+	strcpy	x6,x7,x4,x5
+	mov	w10,#0
+	strb	w10,[x8]
 	b	end_of_line
 r_drive1:
-	strcpy	x6,x7,drive1_filename
+	ldr	x4,=drive1_filename
+	add	x5,x4,#127
+	strcpy	x6,x7,x4,x5
+	mov	w10,#0
+	strb	w10,[x8]
 	b	end_of_line
 r_drive2:
-	strcpy	x6,x7,drive2_filename
+	ldr	x4,=drive2_filename
+	add	x5,x4,#127
+	strcpy	x6,x7,x4,x5
+	mov	w10,#0
+	strb	w10,[x8]
 	b	end_of_line
 r_langcard:
 	adr	x4,value_disable
