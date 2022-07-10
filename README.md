@@ -12,7 +12,7 @@ the strict minimum.
 
 ## What is done
 
-WozMania 0.2, as of 2022-07-03, emulates:
+WozMania 0.2, as of 2022-07-10, emulates:
 
 * a 6502 processor, no decimal mode;
 * an Apple ]\[ keyboard;

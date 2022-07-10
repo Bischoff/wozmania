@@ -177,12 +177,16 @@ analyze_ansi_key:
 	b.ne	1f
 	mov	VALUE,#0x8D
 	b	found_key
-1:	cmp	VALUE,#0x1B
+1:	cmp	VALUE,#0x1B		// escape
 	b.ne	2f
 	mov	w0,#SEQ_ESC
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	no_key
-2:	orr	VALUE,VALUE,#0x80
+2:	cmp	VALUE,#0x7F		// backspace
+	b.ne	3f
+	mov	VALUE,#0x88
+	b	found_key
+3:	orr	VALUE,VALUE,#0x80
 	b	found_key
 escape_ansi:
 	cmp	w0,#SEQ_ESC
@@ -258,7 +262,7 @@ analyze_gui_key:
 escape_gui:
 	cmp	VALUE,#0x1B
 	b.ne	1f
-	mov	VALUE,#0x9B		// ESC ESC = Escape
+	mov	VALUE,#0x9B		// ESC ESC = Esc
 	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]
 	b	found_key
@@ -274,7 +278,7 @@ escape_gui:
 	b	exit
 3:	cmp	VALUE,#'R'
 	b.ne	4f
-	mov	w0,#1			// ESC R = ctrl-reset
+	mov	w0,#1			// ESC R = Ctrl-Reset
 	strb	w0,[KEYBOARD,#KBD_RESET]
 4:	mov	w0,#SEQ
 	strb	w0,[KEYBOARD,#KBD_KEYSEQ]

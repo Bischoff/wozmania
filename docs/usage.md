@@ -1,15 +1,13 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
 
-[Top](wozmania.md): Table of Contents - [Next](debug.md): How to Debug
+[Top](wozmania.md): Table of Contents - [Previous](build.md): How to Build - [Next](debug.md): How to Debug
 
 
 ## How to Use
 
 
 ### Running WozMania
-
-#### Requirements
 
 To run WozMania, you need:
 
@@ -20,48 +18,19 @@ To run WozMania, you need:
 - an ANSI terminal with at least 26 rows and 80 columns
 - if you want to use the GUI, a X-Window display.
 
-#### Instructions
+To run the emulator in text mode:
 
-1. Assemble and install WozMania:
-  * go to src/emulator subdirectory
-  * run `make`
-  * run `sudo make install`.
-2. Download to the directory `/var/lib/wozmania/roms` a file
-   named `APPLE2.ROM` that contains the ROM of the Apple ]\[.
-3. Run the emulator with the command `wozmania`.
-4. To exit the emulator, press F4.
+1. Run the emulator with the command `wozmania`.
+2. To exit the emulator, press F4.
 
 ![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
 
-If you plan to run Wozmania in a Graphical User interface:
+To run WozMania in a Graphical User Interface:
 
-1. Compile and install the GUI:
-  * install the Qt5 development libraries
-  * go to `src/gui` subdirectory
-  * run `qmake wozmania-gui.pro`
-  * run `make`
-  * run `sudo make install`
-2. Start the emulator by typing `wozmania &`
-3. Start the GUI by typing `wozmania-gui`
-4. To exit the emulator, select `Power` => `off` in the menus.
+1. Start the emulator as a background task by typing `wozmania &`
+2. Start the GUI by typing `wozmania-gui`
+3. To exit the emulator, select `Power` => `off` in the menus.
 
-#### The ROM file
-
-The ROM file must contain the last part of the memory. For example,
-Apple ]\[+ ROM files covering memory from `$B000` to `$FFFF` are
-20,480 bytes long (5 x 4,096). That's larger than the ROM space
-(`$D000` to `$FFFF`, 3 x 4,096 bytes), but that's not a problem.
-
-A configuration file named `/etc/wozmania.conf` allows to fine-tune
-the emulated hardware at run time, as well as the paths to various
-files. For example, to use a different ROM file, declare:
-```
-rom /path/to/some/other/rom/file
-```
-
-WozMania essentially tries to emulate an Apple ]\[+. While other models,
-like the Apple //e, are out of focus, it is likely they will at least
-partially work if you use the ROM corresponding to those models.
 
 ### Using the Keyboard
 
@@ -262,4 +231,4 @@ gui disable
 ```
 
 
-[Top](wozmania.md): Table of Contents - [Next](debug.md): How to Debug
+[Top](wozmania.md): Table of Contents - [Previous](build.md): How to Build - [Next](debug.md): How to Debug

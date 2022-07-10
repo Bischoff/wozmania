@@ -3,8 +3,6 @@
 
 [Top](wozmania.md): Table of Contents - [Previous](performance.md): Performance Considerations
 
-<a name="biblio"/>
-
 ## Bibliography
 
 NMOS 6502 opcodes,

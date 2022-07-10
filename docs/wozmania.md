@@ -1,10 +1,13 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
-
-<a name="toc"/>
+This is the reference documentation for WozMania 0.2.
 
 ## Table of Contents
 
+ * [How to build](build.md)
+    * [Assembling the Emulator](build.md#assembling-the-emulator)
+    * [Compiling the GUI](build.md#compiling-the-gui)
+    * [The ROM file](build.md#the-rom-file)
  * [How to Use](usage.md)
     * [Running WozMania](usage.md#running-wozmania)
     * [Using the Keyboard](usage.md#using-the-keyboard)
@@ -20,4 +23,4 @@
     * [Processor Accelerations](performance.md#processor-accelerations)
     * [Input-output Accelerations](performance.md#input-output-accelerations)
     * [Not Implemented Accelerations](performance.md#not-implemented-accelerations)
- * [Bibliography](bibliography.md#biblio)
+ * [Bibliography](bibliography.md#bibliography)
