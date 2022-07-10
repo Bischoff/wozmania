@@ -59,6 +59,7 @@ BREAKPOINT	.req	x29
 	.equ	JMP,0x4C
 
 // Linux system calls
+	.equ	FCNTL,25
 	.equ	IOCTL,29
 	.equ	UNLINKAT,35
 	.equ	OPENAT,56
@@ -67,6 +68,7 @@ BREAKPOINT	.req	x29
 	.equ	WRITE,64
 	.equ	FSTAT,80
 	.equ	EXIT,93
+	.equ	NANOSLEEP,101
 	.equ	RT_SIGACTION,134
 	.equ	SOCKET,198
 	.equ	BIND,200
@@ -86,20 +88,24 @@ BREAKPOINT	.req	x29
 	.equ	SIZEOF_SIGACTION,152
 
 // Linux constants
-	.equ	STDIN,0			// file descriptors
-	.equ	STDOUT,1
-	.equ	STDERR,2
-	.equ	SIGINT,2
-	.equ	O_RDONLY,0x0		// open flags
-	.equ	O_WRONLY,0x1
-	.equ	TCGETS,0x5401		// terminal control
+	.equ	F_GETFL,3		// fcntl
+	.equ	F_SETFL,4
+	.equ	O_NONBLOCK,0x800
+	.equ	TCGETS,0x5401		// ioctl
 	.equ	TCSETS,0x5402
 	.equ	ICANON,0x2
 	.equ	ECHO,0x8
-	.equ	S_IWUSR,0x80		// file stat
+	.equ	O_RDONLY,0x0		// openat
+	.equ	O_WRONLY,0x1
+	.equ	STDIN,0			// write
+	.equ	STDOUT,1
+	.equ	STDERR,2
+	.equ	EAGAIN,-11
+	.equ	S_IWUSR,0x80		// fstat
+	.equ	SIGINT,2		// rt_sigaction
 	.equ	AF_UNIX,1		// socket
 	.equ	SOCK_STREAM,1
-	.equ	PROT_READ,0x1		// memory map
+	.equ	PROT_READ,0x1		// mmap
 	.equ	PROT_WRITE,0x2
 	.equ	MAP_PRIVATE,0x2
 	.equ	MAP_ANONYMOUS,0x20

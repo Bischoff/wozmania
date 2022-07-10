@@ -131,7 +131,7 @@ EmulatorWindow::~EmulatorWindow()
 void EmulatorWindow::readyRead()
 {
   char *output;
-  int n;
+  long n;
   const char *p;
 
   n = socket.bytesAvailable();

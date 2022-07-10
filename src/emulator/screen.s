@@ -156,8 +156,14 @@ text_gui_out:
 	char	w2,2
 	char	w6,3
 	char	w1,4
-	tosocket 5
-	br	lr
+1:	tosocket 5
+	cmp	w0,#EAGAIN
+	b.ne	2f
+	adr	x0,retry_delay
+	mov	w8,#NANOSLEEP
+	svc	0
+	b	1b
+2:	br	lr
 
 // 80 columns - compute offset in buffer
 //   input: MEM_FLAGS -> page
@@ -366,6 +372,9 @@ msg_begin:
 	.ascii	"\x1B[2J\x1B[?25l\x1B[25;1H-- WozMania 0.2 --"
 msg_end:
 	.ascii	"\x1B[26;1H\x1B[?25h"
+retry_delay:
+	.quad	0			// 0 second
+	.quad	1000000			// 1 millisecond
 rom_c800:
 	.byte	0xad,0x7b,0x07,0x29,0xf8,0xc9,0x30,0xf0
 	.byte	0x21,0xa9,0x30,0x8d,0x7b,0x07,0x8d,0xfb

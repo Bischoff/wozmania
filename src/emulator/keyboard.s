@@ -21,7 +21,7 @@ prepare_keyboard:
 	ldrb	w3,[x0]
 	tst	w3,#CNF_GUI_E
 	b.eq	prepare_ansi_keyboard
-	br	lr
+	b	prepare_gui_keyboard
 prepare_ansi_keyboard:
 	mov	w0,#STDIN		// get previous terminal definition
 	mov	w1,#TCGETS
@@ -41,6 +41,21 @@ prepare_ansi_keyboard:
 	mov	w1,#TCSETS
 	ldr	x2,=termios
 	mov	w8,#IOCTL
+	svc	0
+	br	lr
+prepare_gui_keyboard:
+	ldr	x1,=data_handle		// get previous socket options
+	ldr	w0,[x1]
+	mov	w1,#F_GETFL
+	mov	w2,#0
+	mov	w8,#FCNTL
+	svc	0
+	mov	w2,w0
+	ldr	x1,=data_handle		// amend them
+	ldr	w0,[x1]
+	mov	w1,#F_SETFL
+	orr	w2,w2,#O_NONBLOCK
+	mov	w8,#FCNTL
 	svc	0
 	br	lr
 
