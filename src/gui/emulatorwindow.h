@@ -33,11 +33,12 @@ class EmulatorWindow : public QMainWindow
     { state_begin,
       state_message,
       state_drive, state_dirty,
-      state_x, state_y, state_fx, state_txt
+      state_x, state_y, state_txt
     } state;
     char message[128], *message_p;
-    short drive,
-	  column, line;
+    char drive;
+    char fx;
+    short column, line;
     char effect[24][80],
          text[24][80];
 

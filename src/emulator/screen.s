@@ -152,11 +152,11 @@ text_ansi_out:
 //          w1 = character
 text_gui_out:
 	ldr	x3,=msg_gui
+	char	w6,0
 	char	w5,1
 	char	w2,2
-	char	w6,3
-	char	w1,4
-1:	tosocket 5
+	char	w1,3
+1:	tosocket 4
 	cmp	w0,#EAGAIN
 	b.ne	2f
 	adr	x0,retry_delay
@@ -515,7 +515,7 @@ cnx_handle:
 data_handle:
 	.word	0
 msg_gui:
-	.byte	'T',0,0,'0',' '		// "text", x, y, effects, character
+	.byte	'0',0,0,' '		// effects, x, y, character
 msg_text:
 	.ascii	"\x1B[..;..H\x1B[.m."
 screen:

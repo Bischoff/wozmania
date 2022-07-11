@@ -17,7 +17,7 @@ class EmulationStatus
 
   public:
     EmulationStatus(EmulatorWindow *emulatorWindow);
-    void leds(short drive, short dirty) const;
+    void leds(char drive, char dirty) const;
 };
 
 #endif

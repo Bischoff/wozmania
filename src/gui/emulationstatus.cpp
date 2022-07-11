@@ -35,7 +35,7 @@ EmulationStatus::EmulationStatus(EmulatorWindow *emulatorWindow)
 }
 
 // Change color of leds
-void EmulationStatus::leds(short drive, short dirty) const
+void EmulationStatus::leds(char drive, char dirty) const
 {
   QPixmap pix(6, 6);
 

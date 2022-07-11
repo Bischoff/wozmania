@@ -21,15 +21,17 @@ void EmulatorWindow::parseOutput(char out)
     case state_begin:
       switch (out)
       {
-        case 'A': state = state_message;   // alert box
-		  message_p = message;
+        case 'A': message_p = message;	// alert box
+		  state = state_message;
 		  break;
-        case 'S': state = state_drive;     // status line
-    break;
-        case 'T': state = state_x;         // text
+        case 'S': state = state_drive;	// status line
+		  break;
+	case '0': case '5': case '7':	// text
+		  fx = out;
+		  state = state_x;
       }
       break;
-    case state_message:                    // alert box
+    case state_message:			// alert box
       if (out)
       {
         if (message_p < message + 128)
@@ -41,7 +43,7 @@ void EmulatorWindow::parseOutput(char out)
         state = state_begin;
       }
       break;
-    case state_drive:                      // status line
+    case state_drive:			// status line
       drive = out;
       state = state_dirty;
       break;
@@ -49,19 +51,16 @@ void EmulatorWindow::parseOutput(char out)
       emulationStatus.leds(drive, out);
       state = state_begin;
       break;
-    case state_x:                          // text
+    case state_x:			// text
       column = out % 80;
       state = state_y;
       break;
     case state_y:
       line = out % 24;
-      state = state_fx;
-      break;
-    case state_fx:
-      effect[line][column] = out;
       state = state_txt;
       break;
     case state_txt:
+      effect[line][column] = fx;
       text[line][column] = out;
       update(X0 + column * DX, Y0 + line * DY, DX, DY);
       state = state_begin;
