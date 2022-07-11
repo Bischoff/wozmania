@@ -111,12 +111,12 @@ All changes to the disk are written to a cache in memory. This cache
 is flushed to disk when you exit the emulator.
 
 You can force flushing the current disk at any time:
-* by pressing F1 in text mode
-* by selecting `Floppy` => `Flush` menu in graphical mode.
+* by pressing F1 when running in a terminal
+* by selecting `Floppy` => `Flush` menu in the GUI.
 
 An unsaved cache is shown below the emulated screen:
-* as `D1` or `D2` in text mode
-* as a red light next to `D1` or `D2` in graphical mode.
+* as `D1` or `D2` when running in a terminal
+* as a red light next to `D1` or `D2` in the GUI.
 
 #### Enabling or Disabling the Controller
 
@@ -212,7 +212,7 @@ The emulator communicates with the GUI via the Unix domain socket
 
 ![The Graphical User Interface](gui.png)
 
-In graphical mode, the following menus are defined:
+In the GUI, the following menus are defined:
 
 | Linux menus                | Apple ]\[         |
 | -------------------------- | ----------------- |
@@ -225,7 +225,7 @@ To run WozMania with the GUI, specify in the configuration file:
 gui enable
 ```
 
-You may return to the text mode by specifying:
+You may return to a display in the terminal by specifying:
 ```
 gui disable
 ```

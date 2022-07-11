@@ -2,15 +2,14 @@
 
 ![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
 
-## Motivation
+## Goal
 
-WozMania started as a toy project. I wanted to learn ARM 64 assembler,
-so I wrote the core of an Apple ]\[ emulator as an exercise. After a while,
-I realized that I was having a lot of fun, so I continued beyond
-the strict minimum.
+WozMania tries to be a very fast Apple ]\[ simulator, at the expense
+of portability. It is written mostly in ARM 64 assembler, and
+uses Linux system calls. It has been tested on Raspberry Pi.
 
 
-## What is done
+## What is Done
 
 WozMania 0.2, as of 2022-07-10, emulates:
 
@@ -21,6 +20,11 @@ WozMania 0.2, as of 2022-07-10, emulates:
 * a language card.
 
 WozMania runs either with an ANSI terminal or with a GUI interface.
+
+
+## What is Missing
+
+See the [to do list](TODO).
 
 
 ## Usage

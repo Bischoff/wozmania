@@ -14,7 +14,7 @@ This is the reference documentation for WozMania 0.2.
     * [Using the Floppy Disks](usage.md#using-the-floppy-disks)
     * [Using the Language Card](usage.md#using-the-language-card)
     * [Using the 80 Column Card](usage.md#using-the-80-column-card)
-    * [The Graphical User interface](usage.md#the-graphical-user-interface)
+    * [The Graphical User Interface](usage.md#the-graphical-user-interface)
  * [How to Debug](debug.md)
     * [Debugging with gdb](debug.md#debugging-with-gdb)
     * [Helper Routines](debug.md#helper-routines)

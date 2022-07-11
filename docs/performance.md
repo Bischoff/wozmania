@@ -43,10 +43,16 @@ performance impact, as the Apple's ROM keeps polling the keyboard a lot,
 even when running non-interactive BASIC programs.
 
 The floppy disks are read for real only at the startup of the emulator,
-and written for real only at the end of the emulator (assuming its contents
-was modified). All input-output in the meantime only happens in memory.
-You can force an earlier flushing by pressing F1.
+and written for real only at the end of the emulator (assuming their contents
+were modified). All input-output in the meantime only happens in memory.
+You can force an earlier flushing by pressing F1 (when running in a terminal),
+or by choosing `Floppy` => `Flush` (when using the GUI).
 
+When using the Graphical User Interface, the emulator sends data to the
+screen via a Unix domain socket. When the output buffer is full, the emulator
+waits for 2.1 milliseconds and retries. This value has been determined
+experimentally as an optimum. There does not seem to be an easy way to
+increase the size of the output buffer of the socket.
 
 
 ### Not Implemented Accelerations
