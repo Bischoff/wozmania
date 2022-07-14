@@ -7,6 +7,7 @@
 .global prepare_terminal
 .global disable_80col
 .global enable_80col
+.global screen_control
 .global text40_write
 .global text80_write
 .global text80_read
@@ -86,6 +87,52 @@ enable_80col:
 	and	MEM_FLAGS,MEM_FLAGS,#~(MEM_80_1 | MEM_80_2)
 	orr	MEM_FLAGS,MEM_FLAGS,#MEM_80_E
 	br	lr
+
+// Screen control
+screen_control:
+	ldrb	VALUE,[SCREEN,#SCR_MODE]
+	mov	w0,#TXTCLR
+	cmp	ADDR,w0
+	b.ne	1f
+	and	VALUE,VALUE,#~0x01
+	b	9f
+1:	mov	w0,#TXTSET
+	cmp	ADDR,w0
+	b.ne	2f
+	orr	VALUE,VALUE,#0x01
+	b	9f
+2:	mov	w0,#MIXCLR
+	cmp	ADDR,w0
+	b.ne	3f
+	and	VALUE,VALUE,#~0x02
+	b	9f
+3:	mov	w0,#MIXSET
+	cmp	ADDR,w0
+	b.ne	4f
+	orr	VALUE,VALUE,#0x02
+	b	9f
+4:	mov	w0,#LOWSCR
+	cmp	ADDR,w0
+	b.ne	5f
+	and	VALUE,VALUE,#~0x04
+	b	9f
+5:	mov	w0,#HISCR
+	cmp	ADDR,w0
+	b.ne	6f
+	orr	VALUE,VALUE,#0x04
+	b	9f
+6:	mov	w0,#LORES
+	cmp	ADDR,w0
+	b.ne	7f
+	and	VALUE,VALUE,#~0x08
+	b	9f
+7:	mov	w0,#HIRES
+	cmp	ADDR,w0
+	b.ne	8f
+	orr	VALUE,VALUE,#0x08
+	b	9f
+9:	strb	VALUE,[SCREEN,#SCR_MODE]
+8:	br	lr
 
 // 40 column text
 text40_write:
@@ -515,6 +562,7 @@ msg_gui:
 msg_text:
 	.ascii	"\x1B[..;..H\x1B[.m."
 screen:
+	.byte	1			// 1 = text, 2 = mixed, 4 = page2, 8 = hi-res
 	.byte	0			// register number
 	.byte	0			// 1 = must refresh
 	.byte	0x7b			// R0

@@ -44,6 +44,14 @@ BREAKPOINT	.req	x29
 	.equ	LINE1,0x400		// 40 column text
 	.equ	KBD,0xC000		// I/O area
 	.equ	KBDSTRB,0xC010
+	.equ	TXTCLR,0xC050
+	.equ	TXTSET,0xC051
+	.equ	MIXCLR,0xC052
+	.equ	MIXSET,0xC053
+	.equ	LOWSCR,0xC054
+	.equ	HISCR,0xC055
+	.equ	LORES,0xC056
+	.equ	HIRES,0xC057
 	.equ	RAM_CTL_BEGIN,0xC080
 	.equ	RAM_CTL_END,0xC08F
 	.equ	V80_PAGE0,0xC0B0
@@ -119,9 +127,10 @@ BREAKPOINT	.req	x29
 	.equ	KBD_WAIT,4
 	.equ	KBD_KEYSEQ,6
 	.equ	KBD_RESET,7
-	.equ	SCR_REGISTER,0		// screen
-	.equ	SCR_REFRESH,1
-	.equ	SCR_VALUES,2
+	.equ	SCR_MODE,0		// screen
+	.equ	SCR_REGISTER,1
+	.equ	SCR_REFRESH,2
+	.equ	SCR_VALUES,3
 	.equ	SCR_BASE_HI,SCR_VALUES+12
 	.equ	SCR_BASE_LO,SCR_VALUES+13
 	.equ	DRV_NUMBER,0		// floppy drive

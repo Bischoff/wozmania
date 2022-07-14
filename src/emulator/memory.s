@@ -120,6 +120,12 @@ fetch_b_io:
 	mov	w0,#KBDSTRB		// $C000-$C010 keyboard
 	cmp	ADDR,w0
 	b.le	keyboard_read
+	mov	w0,#TXTCLR		// $C050-$C057 screen control
+	cmp	ADDR,w0
+	b.lt	nothing_to_write
+	mov	w0,#HIRES
+	cmp	ADDR,w0
+	b.le	screen_control
 	mov	w0,#RAM_CTL_BEGIN	// $C080-$C08B language card control
 	cmp	ADDR,w0
 	b.lt	nothing_to_read
@@ -265,6 +271,12 @@ store_b_io:
 	mov	w0,#KBDSTRB		// $C000-$C010 keyboard
 	cmp	ADDR,w0
 	b.le	keyboard_write
+	mov	w0,#TXTCLR		// $C050-$C057 screen control
+	cmp	ADDR,w0
+	b.lt	nothing_to_write
+	mov	w0,#HIRES
+	cmp	ADDR,w0
+	b.le	screen_control
 	mov	w0,#RAM_CTL_BEGIN	// $C080-$C08B language card control
 	cmp	ADDR,w0
 	b.lt	nothing_to_write
