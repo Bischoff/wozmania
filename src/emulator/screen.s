@@ -16,6 +16,7 @@
 .global clean_terminal
 .global rom_c800
 .global data_handle
+.global screen
 
 .include "defs.s"
 .include "macros.s"
@@ -192,10 +193,9 @@ text80_address:
 //             x4 = screen address
 //          VALUE = character to print
 text80_out:
-	ldr	x0,=screen		// substract base address
-	ldrb	w2,[x0,#SCR_BASE_HI]
+	ldrb	w2,[SCREEN,#SCR_BASE_HI] // substract base address
 	lsl	w2,w2,#8
-	ldrb	w3,[x0,#SCR_BASE_LO]
+	ldrb	w3,[SCREEN,#SCR_BASE_LO]
 	orr	w2,w2,w3
 	sub	w1,w10,w2
 	and	w1,w1,#0x7FF
@@ -226,14 +226,13 @@ text80_write:
 	bl	text80_offset
 	bl	text80_address
 	strb	VALUE,[x4]
-	ldr	x0,=screen
-	ldrb	w1,[x0,#SCR_REFRESH]	// output character, or...
+	ldrb	w1,[SCREEN,#SCR_REFRESH] // output character, or...
 	tst	w1,#0xFF
 	b.ne	1f
 	bl	text80_out
 	br	x9
 1:	mov	w1,#0			// ... refresh whole screen
-	strb	w1,[x0,#SCR_REFRESH]
+	strb	w1,[SCREEN,#SCR_REFRESH]
 	mov	w10,#0
 2:	bl	text80_address
 	ldrb	VALUE,[x4]
@@ -246,7 +245,7 @@ text80_read:
 	mov	x9,lr			// load byte from buffer
 	bl	text80_offset
 	bl	text80_address
-	ldrb	VALUE,[x0]
+	ldrb	VALUE,[x4]
 	br	x9
 
 // 80 column control - read
@@ -261,10 +260,9 @@ videx80_read:
 
 // 80 column control - read register value
 videx80_read_value:
-	ldr	x0,=screen
-	ldrb	w1,[x0,#SCR_REGISTER]
+	ldrb	w1,[SCREEN,#SCR_REGISTER]
 	add	w1,w1,#SCR_VALUES
-	ldrb	VALUE,[x0,x1]
+	ldrb	VALUE,[SCREEN,x1]
 	br	lr
 
 // 80 column control - change to another page
@@ -289,19 +287,17 @@ videx80_write_register:
 	b.eq	1f
 	cmp	VALUE,#17
 	b.gt	1f
-	ldr	x0,=screen
-	strb	VALUE,[x0,#SCR_REGISTER]
+	strb	VALUE,[SCREEN,#SCR_REGISTER]
 1:	br	lr
 
 // 80 column control - write register value
 videx80_write_value:
 	tst	MEM_FLAGS,#MEM_80_E	// store register value
 	b.eq	2f
-	ldr	x0,=screen
-	ldrb	w1,[x0,#SCR_REGISTER]
+	ldrb	w1,[SCREEN,#SCR_REGISTER]
 	add	w1,w1,#SCR_VALUES
-	ldrb	w2,[x0,x1]
-	strb	VALUE,[x0,x1]
+	ldrb	w2,[SCREEN,x1]
+	strb	VALUE,[SCREEN,x1]
 	cmp	w1,#SCR_BASE_HI		// if base address hase changed
 	b.lt	2f
 	cmp	w1,#SCR_BASE_LO
@@ -309,7 +305,7 @@ videx80_write_value:
 	cmp	VALUE,w2
 	b.eq	2f
 	mov	w1,#1			// ... then schedule a screen refresh
-	strb	w1,[x0,#SCR_REFRESH]
+	strb	w1,[SCREEN,#SCR_REFRESH]
 1:	nop
 // TODO: display cursor
 2:	br	lr

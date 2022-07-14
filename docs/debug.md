@@ -7,7 +7,6 @@
 ## How to Debug
 
 
-
 ### Debugging with gdb
 
 To generate debugging symbols, export this variable before assembling:
@@ -21,18 +20,18 @@ $ gdb wozmania
 
 From `gdb`, you may inspect the 6502 registers like this:
 ```
-(gdb) i r w19              program counter
-          w20              stack pointer
-          w21              A
-          w22              X
-          w23              Y
-          w24              program status
+(gdb) i r w18              program counter
+          w19              stack pointer
+          w20              A
+          w21              X
+          w22              Y
+          w23              program status
 ```
 
 To inspect contents of the Apple's memory, for example at emulated
 address `$0300`, use:
 ```
-(gdb) x /32xb $x25 + 0x0300
+(gdb) x /32xb $x24 + 0x0300
 ```
 
 To single-step one 6502 instruction, use:
@@ -42,7 +41,6 @@ To single-step one 6502 instruction, use:
       ...
 (gdb) c
 ```
-
 
 
 ### Helper Routines

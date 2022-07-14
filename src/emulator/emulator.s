@@ -50,7 +50,9 @@ reset:
 _start:
 	mov	MEM_FLAGS,#0		// set main registers
 	adr	INSTR,instr_table
+	ldr	SCREEN,=screen
 	ldr	KEYBOARD,=kbd
+	ldr	DRIVE,=drive1
 	.ifdef	BREAK
 	ldr	BREAKPOINT,=breakpoint
 	.endif
@@ -62,7 +64,6 @@ _start:
 	bl	adjust_hardware
 	bl	prepare_terminal
 	bl	prepare_keyboard
-	ldr	DRIVE,=drive1		// start with first drive
 coldstart:
 	bl	intercept_ctl_c
 	bl	reset
