@@ -572,6 +572,21 @@
 	strb	w1,[x3,#(\where+1)]
 	.endm
 
+	.macro	long_dec_8 reg,where
+	mov	w4,#100
+	udiv 	w0,\reg,w4
+	msub	w1,w0,w4,\reg
+	add	w0,w0,#'0'
+	strb	w0,[x3,#\where]
+	mov	w4,#10
+	udiv 	w0,w1,w4
+	msub	w1,w0,w4,w1
+	add	w0,w0,#'0'
+	strb	w0,[x3,#(\where+1)]
+	add	w1,w1,#'0'
+	strb	w1,[x3,#(\where+2)]
+	.endm
+
 	.macro	s_bit flag,letter,where
 	tst	S_REG,#\flag
 	b.eq	1f

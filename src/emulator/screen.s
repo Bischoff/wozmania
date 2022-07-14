@@ -134,7 +134,7 @@ screen_control:
 9:	strb	VALUE,[SCREEN,#SCR_MODE]
 8:	br	lr
 
-// 40 column text
+// write to first 40 column buffer
 text40_write:
 	mov	w2,ADDR			// w2 = line, w5 = column
 	sub	w2,w2,#LINE1
@@ -147,6 +147,49 @@ text40_write:
 	b.ge	screen_hole
 	lsl	w1,w1,#3
 	orr	w2,w2,w1
+	ldrb	w0,[SCREEN,#SCR_MODE]	// hi res graphic?
+	tst	w0,#0x04
+	b.eq	1f
+	br	lr
+1:	tst	w0,#0x08		// screen 2?
+	b.eq	2f
+	br	lr
+2:	tst	w0,#0x01		// low res graphic?
+	b.ne	text
+	tst	w0,#0x02		// mixed mode?
+	b.eq	low_gr
+	cmp	w2,#20			// mixed mode, row 0-19?
+	b.lt	low_gr
+	b	text
+
+// low resolution graphics
+low_gr:
+	adr	x3,color_table
+	mov	w6,VALUE		// w6 = top pixel (background)
+	and	w6,w6,#0x0F
+	ldrb	w6,[x3,x6]
+	add	w6,w6,#10
+	mov	w7,VALUE,lsr #4		// w7 = bottom pixel (foreground)
+	and	w7,w7,#0x0F
+	ldrb	w7,[x3,x7]
+
+// low resolution graphics on GUI terminal
+// TODO
+
+// low resolution graphics on ANSI terminal
+gr_ansi_out:
+	ldr	x3,=msg_gr
+	add	w2,w2,#1
+	dec_8	w2,2
+	add	w5,w5,#1
+	dec_8	w5,5
+	long_dec_8 w7,10
+	long_dec_8 w6,14
+	write	STDOUT,21
+	br	lr
+
+// 40 column text
+text:
 	mov	w1,VALUE		// w1 = character
 	lsr	w0,w1,#2		// w4 = text effect
 	and	w0,w0,#0xF8
@@ -384,6 +427,23 @@ clean_gui_terminal:
 
 // Fixed data
 
+color_table:
+	.byte	30			// Apple black, ANSI black
+	.byte	35			// Apple magenta, ANSI magenta
+	.byte	34			// Apple dark blue, ANSI blue
+	.byte	31			// Apple purple, ANSI red
+	.byte	32			// Apple dark green, ANSI green
+	.byte	37			// Apple grey 1, ANSI white
+	.byte	94			// Apple medium blue, ANSI bright blue
+	.byte	96			// Apple light blue, ANSI bright cyan
+	.byte	33			// Apple brown, ANSI yellow
+	.byte	91			// Apple orange, ANSI bright red
+	.byte	90			// Apple grey 2, ANSI bright black
+	.byte	95			// Apple pink, ANSI bright magenta
+	.byte	92			// Apple green, ANSI bright green
+	.byte	93			// Apple yellow, ANSI bright yellow
+	.byte	36			// Apple aqua, ANSI cyan
+	.byte	97			// Apple white, ANSI bright white
 video_table:
 	.quad	inverse			// 00-3F
 	.quad	inverse1
@@ -560,7 +620,13 @@ data_handle:
 msg_gui:
 	.byte	'0',0,0,' '		// effects, x, y, character
 msg_text:
-	.ascii	"\x1B[..;..H\x1B[.m."
+	.ascii	"\x1B[..;..H"
+	.ascii	"\x1B[.m"
+	.ascii	"."
+msg_gr:
+	.ascii	"\x1B[..;..H"
+	.ascii	"\x1B[...;...m"
+	.ascii	"\xE2\x96\x84"
 screen:
 	.byte	1			// 1 = text, 2 = mixed, 4 = page2, 8 = hi-res
 	.byte	0			// register number

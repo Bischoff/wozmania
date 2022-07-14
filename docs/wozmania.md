@@ -11,6 +11,7 @@ This is the reference documentation for WozMania 0.2.
  * [How to Use](usage.md)
     * [Running WozMania](usage.md#running-wozmania)
     * [Using the Keyboard](usage.md#using-the-keyboard)
+    * [Using the Screen](usage.md#using-the-screen)
     * [Using the Floppy Disks](usage.md#using-the-floppy-disks)
     * [Using the Language Card](usage.md#using-the-language-card)
     * [Using the 80 Column Card](usage.md#using-the-80-column-card)

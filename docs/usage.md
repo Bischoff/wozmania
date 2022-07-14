@@ -18,7 +18,7 @@ To run WozMania, you need:
 - an ANSI terminal with at least 26 rows and 80 columns
 - if you want to use the GUI, a X-Window display.
 
-To run the emulator in text mode:
+To run the emulator in a terminal:
 
 1. Run the emulator with the command `wozmania`.
 2. To exit the emulator, press F4.
@@ -53,6 +53,30 @@ out of 128 (2^7 = 128). The idea is to accelerate the emulator
 by not spending more time in system calls than necessary.
 The default value is 8, meaning the keyboard is polled only
 one time out of 256.
+
+
+### Using the screen
+
+WozMania emulates a display in text mode or in low-resolution graphics
+mode.
+
+In text mode, there are 40 columns on 24 lines. You reach this mode from
+BASIC by using the command `TEXT`.
+
+In low-resolution graphics mode, there are by default 40x40 pixels
+in 16 colors and 4 lines of text. You reach this mode by using the
+command `GR`. You can obtain a full graphic screen of 40x48 pixels
+in 16 colors with the BASIC command `POKE -16302,0`. You can return
+to the mixed graphic and text display with `POKE -16301,0`.
+ 
+![Low-resolution mode](/docs/lores.png)
+
+Text mode is available in both an ANSI terminal and in the GUI interface.
+Low-resolution mode is available in an ANSI terminal.
+Other combinations are under development.
+
+Note: there is also a 80-column text mode explained in the section about
+the 80 columns card below.
 
 
 ### Using the Floppy Disks
@@ -180,6 +204,7 @@ WozMania emulates a Videoterm 80 column card in slot 3 from
 [Videx](https://videx.com/contact-us/about-videx/).
 
 You can switch to 80 column mode from the BASIC by typing `PR#3`.
+You can then return to 40 column mode by typing `PR#6`.
 Some applications like [Visicalc](http://www.bricklin.com/history/saiidea.htm)
 also take advantage of the Videoterm card.
 
