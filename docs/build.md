@@ -4,7 +4,7 @@
 [Top](wozmania.md): Table of Contents - [Next](usage.md): How to Use
 
 
-## How to Use
+## How to Build
 
 
 ### Assembling the Emulator

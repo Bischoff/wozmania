@@ -60,8 +60,10 @@ one time out of 256.
 WozMania emulates a display in text mode or in low-resolution graphics
 mode.
 
-In text mode, there are 40 columns on 24 lines. You reach this mode from
-BASIC by using the command `TEXT`.
+In text mode, there are 40 columns on 24 lines. You reach this mode
+from BASIC by using the command `TEXT`. Characters can be displayed
+in normal mode (command `NORMAL`), inverted (command `INVERSE`), or
+flashing (command `FLASH`).
 
 In low-resolution graphics mode, there are by default 40x40 pixels
 in 16 colors and 4 lines of text. You reach this mode by using the

@@ -201,18 +201,18 @@ screen_hole:
 inverse:
 	add	w1,w1,#0x40
 inverse1:
-	mov	w6,#'7'
+	mov	w6,#'I'
 	b	text40_out
 flash:
 	sub	w1,w1,#0x40
 	cmp	w1,#' '
 	b.eq	inverse1		// normally, blinking inverse space
 flash1:
-	mov	w6,#'5'
+	mov	w6,#'F'
 	b	text40_out
 normal:
 	and	w1,w1,#0x7F
-	mov	w6,#'0'
+	mov	w6,#'N'
 text40_out:
 	ldr	x0,=conf_flags
 	ldrb	w3,[x0]
@@ -226,7 +226,17 @@ text40_out:
 //          w6 = effect
 //          w1 = character
 text_ansi_out:
-	ldr	x3,=msg_text
+	cmp	w6,'N'			// ANSI encoding of normal, inverse, flash
+	b.ne	1f
+	mov	w6,'0'
+	b	3f
+1:	cmp	w6,'I'
+	b.ne	2f
+	mov	w6,'7'
+	b	3f
+2:	mov	w6,'5'
+	b	3f
+3:	ldr	x3,=msg_text
 	char	w1,12
 	char	w6,10
 	add	w2,w2,#1

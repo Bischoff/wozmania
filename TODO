@@ -21,12 +21,9 @@
   - allow to configure the retry delay
     for the Linux socket?
 * Graphical User Interface:
-  - graphical error messages
   - blinking characters
   - low resolution graphics
-  - mixed low resolution graphics/text
   - high resolution graphics
-  - mixed high resolution graphics/text
 * more hardware emulation:
   - game paddles
   - printer

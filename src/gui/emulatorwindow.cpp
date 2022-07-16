@@ -21,29 +21,29 @@ void EmulatorWindow::parseOutput(char out)
     case state_begin:
       switch (out)
       {
-        case 'A': message_p = message;	// alert box
-		  state = state_message;
-		  break;
-        case 'S': state = state_drive;	// status line
-		  break;
-	case '0': case '5': case '7':	// text
-		  fx = out;
-		  state = state_x;
+        case 'A': message_p = message;  // alert box
+                  state = state_message;
+                  break;
+        case 'S': state = state_drive;  // status line
+                  break;
+        case 'N': case 'I': case 'F':   // text
+                  fx = out;
+                  state = state_x;
       }
       break;
-    case state_message:			// alert box
+    case state_message:                 // alert box
       if (out)
       {
         if (message_p < message + 128)
-	  *message_p++ = out;
+          *message_p++ = out;
       }
       else
       {
-	QMessageBox::critical(this, "WozMania 0.2", message);
+        QMessageBox::critical(this, "WozMania 0.2", message);
         state = state_begin;
       }
       break;
-    case state_drive:			// status line
+    case state_drive:                   // status line
       drive = out;
       state = state_dirty;
       break;
@@ -51,7 +51,7 @@ void EmulatorWindow::parseOutput(char out)
       emulationStatus.leds(drive, out);
       state = state_begin;
       break;
-    case state_x:			// text
+    case state_x:                       // text
       column = out % 80;
       state = state_y;
       break;
@@ -114,7 +114,7 @@ EmulatorWindow::EmulatorWindow() :
   {
     for (short column = 0; column < 80; column++)
     {
-      effect[line][column] = '0';
+      effect[line][column] = 'N';
       text[line][column] = ' ';
     }
   }
@@ -185,7 +185,7 @@ void EmulatorWindow::paintEvent(QPaintEvent *event)
   {
     for (short column = cmin; column < cmax; column++)
     {
-      if (effect[line][column] == '0')
+      if (effect[line][column] == 'N')
       {
         painter.setBackground(Qt::black);
         painter.setPen(Qt::white);
