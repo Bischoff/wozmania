@@ -1,7 +1,7 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
 
-[Top](wozmania.md): Table of Contents - [Previous](usage.md): How to Use - [Next](performance.md): Performance Considerations
+[Top](wozmania.md): Table of Contents - [Previous](subsystems.md): The Subsystems - [Next](performance.md): Performance Considerations
 
 
 ## How to Debug
@@ -106,4 +106,4 @@ To activate this routine, assemble with `F_READ=1`.
 To activate this routine, assemble with `F_WRITE=1`.
 
 
-[Top](wozmania.md): Table of Contents - [Previous](usage.md): How to Use - [Next](performance.md): Performance Considerations
+[Top](wozmania.md): Table of Contents - [Previous](subsystems.md): The Subsystems - [Next](performance.md): Performance Considerations

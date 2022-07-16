@@ -27,9 +27,9 @@ This will lead to emulation inaccuracies for the second byte:
  * addresses that span over I/O addresses will not trigger I/O
    for neither of both bytes;
  * indexed indirect addressing mode, like in `LDA   ($1A,X)`,
-   will not cycle inside page 0 for that byte;
+   will not cycle inside page 0;
  * when there is a stack overflow or underflow, the pushed or pulled
-   address will not cycle inside page 1 for that byte.
+   address will not cycle inside page 1.
 
 All those cases are very marginal and should not impact real-life scenarios.
 

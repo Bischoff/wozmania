@@ -11,7 +11,7 @@ uses Linux system calls. It has been tested on Raspberry Pi.
 
 ## What is Done
 
-WozMania 0.2, as of 2022-07-14, emulates:
+WozMania 0.2, as of 2022-07-16, emulates:
 
 * a 6502 processor, no decimal mode;
 * an Apple ]\[ keyboard;
@@ -41,9 +41,9 @@ Help wanted:
 * ideas;
 * a nice logo;
 * test more Apple ]\[ programs;
-* comparaison with real Apple ]\[ hardware;
+* compare with real Apple ]\[ hardware;
 * port to other platforms: Apple M1, Android;
-* other code.
+* any other code.
 
 Contact: eric dot1 bischoff dot2 fr snail gmail dot3 com.
 

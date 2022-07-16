@@ -4,6 +4,8 @@
   - floppy: DOS 3.3 INIT command hangs
     (verification at VTRACK routine fails)
   - 80 column: some characters replaced by space
+  - screen: characters are not flashing like on a
+    real Apple ][
 * keyboard:
   - nano timer to receive ESC key
 * 40 column support:
@@ -22,7 +24,6 @@
     for the Linux socket?
 * Graphical User Interface:
   - blinking characters
-  - low resolution graphics
   - high resolution graphics
 * more hardware emulation:
   - game paddles

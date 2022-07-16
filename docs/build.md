@@ -1,7 +1,7 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
 
-[Top](wozmania.md): Table of Contents - [Next](usage.md): How to Use
+[Top](wozmania.md): Table of Contents - [Next](run.md): How to Run
 
 
 ## How to Build
@@ -48,4 +48,4 @@ like the Apple //e, are out of focus, it is likely they will at least
 partially work if you use the ROM corresponding to those models.
 
 
-[Top](wozmania.md): Table of Contents - [Next](usage.md): How to Use
+[Top](wozmania.md): Table of Contents - [Next](run.md): How to Run

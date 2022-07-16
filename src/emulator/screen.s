@@ -164,6 +164,31 @@ text40_write:
 
 // low resolution graphics
 low_gr:
+	ldr	x0,=conf_flags
+	ldrb	w3,[x0]
+	tst	w3,#CNF_GUI_E
+	b.eq	gr_ansi_out
+	b	gr_gui_out
+
+// low resolution graphics on GUI terminal
+gr_gui_out:
+	ldr	x3,=msg_gui
+	mov	w0,#'G'
+	char	w0,0
+	char	w5,1
+	char	w2,2
+	char	VALUE,3
+1:	tosocket 4
+	cmp	w0,#EAGAIN
+	b.ne	2f
+	adr	x0,retry_delay
+	mov	w8,#NANOSLEEP
+	svc	0
+	b	1b
+2:	br	lr
+
+// low resolution graphics on ANSI terminal
+gr_ansi_out:
 	adr	x3,color_table
 	mov	w6,VALUE		// w6 = top pixel (background)
 	and	w6,w6,#0x0F
@@ -172,13 +197,7 @@ low_gr:
 	mov	w7,VALUE,lsr #4		// w7 = bottom pixel (foreground)
 	and	w7,w7,#0x0F
 	ldrb	w7,[x3,x7]
-
-// low resolution graphics on GUI terminal
-// TODO
-
-// low resolution graphics on ANSI terminal
-gr_ansi_out:
-	ldr	x3,=msg_gr
+	ldr	x3,=msg_gr		// send to the terminal
 	add	w2,w2,#1
 	dec_8	w2,2
 	add	w5,w5,#1
@@ -236,7 +255,7 @@ text_ansi_out:
 	b	3f
 2:	mov	w6,'5'
 	b	3f
-3:	ldr	x3,=msg_text
+3:	ldr	x3,=msg_text		// send to the terminal
 	char	w1,12
 	char	w6,10
 	add	w2,w2,#1

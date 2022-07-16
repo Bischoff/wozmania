@@ -21,14 +21,18 @@ void EmulatorWindow::parseOutput(char out)
     case state_begin:
       switch (out)
       {
-        case 'A': message_p = message;  // alert box
-                  state = state_message;
-                  break;
-        case 'S': state = state_drive;  // status line
-                  break;
+        case 'A':                       // alert box
+          message_p = message;
+          state = state_message;
+          break;
+        case 'S':                       // status line
+          state = state_drive;
+          break;
         case 'N': case 'I': case 'F':   // text
-                  fx = out;
-                  state = state_x;
+        case 'G':                       // low-resolution graphic
+          fx = out;
+          state = state_x;
+          break;
       }
       break;
     case state_message:                 // alert box
@@ -67,6 +71,27 @@ void EmulatorWindow::parseOutput(char out)
       break;
   }
 }
+
+// Convert Apple ][ color to Qt color
+QColor EmulatorWindow::appleColor[16] =
+{
+  QColorConstants::Svg::black,          // black
+  QColorConstants::Svg::magenta,        // magenta
+  QColorConstants::Svg::darkblue,       // dark blue
+  QColorConstants::Svg::purple,         // purple
+  QColorConstants::Svg::darkgreen,      // dark green
+  QColorConstants::Svg::darkgrey,       // grey 1
+  QColorConstants::Svg::mediumblue,     // medium blue
+  QColorConstants::Svg::lightblue,      // light blue
+  QColorConstants::Svg::brown,          // brown
+  QColorConstants::Svg::orange,         // orange
+  QColorConstants::Svg::grey,           // grey 2
+  QColorConstants::Svg::pink,           // pink
+  QColorConstants::Svg::green,          // green
+  QColorConstants::Svg::yellow,         // yellow
+  QColorConstants::Svg::aqua,           // aqua
+  QColorConstants::Svg::white           // white
+};
 
 // Constructor
 EmulatorWindow::EmulatorWindow() :
@@ -185,20 +210,26 @@ void EmulatorWindow::paintEvent(QPaintEvent *event)
   {
     for (short column = cmin; column < cmax; column++)
     {
-      if (effect[line][column] == 'N')
+      short x = X0 + column * DX,
+            y = Y0 + BL + line * DY;
+      char c = text[line][column];
+      switch (effect[line][column])
       {
-        painter.setBackground(Qt::black);
-        painter.setPen(Qt::white);
+        case 'N':
+          painter.setBackground(Qt::black);
+          painter.setPen(Qt::white);
+          painter.drawText(x, y, QString(c));
+          break;
+        case 'I': case 'F':
+          painter.setBackground(Qt::white);
+          painter.setPen(Qt::black);
+          painter.drawText(x, y, QString(c));
+          break;
+        case 'G':
+          painter.setBackground(appleColor[c & 0x0F]);
+          painter.setPen(appleColor[(c >> 4) & 0x0F]);
+          painter.drawText(x, y, QString("▄"));
       }
-      else
-      {
-        painter.setBackground(Qt::white);
-        painter.setPen(Qt::black);
-      }
-      painter.drawText
-        (X0 + column * DX, Y0 + BL + line * DY,
-         QString(text[line][column])
-        );
     }
   }
 }

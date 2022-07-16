@@ -1,5 +1,6 @@
-WozMania communicates with its Graphical User Interface
-program via a non-blocking Unix domain socket.
+The emulator communicates with the GUI via the non-blocking
+Unix domain socket `/tmp/wozmania.sock`.
+
 This document explains the protocol used.
 
 # Emulator => GUI

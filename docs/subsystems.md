@@ -1,38 +1,22 @@
 # WozMania: an Apple ][ emulator for ARM 64
 
 
-[Top](wozmania.md): Table of Contents - [Previous](build.md): How to Build - [Next](debug.md): How to Debug
+[Top](wozmania.md): Table of Contents - [Previous](run.md): How to Run - [Next](debug.md): How to Debug
 
 
-## How to Use
+## The Subsystems
 
 
-### Running WozMania
+### The Processor
 
-To run WozMania, you need:
+WozMania emulates a 6502 processor (no 65C02 at the moment).
 
-- a Linux system
-- a 64 bits ARM processor
-- at least 1 MB RAM
-- at least 2 MB disk space
-- an ANSI terminal with at least 26 rows and 80 columns
-- if you want to use the GUI, a X-Window display.
+The decimal mode of the processor is not supported.
 
-To run the emulator in a terminal:
-
-1. Run the emulator with the command `wozmania`.
-2. To exit the emulator, press F4.
-
-![DOS and Applesoft BASIC in WozMania](/docs/applesoft.png)
-
-To run WozMania in a Graphical User Interface:
-
-1. Start the emulator as a background task by typing `wozmania &`
-2. Start the GUI by typing `wozmania-gui`
-3. To exit the emulator, select `Power` => `off` in the menus.
+The "undocumented" operation codes are supported.
 
 
-### Using the Keyboard
+### The Keyboard
 
 In text mode, the following keys are defined:
 
@@ -55,10 +39,10 @@ The default value is 8, meaning the keyboard is polled only
 one time out of 256.
 
 
-### Using the screen
+### The Screen
 
 WozMania emulates a display in text mode or in low-resolution graphics
-mode.
+mode. Other combinations are under development.
 
 In text mode, there are 40 columns on 24 lines. You reach this mode
 from BASIC by using the command `TEXT`. Characters can be displayed
@@ -73,15 +57,14 @@ to the mixed graphic and text display with `POKE -16301,0`.
  
 ![Low-resolution mode](/docs/lores.png)
 
-Text mode is available in both an ANSI terminal and in the GUI interface.
-Low-resolution mode is available in an ANSI terminal.
-Other combinations are under development.
+Text mode and low-resolution mode are available in both an ANSI terminal
+and in the GUI interface.
 
 Note: there is also a 80-column text mode explained in the section about
 the 80 columns card below.
 
 
-### Using the Floppy Disks
+### The Floppy Disks
 
 WozMania emulates a floppy disk controller in slot 6.
 
@@ -164,7 +147,7 @@ If the ROM file already contains ROM code for the floppy disk controller,
 it will be overwritten with a jump to the monitor.
 
 
-### Using the Language Card
+### The Language Card
 
 Apple's language card offers additional 16 KiB of RAM and 2 KiB of ROM,
 and is inserted in slot 0. It is designed to host a language other than
@@ -200,7 +183,7 @@ langcard disable
 ```
 
 
-### Using the 80 Column Card
+### The 80 Column Card
 
 WozMania emulates a Videoterm 80 column card in slot 3 from
 [Videx](https://videx.com/contact-us/about-videx/).
@@ -230,32 +213,4 @@ You may completly disable the 80 column card by specifying:
 ```
 
 
-### The Graphical User Interface
-
-The WozMania GUI and the emulator are two separate programs.
-
-The emulator communicates with the GUI via the Unix domain socket
-`/tmp/wozmania.sock`.
-
-![The Graphical User Interface](gui.png)
-
-In the GUI, the following menus are defined:
-
-| Linux menus                | Apple ]\[         |
-| -------------------------- | ----------------- |
-| `Power` => `Off`           | Power off         |
-| `Floppy` => `Flush`        | Flush floppy disk |
-| `Keyboard` => `Ctrl-Reset` | Ctrl-Reset        |
-
-To run WozMania with the GUI, specify in the configuration file:
-```
-gui enable
-```
-
-You may return to a display in the terminal by specifying:
-```
-gui disable
-```
-
-
-[Top](wozmania.md): Table of Contents - [Previous](build.md): How to Build - [Next](debug.md): How to Debug
+[Top](wozmania.md): Table of Contents - [Previous](run.md): How to Run - [Next](debug.md): How to Debug

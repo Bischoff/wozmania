@@ -42,7 +42,8 @@ class EmulatorWindow : public QMainWindow
     char effect[24][80],
          text[24][80];
 
-    void parseOutput(char c);
+    void parseOutput(char out);
+    static QColor appleColor[16];
 
   private slots:
     void readyRead();
