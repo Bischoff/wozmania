@@ -16,8 +16,7 @@
 // Adjust optional hardware
 adjust_hardware:
 	mov	x8,lr
-	ldr	x0,=conf_flags
-	ldrb	w1,[x0]
+	ldrb	w1,[CONFIG,#CFG_FLAGS]
 	tst	w1,#CNF_LANGCARD_E
 	b.eq	1f
 	bl	enable_langcard
@@ -50,6 +49,7 @@ reset:
 _start:
 	mov	MEM_FLAGS,#0		// set main registers
 	adr	INSTR,instr_table
+	ldr	CONFIG,=config
 	ldr	SCREEN,=screen
 	ldr	KEYBOARD,=kbd
 	ldr	DRIVE,=drive1

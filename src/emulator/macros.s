@@ -502,10 +502,9 @@
 	.endm
 
 	.macro	option flag
-	ldr	x8,=conf_flags
-	ldrb	w9,[x8]
+	ldrb	w9,[CONFIG,#CFG_FLAGS]
 	orr	w9,w9,#\flag
-	strb	w9,[x8]
+	strb	w9,[CONFIG,#CFG_FLAGS]
 	.endm
 
 	.macro	filext filename,begin,end

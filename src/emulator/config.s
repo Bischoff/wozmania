@@ -5,7 +5,7 @@
 // Configuration options
 
 .global load_conf
-.global conf_flags
+.global config
 
 .include "defs.s"
 .include "macros.s"
@@ -222,5 +222,5 @@ value_disable:
 
 msg_err_conf:
 	.ascii	"Syntax error in file wozmania.conf line ..\n"
-conf_flags:				// configuration flags
-	.byte	0
+config:					// configuration
+	.byte	0			// flags: language card, floppy, 80 columns, gui

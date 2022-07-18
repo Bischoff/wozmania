@@ -17,7 +17,6 @@
     into a drive
   - more disk formats (ProDOS, etc.)
 * configuration:
-  - use a static register for the configuration too?
   - find a way to control speed (for games)
     in addition to the `keyboard_poll_ratio` setting
   - allow to configure the retry delay

@@ -5,23 +5,24 @@
 // Definitions
 
 // 6502 processor registers
-PC_REG		.req	w18
-SP_REG		.req	w19
-SP_REG_64	.req	x19
-A_REG		.req	w20
-X_REG		.req	w21
-Y_REG		.req	w22
-S_REG		.req	w23
+PC_REG		.req	w17
+SP_REG		.req	w18
+SP_REG_64	.req	x18
+A_REG		.req	w19
+X_REG		.req	w20
+Y_REG		.req	w21
+S_REG		.req	w22
 
 // "variable" registers
-MEM_FLAGS	.req	w15
-VALUE		.req	w16
-ADDR		.req	w17
-ADDR_64		.req	x17
+MEM_FLAGS	.req	w14
+VALUE		.req	w15
+ADDR		.req	w16
+ADDR_64		.req	x16
 
 // "static" registers
-MEM		.req	x24
-INSTR		.req	x25
+MEM		.req	x23
+INSTR		.req	x24
+CONFIG		.req	x25
 SCREEN		.req	x26
 KEYBOARD	.req	x27
 DRIVE		.req	x28
@@ -120,6 +121,7 @@ BREAKPOINT	.req	x29
 	.equ	MAP_ANONYMOUS,0x20
 
 // Internal structures
+	.equ	CFG_FLAGS,0		// configuration
 	.equ	KBD_BUFFER,0		// keyboard
 	.equ	KBD_STROBE,1
 	.equ	KBD_LASTKEY,2

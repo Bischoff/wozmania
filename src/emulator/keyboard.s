@@ -17,8 +17,7 @@
 
 // Set non-blocking keyboard
 prepare_keyboard:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	prepare_ansi_keyboard
 	b	prepare_gui_keyboard
@@ -61,8 +60,7 @@ prepare_gui_keyboard:
 
 // Intercept Ctrl-C
 intercept_ctl_c:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	intercept_ansi_ctl_c
 	b	clear_reset
@@ -123,8 +121,7 @@ slow_polling:
 	mov	w0,#0
 	strh	w0,[KEYBOARD,#KBD_WAIT]
 get_key:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	get_ansi_key
 	b	get_gui_key
@@ -162,8 +159,7 @@ no_key:
 
 // Analyze key
 analyze_key:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	analyze_ansi_key
 	b	analyze_gui_key
@@ -287,20 +283,21 @@ escape_gui:
 
 // Flush all disks on demand
 flush_disks:
-	mov	x14,lr
-	mov	x13,DRIVE
+	sub	sp,sp,#(2*8)
+	str	lr,[sp]
+	str	DRIVE,[sp,#8]
 	ldr	DRIVE,=drive1
 	bl	flush_drive
 	ldr	DRIVE,=drive2
 	bl	flush_drive
-	mov	DRIVE,x13
-	mov	lr,x14
+	ldr	DRIVE,[sp,#8]
+	ldr	lr,[sp]
+	add	sp,sp,#(2*8)
 	b	no_key
 
 // Restore keyboard on exit
 restore_keyboard:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	restore_ansi_keyboard
 	br	lr

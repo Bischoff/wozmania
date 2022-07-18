@@ -127,8 +127,7 @@ load_dsk_drive:
 load_failure_drive:
 	ldr	x4,=buffer
 	add	x5,x4,#(SIZEOF_BUFFER-1)
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	load_failure_ansi_drive
 	b	load_failure_gui_drive
@@ -385,8 +384,7 @@ last_nibble:
 set_dirty:
 	orr	w2,w2,#FLG_DIRTY
 	strb	w2,[DRIVE,#DRV_FLAGS]
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	set_dirty_ansi
 	b	set_dirty_gui
@@ -586,8 +584,7 @@ save_dsk_drive:
 save_failure_drive:
 	ldr	x4,=buffer
 	add	x5,x4,#(SIZEOF_BUFFER-1)
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	save_failure_ansi_drive
 	b	save_failure_gui_drive
@@ -628,8 +625,7 @@ clean_dirty:
 	ldrb	w4,[DRIVE,#DRV_FLAGS]
 	and	w4,w4,#~FLG_DIRTY
 	strb	w4,[DRIVE,#DRV_FLAGS]
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	clean_dirty_ansi
 	b	clean_dirty_gui
@@ -640,7 +636,7 @@ clean_dirty_ansi:
 	adr	x3,msg_ansi_clean_drive_1
 	b	2f
 1:	adr	x3,msg_ansi_clean_drive_2
-2:	write	STDOUT,16
+2:	write	STDOUT,15
 	br	lr
 clean_dirty_gui:
 	ldrb	w3,[DRIVE,#DRV_NUMBER]

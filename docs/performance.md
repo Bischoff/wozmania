@@ -11,7 +11,7 @@
 
 I tried to write code that was as fast as possible, even at the price of
 compactness, therefore it uses macros instead of subroutines. The ARM
-return stack is intentionally not used at all.
+return stack is intentionally almost not used at all.
 
 
 

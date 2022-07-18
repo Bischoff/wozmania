@@ -20,18 +20,18 @@ $ gdb wozmania
 
 From `gdb`, you may inspect the 6502 registers like this:
 ```
-(gdb) i r w18              program counter
-          w19              stack pointer
-          w20              A
-          w21              X
-          w22              Y
-          w23              program status
+(gdb) i r w17              program counter
+          w18              stack pointer
+          w19              A
+          w20              X
+          w21              Y
+          w22              program status
 ```
 
 To inspect contents of the Apple's memory, for example at emulated
 address `$0300`, use:
 ```
-(gdb) x /32xb $x24 + 0x0300
+(gdb) x /32xb $x23 + 0x0300
 ```
 
 To single-step one 6502 instruction, use:

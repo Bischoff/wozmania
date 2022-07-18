@@ -24,8 +24,7 @@
 
 // Prepare text terminal
 prepare_terminal:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	prepare_ansi_terminal
 	b	prepare_gui_terminal
@@ -164,8 +163,7 @@ text40_write:
 
 // low resolution graphics
 low_gr:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	gr_ansi_out
 	b	gr_gui_out
@@ -233,8 +231,7 @@ normal:
 	and	w1,w1,#0x7F
 	mov	w6,#'N'
 text40_out:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	text_ansi_out
 	b	text_gui_out
@@ -333,8 +330,7 @@ text80_out:
 	b	3f
 2:	mov	w6,#'0'
 3:	mov	w1,VALUE		// write character on screen
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	text_ansi_out
 	b	text_gui_out
@@ -431,8 +427,7 @@ videx80_write_value:
 
 // Cleanup terminal on exit
 clean_terminal:
-	ldr	x0,=conf_flags
-	ldrb	w3,[x0]
+	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
 	b.eq	clean_ansi_terminal
 	b	clean_gui_terminal
