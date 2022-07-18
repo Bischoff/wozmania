@@ -57,6 +57,11 @@ to the mixed graphic and text display with `POKE -16301,0`.
  
 ![Low-resolution mode](/docs/lores.png)
 
+There are in fact two text and low resolution screens, one at address
+`$400` to `$7FF`, and the other one at address `$800` to `$BFF`.
+From BASIC, `POKE -16299,0` switches to the second screen, while
+`POKE -16300,0` or `TEXT` switches back to the first screen.
+
 Text mode and low-resolution mode are available in both an ANSI terminal
 and in the GUI interface.
 

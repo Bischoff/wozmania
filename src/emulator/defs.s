@@ -43,6 +43,7 @@ BREAKPOINT	.req	x29
 // ROM routines and I/O addresses
 	.equ	STACK,0x100		// processor stack
 	.equ	LINE1,0x400		// 40 column text
+	.equ	PRGMEM,0x800
 	.equ	KBD,0xC000		// I/O area
 	.equ	KBDSTRB,0xC010
 	.equ	TXTCLR,0xC050

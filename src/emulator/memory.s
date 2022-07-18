@@ -246,7 +246,7 @@ fetch_h_ef:
 	ldrh	VALUE,[MEM,ADDR_64]
 	br	lr
 
-// Store byte from memory, taking into account I/O
+// Store byte to memory, taking into account I/O
 //   input: ADDR  = 6502 address of byte to write
 //          VALUE = byte to write
 //   beware this routine may modify w0-w8
@@ -254,9 +254,9 @@ store_b_addr:
 	cmp	ADDR,#0xC000
 	b.ge	store_b_not_ram
 	strb	VALUE,[MEM,ADDR_64]	// Normal RAM or text
-	cmp	ADDR,#0x0400		// $0400-$07FF 40 column text
+	cmp	ADDR,#0x0400		// $0400-$0BFF 40 column text
 	b.lt	1f
-	cmp	ADDR,#0x0800
+	cmp	ADDR,#0x0C00
 	b.lt	text40_write
 1:	br	lr
 store_b_not_ram:

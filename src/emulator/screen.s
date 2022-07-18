@@ -133,11 +133,25 @@ screen_control:
 9:	strb	VALUE,[SCREEN,#SCR_MODE]
 8:	br	lr
 
-// write to first 40 column buffer
+// write to 40 column buffer
 text40_write:
-	mov	w2,ADDR			// w2 = line, w5 = column
+	ldrb	w0,[SCREEN,#SCR_MODE]	// hi res graphic?
+	tst	w0,#0x08
+	b.ne	2f
+	cmp	ADDR,#0x800		// screen 1
+	b.ge	1f
+	tst	w0,#0x04
+	b.ne	2f
+	mov	w2,ADDR
 	sub	w2,w2,#LINE1
-	and	w0,w2,#0x7F
+	b	3f
+1:	tst	w0,#0x04		// screen 2 (at same place as program memory!)
+	b.eq	2f
+	mov	w2,ADDR
+	sub	w2,w2,#PRGMEM
+	b	3f
+2:	br	lr
+3:	and	w0,w2,#0x7F		// w2 = line, w5 = column
 	lsr	w2,w2,#7
 	mov	w4,#40
 	udiv	w1,w0,w4
@@ -146,14 +160,8 @@ text40_write:
 	b.ge	screen_hole
 	lsl	w1,w1,#3
 	orr	w2,w2,w1
-	ldrb	w0,[SCREEN,#SCR_MODE]	// hi res graphic?
-	tst	w0,#0x04
-	b.eq	1f
-	br	lr
-1:	tst	w0,#0x08		// screen 2?
-	b.eq	2f
-	br	lr
-2:	tst	w0,#0x01		// low res graphic?
+	ldrb	w0,[SCREEN,#SCR_MODE]	// low res graphic?
+	tst	w0,#0x01
 	b.ne	text
 	tst	w0,#0x02		// mixed mode?
 	b.eq	low_gr
@@ -326,9 +334,9 @@ text80_out:
 	tst	VALUE,#0x80		// w6 = effect
 	b.eq	2f
 	and	VALUE,VALUE,#0x7F
-	mov	w6,#'7'
+	mov	w6,#'I'
 	b	3f
-2:	mov	w6,#'0'
+2:	mov	w6,#'N'
 3:	mov	w1,VALUE		// write character on screen
 	ldrb	w3,[CONFIG,#CFG_FLAGS]
 	tst	w3,#CNF_GUI_E
