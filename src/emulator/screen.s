@@ -130,13 +130,14 @@ screen_control:
 	b.ne	8f
 	orr	VALUE,VALUE,#0x08
 	b	9f
-9:	strb	VALUE,[SCREEN,#SCR_MODE]
+9:	and	VALUE,VALUE,#~0x10
+	strb	VALUE,[SCREEN,#SCR_MODE]
 8:	br	lr
 
 // write to 40 column buffer
 text40_write:
-	ldrb	w0,[SCREEN,#SCR_MODE]	// hi res graphic?
-	tst	w0,#0x08
+	ldrb	w0,[SCREEN,#SCR_MODE]	// hi res graphic or 80 columns?
+	tst	w0,#0x18
 	b.ne	2f
 	cmp	ADDR,#0x800		// screen 1
 	b.ge	1f
@@ -390,17 +391,29 @@ videx80_read_value:
 
 // 80 column control - change to another page
 videx80_page0:
+	ldrb	w0,[SCREEN,#SCR_MODE]
+	orr	w0,w0,#0x10
+	strb	w0,[SCREEN,#SCR_MODE]
 	and	MEM_FLAGS,MEM_FLAGS,#~(MEM_80_1 | MEM_80_2)
 	br	lr
 videx80_page1:
+	ldrb	w0,[SCREEN,#SCR_MODE]
+	orr	w0,w0,#0x10
+	strb	w0,[SCREEN,#SCR_MODE]
 	orr	MEM_FLAGS,MEM_FLAGS,#MEM_80_1
 	and	MEM_FLAGS,MEM_FLAGS,#~MEM_80_2
 	br	lr
 videx80_page2:
+	ldrb	w0,[SCREEN,#SCR_MODE]
+	orr	w0,w0,#0x10
+	strb	w0,[SCREEN,#SCR_MODE]
 	and	MEM_FLAGS,MEM_FLAGS,#~MEM_80_1
 	orr	MEM_FLAGS,MEM_FLAGS,#MEM_80_2
 	br	lr
 videx80_page3:
+	ldrb	w0,[SCREEN,#SCR_MODE]
+	orr	w0,w0,#0x10
+	strb	w0,[SCREEN,#SCR_MODE]
 	orr	MEM_FLAGS,MEM_FLAGS,#(MEM_80_1 | MEM_80_2)
 	br	lr
 
@@ -660,7 +673,7 @@ msg_gr:
 	.ascii	"\x1B[...;...m"
 	.ascii	"\xE2\x96\x84"
 screen:
-	.byte	1			// 1 = text, 2 = mixed, 4 = page2, 8 = hi-res
+	.byte	1			// 1 = text, 2 = mixed, 4 = page2, 8 = hi-res, 10 = 80 col
 	.byte	0			// register number
 	.byte	0			// 1 = must refresh
 	.byte	0x7b			// R0

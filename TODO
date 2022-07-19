@@ -3,13 +3,17 @@
 * known bugs:
   - floppy: DOS 3.3 INIT command hangs
     (verification at VTRACK routine fails)
-  - 80 column: some characters replaced by space
   - screen: characters are not flashing like on a
     real Apple ][
 * keyboard:
   - nano timer to receive ESC key
 * 80 column support:
+  - Ctrl-Z,1 to return to 40 columns
+  - clean right part of screen when returning
+    to 40 columns
   - display cursor
+* 40 column support;
+  - refresh screen at text <-> gr changes
 * floppy disk support:
   - function key and menu item to hot-load a floppy
     into a drive
