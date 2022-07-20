@@ -130,8 +130,7 @@ screen_control:
 	b.ne	8f
 	orr	VALUE,VALUE,#0x08
 	b	9f
-9:	and	VALUE,VALUE,#~0x10
-	strb	VALUE,[SCREEN,#SCR_MODE]
+9:	strb	VALUE,[SCREEN,#SCR_MODE]
 8:	br	lr
 
 // write to 40 column buffer

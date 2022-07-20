@@ -301,6 +301,9 @@ store_b_io:
 	mov	w0,#0xCE00
 	cmp	ADDR,w0
 	b.lt	text80_write
+	mov	w0,#0xCFFF		// $CFFF reset expansion cards
+	cmp	ADDR,w0
+	b.eq	reset_cards
 	br	lr
 store_b_d:
 	tst	MEM_FLAGS,#MEM_LC_W
@@ -358,6 +361,14 @@ col80_rom_h:
 	ldrh	VALUE,[x0,ADDR_64]
 1:	br	lr
 
+
+// Reset expansion cards
+reset_cards:
+	mov	w0,#1			// Reset 80 column cards
+	strb	w0,[SCREEN,#SCR_MODE]
+// TODO: reset floppy?
+//       reset language card?
+	br	lr
 
 // Fixed data
 

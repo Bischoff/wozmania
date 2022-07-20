@@ -194,7 +194,7 @@ WozMania emulates a Videoterm 80 column card in slot 3 from
 [Videx](https://videx.com/contact-us/about-videx/).
 
 You can switch to 80 column mode from the BASIC by typing `PR#3`.
-You can then return to 40 column mode by typing `PR#6`.
+You can then return to 40 column mode by typing `PRINT CHR$(26)"1"`.
 Some applications like [Visicalc](http://www.bricklin.com/history/saiidea.htm)
 also take advantage of the Videoterm card.
 

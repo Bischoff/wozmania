@@ -8,12 +8,11 @@
 * keyboard:
   - nano timer to receive ESC key
 * 80 column support:
-  - Ctrl-Z,1 to return to 40 columns
-  - clean right part of screen when returning
-    to 40 columns
   - display cursor
 * 40 column support;
-  - refresh screen at text <-> gr changes
+  - refresh screen at TEXT <-> GR changes
+  - refresh screen at 80 col <-> 40 changes,
+    including right part of the screen
 * floppy disk support:
   - function key and menu item to hot-load a floppy
     into a drive
