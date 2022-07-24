@@ -11,15 +11,16 @@ uses Linux system calls. It has been tested on Raspberry Pi.
 
 ## What is Done
 
-WozMania 0.2, as of 2022-07-16, emulates:
+WozMania 0.2, as of 2022-07-25, emulates:
 
 * a 6502 processor, no decimal mode;
 * an Apple ]\[ keyboard;
-* video output:
-  * text mode, 40 and 80 columns for 24 lines,
-  * low resolution mode, 40x40 or 40x48 pixels in 16 colors;
-* floppy disks 1 and 2, `.nib` and `.dsk` formats;
-* a language card.
+* standard video output:
+  * text mode, 40 columns for 24 lines,
+  * low resolution graphics, 40x40 or 40x48 pixels in 16 colors;
+* two floppy disks, `.nib` and `.dsk` formats;
+* a language card;
+* a Videx Videoterm 80 columns card.
 
 WozMania runs either with an ANSI terminal or with a GUI interface.
 

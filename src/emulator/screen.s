@@ -91,61 +91,77 @@ enable_80col:
 screen_control:
 	ldrb	VALUE,[SCREEN,#SCR_MODE]
 	mov	w0,#TXTCLR
-	cmp	ADDR,w0
+	sub	w1,ADDR,w0
+	adr	x0,control_table
+	ldr	x2,[x0,x1,LSL 3]
+	br	x2
+screen_control_2:
+	strb	VALUE,[SCREEN,#SCR_MODE]
+	br	lr
+screen_txtclr:
+	and	VALUE,VALUE,#~SCR_TXT
+	b	screen_control_2
+screen_txtset:
+	orr	VALUE,VALUE,#SCR_TXT
+	b	screen_control_2
+screen_mixclr:
+	and	VALUE,VALUE,#~SCR_MIX
+	b	screen_control_2
+screen_mixset:
+	orr	VALUE,VALUE,#SCR_MIX
+	b	screen_control_2
+screen_lowscr:
+	and	VALUE,VALUE,#~SCR_HI
+	b	screen_control_2
+screen_hiscr:
+	orr	VALUE,VALUE,#SCR_HI
+	b	screen_control_2
+screen_lores:
+	and	VALUE,VALUE,#~SCR_HGR
+	b	screen_control_2
+screen_hires:
+	orr	VALUE,VALUE,#SCR_HGR
+	b	screen_control_2
+screen_setan0:				// return to 40 column mode
+	tst	VALUE,#SCR_80COL
+	b.eq	2f
+	ldrb	w0,[CONFIG,#CFG_FLAGS]
+	tst	w0,#CNF_GUI_E
 	b.ne	1f
-	and	VALUE,VALUE,#~0x01
-	b	9f
-1:	mov	w0,#TXTSET
-	cmp	ADDR,w0
+	adr	x3,msg_40col_ansi
+	write	STDOUT,272
+	b	2f
+1:	adr	x3,msg_40col_gui
+	tosocket 2
+2:	mov	VALUE,#SCR_TXT
+	b	screen_control_2
+screen_clran0:				// change to 80 col mode
+	tst	VALUE,#SCR_80COL
 	b.ne	2f
-	orr	VALUE,VALUE,#0x01
-	b	9f
-2:	mov	w0,#MIXCLR
-	cmp	ADDR,w0
-	b.ne	3f
-	and	VALUE,VALUE,#~0x02
-	b	9f
-3:	mov	w0,#MIXSET
-	cmp	ADDR,w0
-	b.ne	4f
-	orr	VALUE,VALUE,#0x02
-	b	9f
-4:	mov	w0,#LOWSCR
-	cmp	ADDR,w0
-	b.ne	5f
-	and	VALUE,VALUE,#~0x04
-	b	9f
-5:	mov	w0,#HISCR
-	cmp	ADDR,w0
-	b.ne	6f
-	orr	VALUE,VALUE,#0x04
-	b	9f
-6:	mov	w0,#LORES
-	cmp	ADDR,w0
-	b.ne	7f
-	and	VALUE,VALUE,#~0x08
-	b	9f
-7:	mov	w0,#HIRES
-	cmp	ADDR,w0
-	b.ne	8f
-	orr	VALUE,VALUE,#0x08
-	b	9f
-9:	strb	VALUE,[SCREEN,#SCR_MODE]
-8:	br	lr
+	ldrb	w0,[CONFIG,#CFG_FLAGS]
+	tst	w0,#CNF_GUI_E
+	b.ne	1f
+	adr	x3,msg_80col_ansi
+	write	STDOUT,6
+	b	2f
+1:	adr	x3,msg_80col_gui
+	tosocket 2
+2:	mov	VALUE,#SCR_80COL
+	b	screen_control_2
 
 // write to 40 column buffer
 text40_write:
 	ldrb	w0,[SCREEN,#SCR_MODE]	// hi res graphic or 80 columns?
-	tst	w0,#0x18
+	tst	w0,#(SCR_HGR | SCR_80COL)
 	b.ne	2f
 	cmp	ADDR,#0x800		// screen 1
 	b.ge	1f
-	tst	w0,#0x04
+	tst	w0,#SCR_HI
 	b.ne	2f
 	mov	w2,ADDR
 	sub	w2,w2,#LINE1
 	b	3f
-1:	tst	w0,#0x04		// screen 2 (at same place as program memory!)
+1:	tst	w0,#SCR_HI		// screen 2 (at same place as program memory!)
 	b.eq	2f
 	mov	w2,ADDR
 	sub	w2,w2,#PRGMEM
@@ -161,9 +177,9 @@ text40_write:
 	lsl	w1,w1,#3
 	orr	w2,w2,w1
 	ldrb	w0,[SCREEN,#SCR_MODE]	// low res graphic?
-	tst	w0,#0x01
+	tst	w0,#SCR_TXT
 	b.ne	text
-	tst	w0,#0x02		// mixed mode?
+	tst	w0,#SCR_MIX		// mixed mode?
 	b.eq	low_gr
 	cmp	w2,#20			// mixed mode, row 0-19?
 	b.lt	low_gr
@@ -390,29 +406,17 @@ videx80_read_value:
 
 // 80 column control - change to another page
 videx80_page0:
-	ldrb	w0,[SCREEN,#SCR_MODE]
-	orr	w0,w0,#0x10
-	strb	w0,[SCREEN,#SCR_MODE]
 	and	MEM_FLAGS,MEM_FLAGS,#~(MEM_80_1 | MEM_80_2)
 	br	lr
 videx80_page1:
-	ldrb	w0,[SCREEN,#SCR_MODE]
-	orr	w0,w0,#0x10
-	strb	w0,[SCREEN,#SCR_MODE]
 	orr	MEM_FLAGS,MEM_FLAGS,#MEM_80_1
 	and	MEM_FLAGS,MEM_FLAGS,#~MEM_80_2
 	br	lr
 videx80_page2:
-	ldrb	w0,[SCREEN,#SCR_MODE]
-	orr	w0,w0,#0x10
-	strb	w0,[SCREEN,#SCR_MODE]
 	and	MEM_FLAGS,MEM_FLAGS,#~MEM_80_1
 	orr	MEM_FLAGS,MEM_FLAGS,#MEM_80_2
 	br	lr
 videx80_page3:
-	ldrb	w0,[SCREEN,#SCR_MODE]
-	orr	w0,w0,#0x10
-	strb	w0,[SCREEN,#SCR_MODE]
 	orr	MEM_FLAGS,MEM_FLAGS,#(MEM_80_1 | MEM_80_2)
 	br	lr
 
@@ -488,6 +492,17 @@ color_table:
 	.byte	93			// Apple yellow, ANSI bright yellow
 	.byte	36			// Apple aqua, ANSI cyan
 	.byte	97			// Apple white, ANSI bright white
+control_table:
+	.quad	screen_txtclr
+	.quad	screen_txtset
+	.quad	screen_mixclr
+	.quad	screen_mixset
+	.quad	screen_lowscr
+	.quad	screen_hiscr
+	.quad	screen_lores
+	.quad	screen_hires
+	.quad	screen_setan0
+	.quad	screen_clran0
 video_table:
 	.quad	inverse			// 00-3F
 	.quad	inverse1
@@ -519,6 +534,39 @@ msg_begin:
 	.ascii	"\x1B[2J\x1B[?25l\x1B[25;1H-- WozMania 0.2 --"
 msg_end:
 	.ascii	"\x1B[26;1H\x1B[?25h"
+msg_40col_ansi:
+	.ascii  "\x1B[?25l"		// hide cursor
+	.ascii	"\x1B[1;41H\x1B[K"	// clear right of screen
+	.ascii	"\x1B[2;41H\x1B[K"
+	.ascii	"\x1B[3;41H\x1B[K"
+	.ascii	"\x1B[4;41H\x1B[K"
+	.ascii	"\x1B[5;41H\x1B[K"
+	.ascii	"\x1B[6;41H\x1B[K"
+	.ascii	"\x1B[7;41H\x1B[K"
+	.ascii	"\x1B[8;41H\x1B[K"
+	.ascii	"\x1B[9;41H\x1B[K"
+	.ascii	"\x1B[10;41H\x1B[K"
+	.ascii	"\x1B[11;41H\x1B[K"
+	.ascii	"\x1B[12;41H\x1B[K"
+	.ascii	"\x1B[13;41H\x1B[K"
+	.ascii	"\x1B[14;41H\x1B[K"
+	.ascii	"\x1B[15;41H\x1B[K"
+	.ascii	"\x1B[16;41H\x1B[K"
+	.ascii	"\x1B[17;41H\x1B[K"
+	.ascii	"\x1B[18;41H\x1B[K"
+	.ascii	"\x1B[19;41H\x1B[K"
+	.ascii	"\x1B[20;41H\x1B[K"
+	.ascii	"\x1B[21;41H\x1B[K"
+	.ascii	"\x1B[22;41H\x1B[K"
+	.ascii	"\x1B[23;41H\x1B[K"
+	.ascii	"\x1B[24;41H\x1B[K"
+	.ascii	"\x1B[25;41H\x1B[K"
+msg_80col_ansi:
+	.ascii  "\x1B[?25h"		// show cursor
+msg_40col_gui:
+	.ascii	"C4"
+msg_80col_gui:
+	.ascii	"C8"
 retry_delay:
 	.quad	0			// 0 second
 	.quad	0x200000		// 2.1 milliseconds

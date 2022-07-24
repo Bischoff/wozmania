@@ -3,16 +3,9 @@
 * known bugs:
   - floppy: DOS 3.3 INIT command hangs
     (verification at VTRACK routine fails)
-  - screen: characters are not flashing like on a
-    real Apple ][
+  - IN#0 in 80 col hangs
 * keyboard:
   - nano timer to receive ESC key
-* 80 column support:
-  - display cursor
-* 40 column support;
-  - refresh screen at TEXT <-> GR changes
-  - refresh screen at 80 col <-> 40 changes,
-    including right part of the screen
 * floppy disk support:
   - function key and menu item to hot-load a floppy
     into a drive
@@ -23,7 +16,8 @@
   - allow to configure the retry delay
     for the Linux socket?
 * Graphical User Interface:
-  - blinking characters
+  - blinking characters,
+    including cursor in 80 col mode
   - high resolution graphics
 * more hardware emulation:
   - game paddles

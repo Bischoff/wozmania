@@ -32,7 +32,7 @@ For example, if you set in `/etc/wozmania.conf`:
 ```
 keyboard_poll_ratio 7
 ```
-it means that keyboard is polled for real only one time
+It means that keyboard is polled for real only one time
 out of 128 (2^7 = 128). The idea is to accelerate the emulator
 by not spending more time in system calls than necessary.
 The default value is 8, meaning the keyboard is polled only

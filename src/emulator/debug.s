@@ -116,8 +116,8 @@ invalid:
 	sub	PC_REG,PC_REG,#1
 	adr	x2,hex
 	ldr	x3,=msg_invalid
-	hex_16	PC_REG,40
-	write	STDERR,45
+	hex_16	PC_REG,33
+	write	STDERR,38
 	b	exit
 	.endif
 
@@ -142,7 +142,7 @@ msg_disk:
 	.endif
 	.ifdef	CHECK
 msg_invalid:
-	.ascii	"\x1B[25;01H\x1B[?25hInvalid register value at ....\n"
+	.ascii	"\x1B[25;1HInvalid register value at ....\n"
 	.endif
 	.ifdef	BREAK
 breakpoint:

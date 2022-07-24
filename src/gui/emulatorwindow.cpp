@@ -33,6 +33,9 @@ void EmulatorWindow::parseOutput(char out)
           fx = out;
           state = state_x;
           break;
+        case 'C':                       // change 40/80 column mode
+          state = state_changemode;
+          break;
       }
       break;
     case state_message:                 // alert box
@@ -69,6 +72,11 @@ void EmulatorWindow::parseOutput(char out)
       update(X0 + column * DX, Y0 + line * DY, DX, DY);
       state = state_begin;
       break;
+    case state_changemode:              // change mode
+      mode = out;
+      update(X0 + 40 * DX, Y0, 40 * DX, 24 * DY + 3);
+      state = state_begin;
+      break;
   }
 }
 
@@ -92,6 +100,72 @@ QColor EmulatorWindow::appleColor[16] =
   QColorConstants::Svg::aqua,           // aqua
   QColorConstants::Svg::white           // white
 };
+
+// Clear the right 40 columns that are empty in 40-column mode
+void EmulatorWindow::clearRightPart(const QRect &refreshed)
+{
+  QRect rightPart(X0 + 40 * DX, Y0, 40 * DX, 24 * DY + 3);
+
+  rightPart &= refreshed;
+
+  if (!rightPart.isEmpty())
+  {
+    QPainter painter(this);
+    QColor color(palette().color(QPalette::Window));
+    QBrush brush(color, Qt::SolidPattern);
+
+    painter.fillRect(rightPart & refreshed, brush);
+  }
+}
+
+// Display the text
+void EmulatorWindow::displayText(const QRect &refreshed)
+{
+  QPainter painter(this);
+  QFont fixed(FN, FS);
+  short cmin = (refreshed.left() - X0) / DX,
+        cmax = (refreshed.right() - X0 + DX - 1) / DX,
+        lmin = (refreshed.top() - Y0) / DY,
+        lmax = (refreshed.bottom() - Y0 + DY - 1) / DY;
+
+  if (cmin < 0) cmin = 0;
+  switch (mode)
+  {
+    case '4': if (cmax > 40) cmax = 40; break;
+    case '8': if (cmax > 80) cmax = 80; break;
+  }
+  if (lmin < 0) lmin = 0;
+  if (lmax > 24) lmax = 24;
+
+  painter.setFont(fixed);
+  painter.setBackgroundMode(Qt::OpaqueMode);
+  for (short line = lmin; line < lmax; line++)
+  {
+    for (short column = cmin; column < cmax; column++)
+    {
+      short x = X0 + column * DX,
+            y = Y0 + BL + line * DY;
+      char c = text[line][column];
+      switch (effect[line][column])
+      {
+        case 'N':
+          painter.setBackground(Qt::black);
+          painter.setPen(Qt::white);
+          painter.drawText(x, y, QString(c));
+          break;
+        case 'I': case 'F':
+          painter.setBackground(Qt::white);
+          painter.setPen(Qt::black);
+          painter.drawText(x, y, QString(c));
+          break;
+        case 'G':
+          painter.setBackground(appleColor[c & 0x0F]);
+          painter.setPen(appleColor[(c >> 4) & 0x0F]);
+          painter.drawText(x, y, QString("▄"));
+      }
+    }
+  }
+}
 
 // Constructor
 EmulatorWindow::EmulatorWindow() :
@@ -143,6 +217,7 @@ EmulatorWindow::EmulatorWindow() :
       text[line][column] = ' ';
     }
   }
+  mode = '4';
 }
 
 // Destructor
@@ -191,47 +266,12 @@ void EmulatorWindow::ctrlReset()
 // Refresh window contents
 void EmulatorWindow::paintEvent(QPaintEvent *event)
 {
-  QPainter painter(this);
-  QFont fixed(FN, FS);
   QRect refreshed(event->rect());
-  short cmin = (refreshed.left() - X0) / DX,
-        cmax = (refreshed.right() - X0 + DX - 1) / DX,
-        lmin = (refreshed.top() - Y0) / DY,
-        lmax = (refreshed.bottom() - Y0 + DY - 1) / DY;
 
-  if (cmin < 0) cmin = 0;
-  if (cmax > 80) cmax = 80;
-  if (lmin < 0) lmin = 0;
-  if (lmax > 24) lmax = 24;
+  if (mode == '4')
+    clearRightPart(refreshed);
 
-  painter.setFont(fixed);
-  painter.setBackgroundMode(Qt::OpaqueMode);
-  for (short line = lmin; line < lmax; line++)
-  {
-    for (short column = cmin; column < cmax; column++)
-    {
-      short x = X0 + column * DX,
-            y = Y0 + BL + line * DY;
-      char c = text[line][column];
-      switch (effect[line][column])
-      {
-        case 'N':
-          painter.setBackground(Qt::black);
-          painter.setPen(Qt::white);
-          painter.drawText(x, y, QString(c));
-          break;
-        case 'I': case 'F':
-          painter.setBackground(Qt::white);
-          painter.setPen(Qt::black);
-          painter.drawText(x, y, QString(c));
-          break;
-        case 'G':
-          painter.setBackground(appleColor[c & 0x0F]);
-          painter.setPen(appleColor[(c >> 4) & 0x0F]);
-          painter.drawText(x, y, QString("▄"));
-      }
-    }
-  }
+  displayText(refreshed);
 }
 
 // Send pressed key to emulator

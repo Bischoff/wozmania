@@ -25,6 +25,14 @@ This document explains the protocol used.
    and the color of bottom pixel is coded in the 4 low-order
    bits of `pair`
 
+ * 'C' '8'
+
+   changes mode to 80 column
+
+ * 'C' '4'
+
+   changes mode to 40 column
+
  * 'A' `message`
 
    prints null-terminated `message` in an alert box

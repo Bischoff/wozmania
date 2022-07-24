@@ -33,7 +33,8 @@ class EmulatorWindow : public QMainWindow
     { state_begin,
       state_message,
       state_drive, state_dirty,
-      state_x, state_y, state_txt
+      state_x, state_y, state_txt,
+      state_changemode
     } state;
     char message[128], *message_p;
     char drive;
@@ -41,9 +42,12 @@ class EmulatorWindow : public QMainWindow
     short column, line;
     char effect[24][80],
          text[24][80];
+    char mode;
 
     void parseOutput(char out);
     static QColor appleColor[16];
+    void clearRightPart(const QRect &refreshed);
+    void displayText(const QRect &refreshed);
 
   private slots:
     void readyRead();

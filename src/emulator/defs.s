@@ -54,6 +54,8 @@ BREAKPOINT	.req	x29
 	.equ	HISCR,0xC055
 	.equ	LORES,0xC056
 	.equ	HIRES,0xC057
+	.equ	SETAN0,0x0C058
+	.equ	CLRAN0,0x0C059
 	.equ	RAM_CTL_BEGIN,0xC080
 	.equ	RAM_CTL_END,0xC08F
 	.equ	V80_PAGE0,0xC0B0
@@ -159,6 +161,11 @@ BREAKPOINT	.req	x29
 	.equ	FLG_DIRTY,0x04
 	.equ	FLG_DSK,0x08
 	.equ	FLG_READONLY,0x80
+	.equ	SCR_TXT,0x01		// screen mode flags
+	.equ	SCR_MIX,0x02
+	.equ	SCR_HI,0x04
+	.equ	SCR_HGR,0x08
+	.equ	SCR_80COL,0x10
 	.equ	SEQ,0			// keyboard sequence
 	.equ	SEQ_ESC,1
 	.equ	SEQ_ESC_BRA,2
