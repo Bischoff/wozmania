@@ -1,7 +1,8 @@
                        TO DO
 
 * known bugs:
-  - floppy: DOS 3.3 INIT command hangs
+  - floppy: DOS 3.3 INIT command works, hangs, or
+    returns I/O ERROR, depending on the disk
     (verification at VTRACK routine fails)
   - IN#0 in 80 col hangs
 * keyboard:

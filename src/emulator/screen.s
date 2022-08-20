@@ -533,7 +533,7 @@ unix_domain_len = . - unix_domain_socket
 msg_begin:
 	.ascii	"\x1B[2J\x1B[?25l\x1B[25;1H-- WozMania 0.2 --"
 msg_end:
-	.ascii	"\x1B[26;1H\x1B[?25h"
+	.ascii	"\x1B[27;1H\x1B[?25h"
 msg_40col_ansi:
 	.ascii  "\x1B[?25l"		// hide cursor
 	.ascii	"\x1B[1;41H\x1B[K"	// clear right of screen
